@@ -4,6 +4,8 @@ A native macOS auto-research harness with a Codex-style project sidebar and chat
 
 The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research). It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
 
+![Auto-research agent on macOS, showing the research project sidebar, Codex provider selector, and welcome screen with chat composer](docs/images/auto-research-agent.png)
+
 ## Quick start
 
 Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and at least one installed CLI: [Codex](https://developers.openai.com/codex/cli) or [Claude Code](https://code.claude.com/docs/en/overview). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
