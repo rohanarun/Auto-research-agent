@@ -47,7 +47,7 @@ struct SharedChatView: View {
             HStack {
                 Toggle("Follow output", isOn: $followOutput).toggleStyle(.checkbox)
                 Spacer()
-                Text("Open an agent to view its chat or send a follow-up.").foregroundStyle(.secondary)
+                Text("Choose an agent below to send a follow-up.").foregroundStyle(.secondary)
             }.font(.system(size: 10)).padding(.horizontal, 28).padding(.vertical, 14)
         }
     }

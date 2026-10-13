@@ -222,10 +222,23 @@ import ResearchCore
         sessions.append(session); selectedSessionID = session.id
         launch(session.id, project: project, request: nil)
     }
-    func send() {
+    func send(to recipientID: UUID? = nil) {
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
         guard !sharedActive(project.id) else { error = "Stop the shared-context group before sending a manual follow-up."; return }
+        if let group = selectedSharedGroupID {
+            guard let recipientID, SharedTranscript.latestAgents(in: sessions, projectID: project.id, groupID: group).contains(where: { $0.id == recipientID }) else {
+                error = "Choose an agent in this group before sending a follow-up."; return
+            }
+            guard !sessions.contains(where: { $0.projectID == project.id && runners[$0.id] != nil }) else {
+                error = "Stop research before sending a manual follow-up."; return
+            }
+            composer = ""
+            if let index = sessions.firstIndex(where: { $0.id == recipientID }) { sessions[index].closedAt = nil }
+            launch(recipientID, project: project, request: request)
+            return
+        }
+        if recipientID != nil { error = "Select the agent's group before sending a follow-up."; return }
         if selectedSessionID == nil, sharedConfiguration(project.id).enabled { composer = ""; startSharedResearch(project, request: request); return }
         if let other = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(other); error = "This project already has an active run. Stop it before starting another writer."; return }
         composer = ""

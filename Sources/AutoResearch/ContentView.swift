@@ -10,6 +10,7 @@ private let accent = Color(red: 0.30, green: 0.34, blue: 0.78)
 struct ContentView: View {
     @ObservedObject var store: AppStore
     @State private var followOutput = true
+    @State private var recipientIndex = 1
     var body: some View {
         HStack(spacing: 0) {
             sidebar.frame(width: 282)
@@ -19,6 +20,7 @@ struct ContentView: View {
                 if let project = store.project { SharedContextControls(store: store, project: project) }
                 if let groupID = store.selectedSharedGroupID, let project = store.project {
                     SharedChatView(store: store, projectID: project.id, groupID: groupID).id(groupID)
+                    composer
                 } else if let session = store.session {
                     transcript(session)
                     composer
@@ -238,26 +240,54 @@ struct ContentView: View {
             }
         }
     }
+    var composerAgents: [ResearchSession] {
+        guard let group = store.selectedSharedGroupID, let project = store.project else { return [] }
+        return SharedTranscript.latestAgents(in: store.sessions, projectID: project.id, groupID: group)
+    }
+    var composerRecipient: ResearchSession? {
+        composerAgents.first { $0.sharedAgent?.index == recipientIndex } ?? composerAgents.first
+    }
+    var composerBusy: Bool {
+        store.sharedActive(store.project?.id ?? "") || store.sessions.contains { $0.projectID == store.selectedProjectID && store.runners[$0.id] != nil }
+    }
+    var canSendComposer: Bool {
+        !composerBusy && store.project != nil && !store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (store.selectedSharedGroupID == nil || composerRecipient != nil)
+    }
+    func sendComposer() {
+        guard canSendComposer else { return }
+        store.send(to: store.selectedSharedGroupID == nil ? nil : composerRecipient?.id)
+    }
     var composer: some View {
         VStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
+                if store.selectedSharedGroupID != nil {
+                    Picker("Send to", selection: Binding(get: { composerRecipient?.sharedAgent?.index ?? recipientIndex }, set: { recipientIndex = $0 })) {
+                        ForEach(composerAgents) { session in
+                            Text("Agent \(session.sharedAgent!.index) · \(session.provider.title)").tag(session.sharedAgent!.index)
+                        }
+                    }.font(.system(size: 12)).fixedSize().accessibilityLabel("Message recipient")
+                }
                 ZStack(alignment: .topLeading) {
-                    if store.composer.isEmpty { Text(store.sharedActive(store.project?.id ?? "") ? "Stop the shared-context group to send a follow-up." : store.isRunning ? "Research is running. Stop to send a follow-up." : "Ask a question, or give your research a direction…").font(.system(size: 14)).foregroundStyle(muted).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false) }
-                    ChatInput(text: $store.composer, isEditable: !store.isRunning && !store.sharedActive(store.project?.id ?? ""), onSend: { store.send() })
+                    if store.composer.isEmpty { Text(composerBusy ? "Draft a follow-up while research runs…" : "Ask a question, or give your research a direction…").font(.system(size: 14)).foregroundStyle(muted).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false) }
+                    ChatInput(text: $store.composer, isEditable: true, onSend: sendComposer)
                         .frame(minHeight: 56, maxHeight: 94)
                 }
                 HStack(spacing: 8) {
                     Image(systemName: "folder").font(.system(size: 11)).foregroundStyle(muted)
                     Text(store.project?.repository.isEmpty == false ? store.project!.repository : store.project?.name ?? "Select a project").font(.system(size: 11)).foregroundStyle(muted).lineLimit(1)
                     Spacer()
-                    if store.isRunning, let id = store.selectedSessionID {
+                    if store.sharedActive(store.project?.id ?? ""), let project = store.project {
+                        Button("Stop agents") { store.stopSharedResearch(project.id) }.buttonStyle(.bordered).help("Stop the group before sending your draft")
+                    } else if let running = store.sessions.first(where: { $0.projectID == store.selectedProjectID && store.runners[$0.id] != nil }) {
+                        let id = running.id
                         Button { store.stop(id) } label: { Image(systemName: "stop.fill").font(.system(size: 11)).frame(width: 31, height: 31).background(ink, in: Circle()).foregroundStyle(.white) }.buttonStyle(.plain).help("Stop this run").accessibilityLabel("Stop research")
                     } else {
-                        Button { store.send() } label: { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : .white) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.project == nil).help("Enter to send · Shift+Enter for a new line").accessibilityLabel("Send message")
+                        Button(action: sendComposer) { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : .white) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(!canSendComposer).help("Enter to send · Shift+Enter for a new line").accessibilityLabel("Send message")
                     }
                 }
             }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.black.opacity(0.13), lineWidth: 1)).shadow(color: .black.opacity(0.035), radius: 10, y: 3)
-            Text("\((store.session?.provider ?? store.provider).title) · \(store.auth[store.session?.provider ?? store.provider] ?? "Checking connection") · Uses your CLI’s configured model")
+            if composerBusy { Text("Stop research to send your draft.").font(.system(size: 11)).foregroundStyle(muted) }
+            Text("\((composerRecipient?.provider ?? store.session?.provider ?? store.provider).title) · \(store.auth[composerRecipient?.provider ?? store.session?.provider ?? store.provider] ?? "Checking connection") · Uses your CLI’s configured model")
                 .font(.system(size: 10)).foregroundStyle(muted)
         }.frame(maxWidth: 800).padding(.horizontal, 32).padding(.bottom, 20).padding(.top, 12).frame(maxWidth: .infinity)
     }
