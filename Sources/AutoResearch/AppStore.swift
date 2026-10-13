@@ -47,15 +47,15 @@ import ResearchCore
     private var needsWorkspace = false
     private var starting = false
 
-    init() {
+    init(resourceDirectory overrideResourceDirectory: URL? = nil, defaults overrideDefaults: ResearchCore.Settings? = nil) {
         let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
         let bundled = Bundle.main.resourceURL ?? executable.deletingLastPathComponent()
-        resourceDirectory = FileManager.default.fileExists(atPath: bundled.appendingPathComponent("Defaults.json").path)
-            ? bundled : executable.deletingLastPathComponent().appendingPathComponent("Resources")
+        resourceDirectory = overrideResourceDirectory ?? (FileManager.default.fileExists(atPath: bundled.appendingPathComponent("Defaults.json").path)
+            ? bundled : executable.deletingLastPathComponent().appendingPathComponent("Resources"))
         catalogPolicy = try! JSONDecoder().decode(CatalogPolicy.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("CatalogPolicy.json")))
         sharedDefaults = try! JSONDecoder().decode(SharedContextOptions.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("SharedContextDefaults.json")))
         // The build embeds installation defaults; the runtime settings remain user editable.
-        let bundledDefaults = try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json")))
+        let bundledDefaults = overrideDefaults ?? (try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json"))))
         settings = bundledDefaults
         settingsFile = URL(fileURLWithPath: bundledDefaults.workspaceRoot).appendingPathComponent("settings.json")
         needsWorkspace = bundledDefaults.workspaceRoot.isEmpty
@@ -99,7 +99,8 @@ import ResearchCore
             selectedProjectID = projects.first(where: catalogPolicy.includes)?.id
         }
     }
-    var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID }.sorted { $0.createdAt > $1.createdAt } }
+    var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt == nil }.sorted { $0.createdAt > $1.createdAt } }
+    var closedProjectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt != nil }.sorted { $0.closedAt! > $1.closedAt! } }
     var isRunning: Bool { selectedSessionID.map { runners[$0] != nil } ?? false }
     var hasActiveRuns: Bool { !runners.isEmpty || sharedCycles.values.contains { $0.active } }
     func running(_ project: ResearchProject) -> Bool { sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
@@ -129,7 +130,30 @@ import ResearchCore
         selectedSessionID = nil; showingProjectDetails = true
         composer = ""; save()
     }
-    func selectSession(_ session: ResearchSession) { selectedSharedGroupID = nil; selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider; composer = ""; save() }
+    func selectSession(_ session: ResearchSession) {
+        if let index = sessions.firstIndex(where: { $0.id == session.id }) { sessions[index].closedAt = nil }
+        selectedSharedGroupID = nil; selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider; composer = ""; save()
+    }
+    func canClose(_ session: ResearchSession) -> Bool {
+        runners[session.id] == nil && !(session.sharedAgent?.groupID == sharedRuns[session.projectID]?.groupID && sharedActive(session.projectID))
+    }
+    func closeSession(_ id: UUID) {
+        guard let index = sessions.firstIndex(where: { $0.id == id }), canClose(sessions[index]) else { return }
+        sessions[index].closedAt = Date()
+        let group = sessions[index].sharedAgent?.groupID
+        if selectedSessionID == id || (group != nil && selectedSharedGroupID == group && !sessions.contains(where: { $0.sharedAgent?.groupID == group && $0.closedAt == nil })) { showProjectDetails() }
+        save()
+    }
+    func canCloseGroup(_ groupID: UUID) -> Bool {
+        sessions.filter { $0.sharedAgent?.groupID == groupID }.allSatisfy(canClose)
+    }
+    func closeSharedGroup(_ groupID: UUID) {
+        guard canCloseGroup(groupID) else { return }
+        let ids = sessions.filter { $0.sharedAgent?.groupID == groupID }.map(\.id)
+        for id in ids { closeSession(id) }
+        if selectedSharedGroupID == groupID { showProjectDetails() }
+        save()
+    }
     func newChat() { selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = false; composer = ""; save() }
     func showProjectDetails() { selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = true; save() }
     func addRepository(_ text: String) {

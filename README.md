@@ -12,7 +12,7 @@ The sidebar discovers repositories from [Auto Research by Super](https://app.get
 
 ## Download
 
-[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.2.1-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.2.1-arm64.dmg.sha256)
+[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.2.2-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.2.2-arm64.dmg.sha256)
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
@@ -44,7 +44,8 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 - The top-left **Open research** list refreshes from the supplied Auto Research website. Search by project, owner or topic. A bundled source snapshot is available offline.
 - Select a sidebar project to see a compact native chart from the backend, its latest claim and source, and recent PRs. Estimated and observed histories are separate; projects with multiple metrics have a metric picker. Data refreshes at the backend’s requested interval. Projects without backend data show an empty state. Existing chats remain available through **Open chat**, and **New chat** opens the message composer.
 - Press the play button next to a repository to create a chat, clone into the workspace if needed, load its `auto-research.md` verbatim, and run with the selected provider. If that file is absent, the agent is explicitly told to find the repository's actual guide and report which source it uses. It must ask if no actionable objective exists.
-- Type a follow-up and press Command-Return. Follow-ups resume the exact provider session, including after relaunch. Changing providers starts a new chat.
+- Type a follow-up and press **Enter** to send. **Shift+Enter** inserts a new line; Command+Enter also sends. Pasted multiline text stays intact. Follow-ups resume the exact provider session, including after relaunch. Changing providers starts a new chat.
+- Click **×** beside an old chat, or choose **Close chat** from the chat menu, to remove it from the open list. Reopen it from **Closed chats** in the sidebar. Closing preserves messages, CLI session IDs, logs and checkout files. The × beside **All agents** closes the whole group. Stop active research before closing its chats.
 - **Connections & settings** contains CLI paths, optional model overrides, permission settings, login and the editable research policy. Login runs the provider's official command and uses its browser flow. The app does not copy credential files. Claude requires its own sign-in.
 - **MCP tools** is an explicit allowlist for direct Codex MCP connections. The app discovers configured server names and disables unselected servers for each invocation. CLI plugins are not loaded in research runs. Nothing is enabled by default, so unrelated global integrations do not start with a research session. Global Codex configuration and credentials remain unchanged.
 - **Keep researching** opts into another model turn after successful completion, only when the agent explicitly decides another experiment is justified. Missing decisions, blockers, finished work and errors pause the loop. It uses `Resources/ContinuePolicy.md`. Turn it off or press Stop to end continuation. It is off by default and does not survive app restart.

@@ -45,6 +45,7 @@ public struct ResearchSession: Codable, Identifiable, Sendable {
     public var createdAt: Date
     public var state: String
     public var sharedAgent: SharedAgent?
+    public var closedAt: Date?
     public init(projectID: String, title: String, provider: Provider) {
         id = UUID(); self.projectID = projectID; self.title = title; self.provider = provider
         messages = []; createdAt = Date(); state = "Ready"

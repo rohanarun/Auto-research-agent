@@ -32,7 +32,8 @@ extension AppStore {
     func relevantSharedGroup(_ projectID: String) -> UUID? {
         if selectedProjectID == projectID, let id = selectedSharedGroupID { return id }
         if session?.projectID == projectID, let id = session?.sharedAgent?.groupID { return id }
-        return sharedRuns[projectID]?.groupID ?? sessions.filter { $0.projectID == projectID && $0.sharedAgent != nil }.max(by: { $0.createdAt < $1.createdAt })?.sharedAgent?.groupID
+        if sharedActive(projectID) { return sharedRuns[projectID]?.groupID }
+        return sessions.filter { $0.projectID == projectID && $0.sharedAgent != nil && $0.closedAt == nil }.max(by: { $0.createdAt < $1.createdAt })?.sharedAgent?.groupID
     }
     func sharedConfiguration(_ projectID: String) -> SharedContextOptions { sharedOptions[projectID] ?? sharedDefaults }
     func sharedActive(_ projectID: String) -> Bool { sharedCycles[projectID]?.active == true }

@@ -8,7 +8,8 @@ let package = Package(
     targets: [
         .target(name: "ResearchCore"),
         .executableTarget(name: "AutoResearch", dependencies: ["ResearchCore"]),
-        .testTarget(name: "ResearchCoreTests", dependencies: ["ResearchCore"])
+        .testTarget(name: "ResearchCoreTests", dependencies: ["ResearchCore"]),
+        .testTarget(name: "AutoResearchTests", dependencies: ["AutoResearch"])
     ],
     swiftLanguageModes: [.v5]
 )

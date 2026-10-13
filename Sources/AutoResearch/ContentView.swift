@@ -64,22 +64,21 @@ struct ContentView: View {
                     if !store.projectSessions.isEmpty {
                         Text("Chats in this project").font(.system(size: 12, weight: .semibold)).foregroundStyle(muted).padding(.top, 22).padding(.bottom, 6).padding(.leading, 8)
                         ForEach(store.projectSharedGroups) { representative in
-                            Button { store.selectSharedGroup(representative.sharedAgent!.groupID, projectID: representative.projectID) } label: {
-                                Label("All agents · \(representative.createdAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "person.2")
-                                    .font(.system(size: 12)).lineLimit(1).padding(9)
-                                    .background(store.selectedSharedGroupID == representative.sharedAgent?.groupID ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
-                            }.buttonStyle(.plain)
+                            sharedGroupRow(representative)
                         }
                         ForEach(store.projectSessions) { session in
-                            Button { store.selectSession(session) } label: {
-                                HStack(spacing: 9) {
-                                    Image(systemName: "bubble.left").font(.system(size: 12))
-                                    Text(session.title).lineLimit(1).font(.system(size: 12))
-                                    Spacer(minLength: 0)
-                                    if session.state == "Running" { Circle().fill(accent).frame(width: 5, height: 5) }
-                                }.padding(9).background(store.selectedSessionID == session.id ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
-                            }.buttonStyle(.plain)
+                            chatRow(session)
                         }
+                    }
+                    if !store.closedProjectSessions.isEmpty {
+                        Menu {
+                            ForEach(store.closedProjectSessions) { session in
+                                Button("\(session.title) · \(session.createdAt.formatted(date: .abbreviated, time: .shortened))") { store.selectSession(session) }
+                            }
+                        } label: {
+                            Label("Closed chats (\(store.closedProjectSessions.count))", systemImage: "archivebox")
+                                .font(.system(size: 12)).foregroundStyle(muted)
+                        }.menuStyle(.borderlessButton).padding(.horizontal, 8).padding(.top, 12)
                     }
                     if store.visibleProjects.isEmpty { Text("No matching projects").font(.system(size: 12)).foregroundStyle(muted).padding() }
                 }.padding(.horizontal, 12)
@@ -119,6 +118,34 @@ struct ContentView: View {
                 if let url = project.githubURL { Link("View on GitHub", destination: url) }
             }
     }
+    func chatRow(_ session: ResearchSession) -> some View {
+        HStack(spacing: 2) {
+            Button { store.selectSession(session) } label: {
+                HStack(spacing: 9) {
+                    Image(systemName: "bubble.left").font(.system(size: 12))
+                    Text(session.title).lineLimit(1).font(.system(size: 12))
+                    Spacer(minLength: 0)
+                    if session.state == "Running" { Circle().fill(accent).frame(width: 5, height: 5) }
+                }.padding(9).contentShape(Rectangle())
+            }.buttonStyle(.plain)
+            Button { store.closeSession(session.id) } label: { Image(systemName: "xmark").font(.system(size: 10)).frame(width: 26, height: 28) }
+                .buttonStyle(.plain).foregroundStyle(muted).disabled(!store.canClose(session))
+                .help(store.canClose(session) ? "Close chat; keep history" : "Stop research before closing this chat")
+                .accessibilityLabel("Close chat: \(session.title)")
+        }.background(store.selectedSessionID == session.id ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
+    }
+    func sharedGroupRow(_ session: ResearchSession) -> some View {
+        let group = session.sharedAgent!.groupID
+        return HStack(spacing: 2) {
+            Button { store.selectSharedGroup(group, projectID: session.projectID) } label: {
+                Label("All agents · \(session.createdAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "person.2")
+                    .font(.system(size: 12)).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading).padding(9).contentShape(Rectangle())
+            }.buttonStyle(.plain)
+            Button { store.closeSharedGroup(group) } label: { Image(systemName: "xmark").font(.system(size: 10)).frame(width: 26, height: 28) }
+                .buttonStyle(.plain).foregroundStyle(muted).disabled(!store.canCloseGroup(group))
+                .help("Close this group's chats; keep history").accessibilityLabel("Close parallel chats")
+        }.background(store.selectedSharedGroupID == group ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
+    }
     var header: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
@@ -154,6 +181,11 @@ struct ContentView: View {
                 Button("Show project in Finder") { store.revealProject() }.disabled(store.session?.workingDirectory == nil && store.project?.localPath == nil)
                 Button("Show run logs") { store.revealLogs() }.disabled(store.session == nil)
                 Button("Continue in Terminal") { store.openTerminal() }.disabled(store.isRunning || store.sharedActive(store.project?.id ?? "") || store.session?.providerSessionID == nil)
+                if let session = store.session {
+                    Button("Close chat") { store.closeSession(session.id) }.disabled(!store.canClose(session))
+                } else if let group = store.selectedSharedGroupID {
+                    Button("Close parallel chats") { store.closeSharedGroup(group) }.disabled(!store.canCloseGroup(group))
+                }
                 Button("Connections & settings") { store.showSettings = true }
             } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).fixedSize()
         }.padding(.horizontal, 28).padding(.top, 26).padding(.bottom, 22)
@@ -211,7 +243,8 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 10) {
                 ZStack(alignment: .topLeading) {
                     if store.composer.isEmpty { Text(store.sharedActive(store.project?.id ?? "") ? "Stop the shared-context group to send a follow-up." : store.isRunning ? "Research is running. Stop to send a follow-up." : "Ask a question, or give your research a direction…").font(.system(size: 14)).foregroundStyle(muted).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false) }
-                    TextEditor(text: $store.composer).font(.system(size: 14)).scrollContentBackground(.hidden).frame(minHeight: 56, maxHeight: 94).disabled(store.isRunning || store.sharedActive(store.project?.id ?? "")).accessibilityLabel("Message the research agent")
+                    ChatInput(text: $store.composer, isEditable: !store.isRunning && !store.sharedActive(store.project?.id ?? ""), onSend: { store.send() })
+                        .frame(minHeight: 56, maxHeight: 94)
                 }
                 HStack(spacing: 8) {
                     Image(systemName: "folder").font(.system(size: 11)).foregroundStyle(muted)
@@ -220,7 +253,7 @@ struct ContentView: View {
                     if store.isRunning, let id = store.selectedSessionID {
                         Button { store.stop(id) } label: { Image(systemName: "stop.fill").font(.system(size: 11)).frame(width: 31, height: 31).background(ink, in: Circle()).foregroundStyle(.white) }.buttonStyle(.plain).help("Stop this run").accessibilityLabel("Stop research")
                     } else {
-                        Button { store.send() } label: { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : .white) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.project == nil).help("Send (⌘Return)").accessibilityLabel("Send message")
+                        Button { store.send() } label: { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : .white) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.project == nil).help("Enter to send · Shift+Enter for a new line").accessibilityLabel("Send message")
                     }
                 }
             }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.black.opacity(0.13), lineWidth: 1)).shadow(color: .black.opacity(0.035), radius: 10, y: 3)
