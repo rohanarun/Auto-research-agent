@@ -11,6 +11,7 @@ import ResearchCore
     @Published var provider: Provider = .codex
     @Published var search = ""
     @Published var composer = ""
+    @Published var showingProjectDetails = true
     @Published var error: String?
     @Published var catalogStatus = "Loading catalog"
     @Published var refreshing = false
@@ -90,11 +91,12 @@ import ResearchCore
     }
     func select(_ project: ResearchProject) {
         selectedProjectID = project.id
-        selectedSessionID = sessions.last { $0.projectID == project.id }?.id
+        selectedSessionID = nil; showingProjectDetails = true
         composer = ""; save()
     }
     func selectSession(_ session: ResearchSession) { selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider; composer = ""; save() }
-    func newChat() { selectedSessionID = nil; composer = ""; save() }
+    func newChat() { selectedSessionID = nil; showingProjectDetails = false; composer = ""; save() }
+    func showProjectDetails() { selectedSessionID = nil; showingProjectDetails = true; save() }
     func addRepository(_ text: String) {
         var repo = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if repo.hasPrefix("https://github.com/") { repo = String(repo.dropFirst("https://github.com/".count)) }

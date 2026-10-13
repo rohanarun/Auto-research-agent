@@ -4,7 +4,7 @@ A native macOS auto-research harness with a Codex-style project sidebar and chat
 
 The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research). It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
 
-![Auto-research agent on macOS, showing the research project sidebar, Codex provider selector, and welcome screen with chat composer](docs/images/auto-research-agent.png)
+![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent.png)
 
 ## Quick start
 
@@ -32,6 +32,7 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 ## Use it
 
 - The top-left **Open research** list refreshes from the supplied Auto Research website. Search by project, owner or topic. A bundled source snapshot is available offline.
+- Select a sidebar project to see a compact native chart from the backend, its latest claim and source, and recent PRs. Estimated and observed histories are separate; projects with multiple metrics have a metric picker. Data refreshes at the backend’s requested interval. Projects without backend data show an empty state. Existing chats remain available through **Open chat**, and **New chat** opens the message composer.
 - Press the play button next to a repository to create a chat, clone into the workspace if needed, load its `auto-research.md` verbatim, and run with the selected provider. If that file is absent, the agent is explicitly told to find the repository's actual guide and report which source it uses. It must ask if no actionable objective exists.
 - Type a follow-up and press Command-Return. Follow-ups resume the exact provider session, including after relaunch. Changing providers starts a new chat.
 - **Connections & settings** contains CLI paths, optional model overrides, permission settings, login and the editable research policy. Login runs the provider's official command and uses its browser flow. The app does not copy credential files. Claude requires its own sign-in.
@@ -63,6 +64,8 @@ swift test --scratch-path "$PWD/.build" --cache-path "$PWD/build-cache/spm" --di
 ```
 
 Set `RESEARCH_LIVE_CODEX_TEST=1` for the opt-in two-turn authenticated smoke test. This makes real provider requests. Core tests cover catalog extraction, session commands, protocol events, storage boundaries, exact instruction selection, UTF-8 process I/O and cancellation. The repository has no third-party Swift dependencies.
+
+Set `RESEARCH_LIVE_DASHBOARD_TEST=1` to verify the public backend chart feeds; this test makes no provider CLI calls.
 
 Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
 

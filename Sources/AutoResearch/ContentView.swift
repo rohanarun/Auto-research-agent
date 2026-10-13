@@ -16,8 +16,12 @@ struct ContentView: View {
             Rectangle().fill(Color.black.opacity(0.075)).frame(width: 1)
             VStack(spacing: 0) {
                 header
-                if let session = store.session { transcript(session) } else { welcome }
-                composer
+                if let session = store.session {
+                    transcript(session)
+                    composer
+                } else if store.showingProjectDetails, let project = store.project {
+                    ProjectDashboardView(project: project, catalogURL: store.settings.catalogURL)
+                } else { welcome; composer }
             }.frame(maxWidth: .infinity, maxHeight: .infinity).background(.white)
         }
         .foregroundStyle(ink)
@@ -108,13 +112,27 @@ struct ContentView: View {
     var header: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(store.project?.name.replacingOccurrences(of: "-", with: " ") ?? "Your research workspace").font(.system(size: 14, weight: .semibold))
+                Text(store.project?.name.replacingOccurrences(of: "-", with: " ") ?? "Your research workspace").font(.system(size: 14, weight: .semibold)).lineLimit(1)
                 HStack(spacing: 5) {
                     if store.isRunning { ProgressView().controlSize(.mini) }
                     Text(store.session?.state ?? store.project?.category ?? "Open research").font(.system(size: 11)).foregroundStyle(muted)
                 }
             }
             Spacer()
+            if let project = store.project {
+                if store.session != nil || !store.showingProjectDetails {
+                    Button("Project details") { store.showProjectDetails() }.buttonStyle(.bordered)
+                } else {
+                    if let recent = store.projectSessions.first {
+                        Button("Open chat") { store.selectSession(recent) }.buttonStyle(.bordered)
+                    }
+                    Button { store.play(project) } label: {
+                        Label(store.running(project) ? "View running research" : "Start research", systemImage: "play.fill")
+                            .font(.system(size: 12, weight: .medium)).padding(.horizontal, 12).padding(.vertical, 8)
+                            .background(ink, in: Capsule()).foregroundStyle(.white)
+                    }.buttonStyle(.plain).accessibilityLabel("Start selected research project")
+                }
+            }
             Menu {
                 ForEach(Provider.allCases) { provider in Button(provider.title) { store.provider = provider; store.newChat() } }
             } label: {
