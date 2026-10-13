@@ -139,6 +139,9 @@ public enum CLIEvent: Equatable {
 }
 
 public enum EventDecoder {
+    public static func sharedContextReady(_ text: String) -> Bool {
+        text.split(separator: "\n").last?.trimmingCharacters(in: .whitespacesAndNewlines) == "SHARED_CONTEXT_STATUS: ready"
+    }
     public static func continuationDecision(_ text: String) -> String? {
         text.split(separator: "\n").reversed().compactMap { line -> String? in
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)

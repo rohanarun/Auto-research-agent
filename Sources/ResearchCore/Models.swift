@@ -44,6 +44,7 @@ public struct ResearchSession: Codable, Identifiable, Sendable {
     public var messages: [ChatMessage]
     public var createdAt: Date
     public var state: String
+    public var sharedAgent: SharedAgent?
     public init(projectID: String, title: String, provider: Provider) {
         id = UUID(); self.projectID = projectID; self.title = title; self.provider = provider
         messages = []; createdAt = Date(); state = "Ready"
@@ -68,6 +69,7 @@ public struct SavedState: Codable {
     public var selectedProjectID: String?
     public var selectedSessionID: UUID?
     public var provider: Provider
+    public var sharedOptions: [String: SharedContextOptions]?
     public init(projects: [ResearchProject], sessions: [ResearchSession], selectedProjectID: String?, selectedSessionID: UUID?, provider: Provider) {
         self.projects = projects; self.sessions = sessions; self.selectedProjectID = selectedProjectID; self.selectedSessionID = selectedSessionID; self.provider = provider
     }

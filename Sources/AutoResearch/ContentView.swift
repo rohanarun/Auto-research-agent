@@ -16,6 +16,7 @@ struct ContentView: View {
             Rectangle().fill(Color.black.opacity(0.075)).frame(width: 1)
             VStack(spacing: 0) {
                 header
+                if let project = store.project { SharedContextControls(store: store, project: project) }
                 if let session = store.session {
                     transcript(session)
                     composer
@@ -143,7 +144,7 @@ struct ContentView: View {
                 if let url = store.project?.githubURL { Link("View repository", destination: url) }
                 Button("Show project in Finder") { store.revealProject() }.disabled(store.session?.workingDirectory == nil && store.project?.localPath == nil)
                 Button("Show run logs") { store.revealLogs() }.disabled(store.session == nil)
-                Button("Continue in Terminal") { store.openTerminal() }.disabled(store.isRunning || store.session?.providerSessionID == nil)
+                Button("Continue in Terminal") { store.openTerminal() }.disabled(store.isRunning || store.sharedActive(store.project?.id ?? "") || store.session?.providerSessionID == nil)
                 Button("Connections & settings") { store.showSettings = true }
             } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).fixedSize()
         }.padding(.horizontal, 28).padding(.top, 26).padding(.bottom, 22)
@@ -189,7 +190,9 @@ struct ContentView: View {
                 HStack {
                     Toggle("Follow output", isOn: $followOutput).toggleStyle(.checkbox)
                     Spacer()
-                    Toggle("Keep researching", isOn: Binding(get: { store.keepResearching.contains(session.id) }, set: { if $0 { store.keepResearching.insert(session.id) } else { store.keepResearching.remove(session.id) } })).toggleStyle(.checkbox).help("Send the editable continuation prompt after each successful turn until you stop. Uses your CLI account and configured resources.")
+                    if session.sharedAgent == nil {
+                        Toggle("Keep researching", isOn: Binding(get: { store.keepResearching.contains(session.id) }, set: { if $0 { store.keepResearching.insert(session.id) } else { store.keepResearching.remove(session.id) } })).toggleStyle(.checkbox).help("Send the editable continuation prompt after each successful turn until you stop. Uses your CLI account and configured resources.")
+                    }
                 }.font(.system(size: 10)).foregroundStyle(muted).padding(.horizontal, 34).padding(.vertical, 8)
             }
         }
@@ -198,8 +201,8 @@ struct ContentView: View {
         VStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
                 ZStack(alignment: .topLeading) {
-                    if store.composer.isEmpty { Text(store.isRunning ? "Research is running. Stop to send a follow-up." : "Ask a question, or give your research a direction…").font(.system(size: 14)).foregroundStyle(muted).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false) }
-                    TextEditor(text: $store.composer).font(.system(size: 14)).scrollContentBackground(.hidden).frame(minHeight: 56, maxHeight: 94).disabled(store.isRunning).accessibilityLabel("Message the research agent")
+                    if store.composer.isEmpty { Text(store.sharedActive(store.project?.id ?? "") ? "Stop the shared-context group to send a follow-up." : store.isRunning ? "Research is running. Stop to send a follow-up." : "Ask a question, or give your research a direction…").font(.system(size: 14)).foregroundStyle(muted).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false) }
+                    TextEditor(text: $store.composer).font(.system(size: 14)).scrollContentBackground(.hidden).frame(minHeight: 56, maxHeight: 94).disabled(store.isRunning || store.sharedActive(store.project?.id ?? "")).accessibilityLabel("Message the research agent")
                 }
                 HStack(spacing: 8) {
                     Image(systemName: "folder").font(.system(size: 11)).foregroundStyle(muted)

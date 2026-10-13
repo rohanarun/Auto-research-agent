@@ -12,7 +12,7 @@ The sidebar discovers repositories from [Auto Research by Super](https://app.get
 
 ## Download
 
-[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.1.1-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.1.1-arm64.dmg.sha256)
+[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.2.0-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.2.0-arm64.dmg.sha256)
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
@@ -51,13 +51,25 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 - The chat menu opens the repository, checkout, raw run logs, or exact CLI session in Terminal. Stop an in-app run before opening the same session in Terminal.
 - Add public GitHub repositories or existing external-SSD folders with the plus button. Existing checkouts are preserved and are never reset or automatically pulled.
 
+## Parallel agents with shared context
+
+Turn on **Share context** below the project header, choose the number of agents and how often they should share, then press **Play**. This is optional and off by default. The initial settings are two agents and a ten-minute interval; both are editable before starting. Each agent uses the selected Codex or Claude CLI and its configured model and account.
+
+Each agent works in an independent checkout of the same project. At each interval, the app stops the current runs and waits for them to exit, saves every agent's visible conversation, and asks the selected model to combine their findings, failures, evidence, and next steps. Only after the model confirms a complete handoff does the app replace them with fresh CLI sessions, each receiving the same shared context. Every successor keeps its own checkout and links back to its previous chat. This transfers saved conversation context; it does not copy a provider's hidden internal state.
+
+Use **Agents** to switch between current workers, **Share now** to synchronize early, or **Stop agents** to stop the group. Turning off Share context also stops the group. Old chats, transcripts, handoffs and checkout files remain available. If a worker or synthesis fails, the group pauses without launching replacement sessions. Quitting stops the group, and reopening never restarts it automatically. Manual follow-ups and Terminal handoffs require stopping the group first.
+
+Independent checkouts include committed files, dirty tracked changes, and non-ignored untracked files from the original repository. Ignored dependencies and local secrets are not copied; each agent must establish its own environment. Git submodules are not yet supported in this mode. The original checkout is preserved. Sharing context does not automatically merge code between agents: the model identifies useful changes and their locations so successors can inspect and incorporate them deliberately.
+
+Agent count multiplies concurrent CLI usage; each sharing cycle also runs a synthesis turn. An interval can interrupt an experiment, so the editable `Resources/SharedAgentPolicy.md` asks agents to save evidence incrementally and treat interrupted work as incomplete. Synthesis behavior lives in `Resources/SharedContextPolicy.md`; initial settings live in `Resources/SharedContextDefaults.json`. Snapshots and agent checkouts are stored under `Runtime/shared-context/`.
+
 ## Permissions and evidence
 
 Codex defaults to the workspace-write sandbox; read-only is available. The headless bridge sets approval policy to never, so operations needing additional approval fail visibly instead of hanging. Claude defaults to its automatic permission review, with accept-edits, plan and deny-unapproved modes available. No bypass-permissions option is enabled by the app. Configured CLI permissions can limit network or tool operations; use the Terminal handoff for interactive approvals.
 
 The UI distinguishes preparing, running, stopped, interrupted, completed and needs-attention states. Exit status alone is insufficient for success: the provider must emit a completed-turn event. A completed turn is not a verified research result; the editable research policy requires the agent to describe its evidence accurately.
 
-Only one in-app run writes a given project at a time. Other independently launched tools cannot be globally coordinated by this app. Stop cancels the selected CLI process and its currently observed child processes; independently detached remote work may need separate cleanup. Closing the window leaves research running; quitting prompts to stop active runs and saves history.
+Only one in-app run writes a given checkout at a time; shared-context agents have independent checkouts. Other independently launched tools cannot be globally coordinated by this app. Stop cancels the selected CLI process and its currently observed child processes; independently detached remote work may need separate cleanup. Closing the window leaves research running; quitting prompts to stop active runs and saves history.
 
 ## Data
 
@@ -76,6 +88,8 @@ swift test --scratch-path "$PWD/.build" --cache-path "$PWD/build-cache/spm" --di
 Set `RESEARCH_LIVE_CODEX_TEST=1` for the opt-in two-turn authenticated smoke test. This makes real provider requests. Core tests cover catalog extraction, session commands, protocol events, storage boundaries, exact instruction selection, UTF-8 process I/O and cancellation. The repository has no third-party Swift dependencies.
 
 Set `RESEARCH_LIVE_DASHBOARD_TEST=1` to verify the public backend chart feeds; this test makes no provider CLI calls.
+
+Set `RESEARCH_LIVE_SHARED_TEST=1` to verify a shared handoff using two real Codex workers, one synthesis turn, and two fresh successor sessions. This uses your logged-in CLI account. The ordinary test suite checks replacement ordering, cancellation, failed synthesis, legacy history loading, and independent checkout preservation without provider requests.
 
 Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
 

@@ -24,8 +24,14 @@ import ResearchCore
     @Published var availableMCPServers: [String] = []
     @Published var enabledMCPServers: Set<String> = []
     @Published var keepResearching = Set<UUID>()
-    private var runners: [UUID: ProcessRunner] = [:]
-    private var activePaths: [UUID: String] = [:]
+    var runners: [UUID: ProcessRunner] = [:]
+    var workerTasks: [UUID: Task<Void, Never>] = [:]
+    @Published var sharedOptions: [String: SharedContextOptions] = [:]
+    @Published var sharedRuns: [String: SharedRunStatus] = [:]
+    var sharedCycles: [String: SharedContextCycle] = [:]
+    var sharedOperations: [String: ProcessRunner] = [:]
+    var sharedDefaults: SharedContextOptions
+    var activePaths: [UUID: String] = [:]
     private var stopped = Set<UUID>()
     private var eventMessages: [UUID: [String: UUID]] = [:]
     private var failed = Set<UUID>()
@@ -34,7 +40,7 @@ import ResearchCore
     private var saveTask: Task<Void, Never>?
     private var checkingAuth = false
     private var historyIsReadable = true
-    private let resourceDirectory: URL
+    let resourceDirectory: URL
     private let catalogPolicy: CatalogPolicy
     private var settingsFile: URL
     private var needsWorkspace = false
@@ -46,6 +52,7 @@ import ResearchCore
         resourceDirectory = FileManager.default.fileExists(atPath: bundled.appendingPathComponent("Defaults.json").path)
             ? bundled : executable.deletingLastPathComponent().appendingPathComponent("Resources")
         catalogPolicy = try! JSONDecoder().decode(CatalogPolicy.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("CatalogPolicy.json")))
+        sharedDefaults = try! JSONDecoder().decode(SharedContextOptions.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("SharedContextDefaults.json")))
         // The build embeds installation defaults; the runtime settings remain user editable.
         let bundledDefaults = try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json")))
         settings = bundledDefaults
@@ -66,6 +73,7 @@ import ResearchCore
             if FileManager.default.fileExists(atPath: stateURL.path) {
                 let saved = try JSONDecoder().decode(SavedState.self, from: Data(contentsOf: stateURL))
                 projects = saved.projects; sessions = saved.sessions
+                sharedOptions = saved.sharedOptions ?? [:]
                 selectedProjectID = saved.selectedProjectID; selectedSessionID = saved.selectedSessionID; provider = saved.provider
                 for i in sessions.indices where ["Running", "Preparing", "Stopping"].contains(sessions[i].state) {
                     sessions[i].state = "Interrupted"
@@ -91,8 +99,8 @@ import ResearchCore
     }
     var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID }.sorted { $0.createdAt > $1.createdAt } }
     var isRunning: Bool { selectedSessionID.map { runners[$0] != nil } ?? false }
-    var hasActiveRuns: Bool { !runners.isEmpty }
-    func running(_ project: ResearchProject) -> Bool { sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
+    var hasActiveRuns: Bool { !runners.isEmpty || sharedCycles.values.contains { $0.active } }
+    func running(_ project: ResearchProject) -> Bool { sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
 
     func start() async {
         guard !starting else { return }; starting = true
@@ -147,17 +155,19 @@ import ResearchCore
         saveTask?.cancel()
         saveTask = Task { try? await Task.sleep(for: .milliseconds(300)); guard !Task.isCancelled else { return }; persist() }
     }
-    func persist() {
-        guard historyIsReadable, !needsWorkspace else { return }
+    @discardableResult func persist() -> Bool {
+        guard historyIsReadable, !needsWorkspace else { return false }
         do {
             let root = try Workspace.validate(settings.workspaceRoot)
-            let state = SavedState(projects: projects, sessions: sessions, selectedProjectID: selectedProjectID, selectedSessionID: selectedSessionID, provider: provider)
+            var state = SavedState(projects: projects, sessions: sessions, selectedProjectID: selectedProjectID, selectedSessionID: selectedSessionID, provider: provider)
+            state.sharedOptions = sharedOptions
             try Workspace.write(state, to: root.appendingPathComponent("state.json"))
-        } catch { self.error = "Could not save chat history: \(error.localizedDescription)" }
+            return true
+        } catch { self.error = "Could not save chat history: \(error.localizedDescription)"; return false }
     }
     func saveSettings() {
         do {
-            guard runners.isEmpty, loginRunner == nil else { throw ResearchError("Stop active runs and login before changing connection settings.") }
+            guard !hasActiveRuns, loginRunner == nil else { throw ResearchError("Stop active runs and login before changing connection settings.") }
             _ = try Workspace.directory(settings.workspaceRoot, "sessions")
             try Workspace.write(settings, to: settingsFile)
             try Workspace.write(enabledMCPServers.sorted(), to: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("mcp-selection.json"))
@@ -173,7 +183,12 @@ import ResearchCore
     }
     func state(_ id: UUID, _ value: String) { if let i = sessions.firstIndex(where: { $0.id == id }) { sessions[i].state = value }; save() }
     func play(_ project: ResearchProject) {
+        if sharedActive(project.id) {
+            if let id = sharedRuns[project.id]?.sessionIDs.first, let existing = sessions.first(where: { $0.id == id }) { selectSession(existing) }
+            return
+        }
         if let existing = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(existing); return }
+        if sharedConfiguration(project.id).enabled { startSharedResearch(project); return }
         select(project)
         let session = ResearchSession(projectID: project.id, title: "Research · \(project.name)", provider: provider)
         sessions.append(session); selectedSessionID = session.id
@@ -182,6 +197,8 @@ import ResearchCore
     func send() {
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
+        guard !sharedActive(project.id) else { error = "Stop the shared-context group before sending a manual follow-up."; return }
+        if selectedSessionID == nil, sharedConfiguration(project.id).enabled { composer = ""; startSharedResearch(project, request: request); return }
         if let other = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(other); error = "This project already has an active run. Stop it before starting another writer."; return }
         composer = ""
         let id: UUID
@@ -209,7 +226,7 @@ import ResearchCore
         activePaths[id] = target
         let runner = ProcessRunner(); runners[id] = runner; stopped.remove(id); failed.remove(id); completed.remove(id); eventMessages[id] = [:]
         state(id, "Preparing")
-        Task {
+        workerTasks[id] = Task {
             var nextDecision: String?
             do {
                 let env = try environment()
@@ -246,13 +263,20 @@ import ResearchCore
                     }
                 }
                 guard !stopped.contains(id) else { throw CancellationError() }
+                if let shared = current.sharedAgent {
+                    prompt += "\n\nParallel research agent \(shared.index) of \(sharedConfiguration(project.id).agentCount), generation \(shared.generation). Your assigned checkout is \(directory.path)."
+                    if let path = shared.contextFile {
+                        prompt += "\nShared context copied into this fresh session from \(path):\n\n" + (try String(contentsOfFile: path, encoding: .utf8))
+                    }
+                }
                 append(id, role: "user", text: prompt)
                 let logDir = try Workspace.directory(settings.workspaceRoot, "sessions/\(id.uuidString)")
                 let logURL = logDir.appendingPathComponent("\(UUID().uuidString).jsonl")
                 FileManager.default.createFile(atPath: logURL.path, contents: nil, attributes: [.posixPermissions: 0o600])
                 let log = try FileHandle(forWritingTo: logURL); let logLock = NSLock()
                 defer { try? log.close() }
-                let fullPolicy = policy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
+                let sharedPolicy = current.sharedAgent == nil ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent("SharedAgentPolicy.md"), encoding: .utf8)
+                let fullPolicy = policy + "\n\n" + sharedPolicy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
                 var disabledMCPServers: [String] = []
                 if current.provider == .codex {
                     let discovered = try await runner.run(CLI.mcpDiscovery(settings.codexPath), directory: directory, environment: env)
@@ -269,6 +293,7 @@ import ResearchCore
                 })
                 // Derive terminal state from the fully drained stream, independent of UI scheduling.
                 for line in result.stdout.split(separator: "\n") {
+                    consume(String(line), stderr: false, provider: current.provider, sessionID: id)
                     for event in EventDecoder.decode(String(line), provider: current.provider) {
                         switch event {
                         case .completed: completed.insert(id)
@@ -292,6 +317,9 @@ import ResearchCore
             }
             runners.removeValue(forKey: id); activePaths.removeValue(forKey: id); persist()
             let finishedSession = sessions.first(where: { $0.id == id })
+            if finishedSession?.sharedAgent != nil, finishedSession?.state == "Needs attention" {
+                sharedCycles[project.id]?.stop(failure: "An agent needs attention. Review its chat before starting another group.")
+            }
             if keepResearching.contains(id), finishedSession?.state == "Completed", nextDecision == "continue" {
                 let next = (try? String(contentsOf: resourceDirectory.appendingPathComponent("ContinuePolicy.md"), encoding: .utf8)) ?? ""
                 if !next.isEmpty { launch(id, project: project, request: next) }
@@ -324,8 +352,12 @@ import ResearchCore
         }
         save()
     }
-    func stop(_ id: UUID) { keepResearching.remove(id); stopped.insert(id); state(id, "Stopping"); runners[id]?.stop() }
-    func shutdown() { for id in Array(runners.keys) { stop(id) }; loginRunner?.stop(); persist() }
+    func stopWorker(_ id: UUID) { keepResearching.remove(id); guard let runner = runners[id] else { return }; stopped.insert(id); state(id, "Stopping"); runner.stop() }
+    func stop(_ id: UUID) {
+        if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
+        else { stopWorker(id) }
+    }
+    func shutdown() { for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); persist() }
 
     func refreshAuth() async {
         guard !needsWorkspace else { return }
@@ -371,6 +403,7 @@ import ResearchCore
     }
     func openTerminal() {
         guard let session, let directory = session.workingDirectory, let providerID = session.providerSessionID else { error = "Start a chat first to open its CLI session in Terminal."; return }
+        guard !sharedActive(session.projectID) else { error = "Stop the shared-context group before continuing one of its sessions in Terminal."; return }
         do {
             let folder = try Workspace.directory(settings.workspaceRoot, "terminal")
             let file = folder.appendingPathComponent("\(session.id.uuidString).command")

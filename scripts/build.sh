@@ -15,6 +15,7 @@ cp "$PROJECT_ROOT/.build/release/AutoResearch" "$APP/Contents/MacOS/AutoResearch
 mv "$APP/Contents/MacOS/AutoResearch.new" "$APP/Contents/MacOS/AutoResearch"
 cp "$PROJECT_ROOT/Resources/Defaults.json" "$PROJECT_ROOT/Resources/ResearchPolicy.md" "$PROJECT_ROOT/Resources/ContinuePolicy.md" "$PROJECT_ROOT/Resources/catalog-source.html" "$APP/Contents/Resources/"
 cp "$PROJECT_ROOT/Resources/CatalogPolicy.json" "$APP/Contents/Resources/"
+cp "$PROJECT_ROOT/Resources/SharedContextDefaults.json" "$PROJECT_ROOT/Resources/SharedAgentPolicy.md" "$PROJECT_ROOT/Resources/SharedContextPolicy.md" "$APP/Contents/Resources/"
 cp "$PROJECT_ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 if [[ -f "$PROJECT_ROOT/Resources/AppIcon.icns" ]]; then cp "$PROJECT_ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/"; fi
 codesign --force --sign - "$APP"
