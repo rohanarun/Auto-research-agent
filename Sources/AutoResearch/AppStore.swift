@@ -35,6 +35,7 @@ import ResearchCore
     private var checkingAuth = false
     private var historyIsReadable = true
     private let resourceDirectory: URL
+    private let catalogPolicy: CatalogPolicy
     private var settingsFile: URL
     private var needsWorkspace = false
     private var starting = false
@@ -44,6 +45,7 @@ import ResearchCore
         let bundled = Bundle.main.resourceURL ?? executable.deletingLastPathComponent()
         resourceDirectory = FileManager.default.fileExists(atPath: bundled.appendingPathComponent("Defaults.json").path)
             ? bundled : executable.deletingLastPathComponent().appendingPathComponent("Resources")
+        catalogPolicy = try! JSONDecoder().decode(CatalogPolicy.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("CatalogPolicy.json")))
         // The build embeds installation defaults; the runtime settings remain user editable.
         let bundledDefaults = try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json")))
         settings = bundledDefaults
@@ -74,13 +76,19 @@ import ResearchCore
                 projects = try Catalog.parse(html)
                 catalogStatus = "Saved catalog · refreshing"
             }
-            if selectedProjectID == nil { selectedProjectID = projects.first?.id }
+            selectInitialProject()
         } catch { historyIsReadable = false; self.error = "Saved history could not be loaded. It will not be overwritten. \(error.localizedDescription)" }
     }
 
     var project: ResearchProject? { projects.first { $0.id == selectedProjectID } }
     var session: ResearchSession? { sessions.first { $0.id == selectedSessionID } }
-    var visibleProjects: [ResearchProject] { projects.filter { search.isEmpty || "\($0.name) \($0.repository) \($0.category)".localizedCaseInsensitiveContains(search) } }
+    var visibleProjects: [ResearchProject] { projects.filter { catalogPolicy.includes($0) && (search.isEmpty || "\($0.name) \($0.repository) \($0.category)".localizedCaseInsensitiveContains(search)) } }
+    private func selectInitialProject() {
+        // Keep an existing chat accessible while excluding its repository from discovery.
+        if selectedSessionID == nil, project.map({ !catalogPolicy.includes($0) }) ?? true {
+            selectedProjectID = projects.first(where: catalogPolicy.includes)?.id
+        }
+    }
     var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID }.sorted { $0.createdAt > $1.createdAt } }
     var isRunning: Bool { selectedSessionID.map { runners[$0] != nil } ?? false }
     var hasActiveRuns: Bool { !runners.isEmpty }
@@ -100,8 +108,8 @@ import ResearchCore
             let fetched = try await Catalog.fetch(settings.catalogURL)
             let local = projects.filter { old in old.isCustom || !fetched.contains(where: { $0.id == old.id }) && sessions.contains(where: { $0.projectID == old.id }) }
             projects = fetched + local.filter { item in !fetched.contains { $0.id == item.id } }
-            if selectedProjectID == nil { selectedProjectID = projects.first?.id }
-            catalogStatus = "\(fetched.count) repositories · live"
+            selectInitialProject()
+            catalogStatus = "\(fetched.filter(catalogPolicy.includes).count) repositories · live"
             save()
         } catch { catalogStatus = "Offline · saved catalog"; self.error = error.localizedDescription }
     }

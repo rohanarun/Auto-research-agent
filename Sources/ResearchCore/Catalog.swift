@@ -1,5 +1,14 @@
 import Foundation
 
+public struct CatalogPolicy: Decodable, Sendable {
+    public let excludedOwners: [String]
+
+    public func includes(_ project: ResearchProject) -> Bool {
+        guard let owner = project.repository.split(separator: "/").first else { return true }
+        return !excludedOwners.contains { $0.caseInsensitiveCompare(String(owner)) == .orderedSame }
+    }
+}
+
 public enum Catalog {
     public static func matches(_ pattern: String, _ text: String) -> [[String]] {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return [] }

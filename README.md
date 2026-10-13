@@ -2,13 +2,13 @@
 
 A native macOS auto-research harness with a Codex-style project sidebar and chat. Point Codex or Claude Code at an open research repository, press Play, and let the agent follow its research instructions using your own CLI account.
 
-The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research). It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
+The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research), with owner exclusions configured in `Resources/CatalogPolicy.json`. Layr-Labs projects are excluded from the sidebar, including saved catalog entries. Existing chats and checkouts are preserved. It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
 
 ![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
 ## Download
 
-[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.1.0-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.1.0-arm64.dmg.sha256)
+[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.1.1-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.1.1-arm64.dmg.sha256)
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
