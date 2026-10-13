@@ -8,6 +8,7 @@ import ResearchCore
     @Published var sessions: [ResearchSession] = []
     @Published var selectedProjectID: String?
     @Published var selectedSessionID: UUID?
+    @Published var selectedSharedGroupID: UUID?
     @Published var provider: Provider = .codex
     @Published var search = ""
     @Published var composer = ""
@@ -75,6 +76,7 @@ import ResearchCore
                 projects = saved.projects; sessions = saved.sessions
                 sharedOptions = saved.sharedOptions ?? [:]
                 selectedProjectID = saved.selectedProjectID; selectedSessionID = saved.selectedSessionID; provider = saved.provider
+                selectedSharedGroupID = saved.selectedSharedGroupID
                 for i in sessions.indices where ["Running", "Preparing", "Stopping"].contains(sessions[i].state) {
                     sessions[i].state = "Interrupted"
                     sessions[i].messages.append(ChatMessage(role: "status", text: "The app closed during this run. Review its files before resuming; no work has been restarted automatically."))
@@ -93,7 +95,7 @@ import ResearchCore
     var visibleProjects: [ResearchProject] { projects.filter { catalogPolicy.includes($0) && (search.isEmpty || "\($0.name) \($0.repository) \($0.category)".localizedCaseInsensitiveContains(search)) } }
     private func selectInitialProject() {
         // Keep an existing chat accessible while excluding its repository from discovery.
-        if selectedSessionID == nil, project.map({ !catalogPolicy.includes($0) }) ?? true {
+        if selectedSessionID == nil, selectedSharedGroupID == nil, project.map({ !catalogPolicy.includes($0) }) ?? true {
             selectedProjectID = projects.first(where: catalogPolicy.includes)?.id
         }
     }
@@ -123,12 +125,13 @@ import ResearchCore
     }
     func select(_ project: ResearchProject) {
         selectedProjectID = project.id
+        selectedSharedGroupID = nil
         selectedSessionID = nil; showingProjectDetails = true
         composer = ""; save()
     }
-    func selectSession(_ session: ResearchSession) { selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider; composer = ""; save() }
-    func newChat() { selectedSessionID = nil; showingProjectDetails = false; composer = ""; save() }
-    func showProjectDetails() { selectedSessionID = nil; showingProjectDetails = true; save() }
+    func selectSession(_ session: ResearchSession) { selectedSharedGroupID = nil; selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider; composer = ""; save() }
+    func newChat() { selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = false; composer = ""; save() }
+    func showProjectDetails() { selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = true; save() }
     func addRepository(_ text: String) {
         var repo = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if repo.hasPrefix("https://github.com/") { repo = String(repo.dropFirst("https://github.com/".count)) }
@@ -161,6 +164,7 @@ import ResearchCore
             let root = try Workspace.validate(settings.workspaceRoot)
             var state = SavedState(projects: projects, sessions: sessions, selectedProjectID: selectedProjectID, selectedSessionID: selectedSessionID, provider: provider)
             state.sharedOptions = sharedOptions
+            state.selectedSharedGroupID = selectedSharedGroupID
             try Workspace.write(state, to: root.appendingPathComponent("state.json"))
             return true
         } catch { self.error = "Could not save chat history: \(error.localizedDescription)"; return false }
@@ -184,7 +188,7 @@ import ResearchCore
     func state(_ id: UUID, _ value: String) { if let i = sessions.firstIndex(where: { $0.id == id }) { sessions[i].state = value }; save() }
     func play(_ project: ResearchProject) {
         if sharedActive(project.id) {
-            if let id = sharedRuns[project.id]?.sessionIDs.first, let existing = sessions.first(where: { $0.id == id }) { selectSession(existing) }
+            if let id = sharedRuns[project.id]?.groupID { selectSharedGroup(id, projectID: project.id) }
             return
         }
         if let existing = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(existing); return }

@@ -30,6 +30,10 @@ struct SharedContextControls: View {
                     }.disabled(active)
                 }
                 Spacer(minLength: 0)
+                if let group = store.relevantSharedGroup(project.id) {
+                    Button("All agents") { store.selectSharedGroup(group, projectID: project.id) }
+                        .disabled(store.selectedSharedGroupID == group)
+                }
             }
             if let run = store.sharedRuns[project.id] {
                 HStack(spacing: 12) {

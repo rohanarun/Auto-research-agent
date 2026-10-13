@@ -70,6 +70,7 @@ public struct SavedState: Codable {
     public var selectedSessionID: UUID?
     public var provider: Provider
     public var sharedOptions: [String: SharedContextOptions]?
+    public var selectedSharedGroupID: UUID?
     public init(projects: [ResearchProject], sessions: [ResearchSession], selectedProjectID: String?, selectedSessionID: UUID?, provider: Provider) {
         self.projects = projects; self.sessions = sessions; self.selectedProjectID = selectedProjectID; self.selectedSessionID = selectedSessionID; self.provider = provider
     }

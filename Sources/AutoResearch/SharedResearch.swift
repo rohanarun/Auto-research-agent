@@ -18,6 +18,22 @@ private struct ContextManifest: Encodable {
 }
 
 extension AppStore {
+    func selectSharedGroup(_ groupID: UUID, projectID: String) {
+        selectedProjectID = projectID; selectedSessionID = nil; selectedSharedGroupID = groupID
+        showingProjectDetails = false; composer = ""; save()
+    }
+    var projectSharedGroups: [ResearchSession] {
+        var seen = Set<UUID>()
+        return projectSessions.filter { session in
+            guard let group = session.sharedAgent?.groupID else { return false }
+            return seen.insert(group).inserted
+        }
+    }
+    func relevantSharedGroup(_ projectID: String) -> UUID? {
+        if selectedProjectID == projectID, let id = selectedSharedGroupID { return id }
+        if session?.projectID == projectID, let id = session?.sharedAgent?.groupID { return id }
+        return sharedRuns[projectID]?.groupID ?? sessions.filter { $0.projectID == projectID && $0.sharedAgent != nil }.max(by: { $0.createdAt < $1.createdAt })?.sharedAgent?.groupID
+    }
     func sharedConfiguration(_ projectID: String) -> SharedContextOptions { sharedOptions[projectID] ?? sharedDefaults }
     func sharedActive(_ projectID: String) -> Bool { sharedCycles[projectID]?.active == true }
     func setSharedConfiguration(_ options: SharedContextOptions, for projectID: String) {
@@ -69,7 +85,7 @@ extension AppStore {
                 }
                 // Persist every successor and its lineage before starting any provider.
                 guard self.persist() else { throw ResearchError("Could not save successor sessions. No replacement agents were started.") }
-                if self.selectedProjectID == project.id, self.selectedSessionID == nil || previous.contains(self.selectedSessionID!) {
+                if self.selectedSharedGroupID == nil, self.selectedProjectID == project.id, self.selectedSessionID == nil || previous.contains(self.selectedSessionID!) {
                     let selectedIndex = previous.firstIndex(of: self.selectedSessionID ?? UUID()) ?? 0
                     self.selectedSessionID = ids[selectedIndex]
                 }
@@ -140,6 +156,7 @@ extension AppStore {
             }
         )
         select(project)
+        selectSharedGroup(groupID, projectID: project.id)
         let cycle = SharedContextCycle(options: options, hooks: hooks)
         sharedCycles[project.id] = cycle; cycle.start()
     }

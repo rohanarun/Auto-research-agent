@@ -12,7 +12,7 @@ The sidebar discovers repositories from [Auto Research by Super](https://app.get
 
 ## Download
 
-[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.2.0-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.2.0-arm64.dmg.sha256)
+[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.2.1-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.2.1-arm64.dmg.sha256)
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
@@ -57,7 +57,11 @@ Turn on **Share context** below the project header, choose the number of agents 
 
 Each agent works in an independent checkout of the same project. At each interval, the app stops the current runs and waits for them to exit, saves every agent's visible conversation, and asks the selected model to combine their findings, failures, evidence, and next steps. Only after the model confirms a complete handoff does the app replace them with fresh CLI sessions, each receiving the same shared context. Every successor keeps its own checkout and links back to its previous chat. This transfers saved conversation context; it does not copy a provider's hidden internal state.
 
-Use **Agents** to switch between current workers, **Share now** to synchronize early, or **Stop agents** to stop the group. Turning off Share context also stops the group. Old chats, transcripts, handoffs and checkout files remain available. If a worker or synthesis fails, the group pauses without launching replacement sessions. Quitting stops the group, and reopening never restarts it automatically. Manual follow-ups and Terminal handoffs require stopping the group first.
+Parallel runs open in **All agents**, a single live chat that interleaves messages from every worker. Responses, tool activity, instructions and errors identify the agent number, CLI provider and round. The status indicators show each agent’s current state. The feed keeps earlier rounds and reopens after relaunch. Click an agent’s status indicator or use **Agents** to open its individual chat, then **All agents** to return to the combined feed. Use **Share now** to synchronize early, or **Stop agents** to stop the group. Turning off Share context also stops the group. Old chats, transcripts, handoffs and checkout files remain available. If a worker or synthesis fails, the group pauses without launching replacement sessions. Quitting stops the group, and reopening never restarts it automatically. Manual follow-ups and Terminal handoffs require stopping the group first.
+
+The combined chat with three simulated test agents:
+
+![Combined parallel chat with agent numbers, providers, rounds, and per-agent status](docs/images/shared-agent-chat.png)
 
 Independent checkouts include committed files, dirty tracked changes, and non-ignored untracked files from the original repository. Ignored dependencies and local secrets are not copied; each agent must establish its own environment. Git submodules are not yet supported in this mode. The original checkout is preserved. Sharing context does not automatically merge code between agents: the model identifies useful changes and their locations so successors can inspect and incorporate them deliberately.
 

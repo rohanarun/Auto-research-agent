@@ -17,7 +17,9 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 header
                 if let project = store.project { SharedContextControls(store: store, project: project) }
-                if let session = store.session {
+                if let groupID = store.selectedSharedGroupID, let project = store.project {
+                    SharedChatView(store: store, projectID: project.id, groupID: groupID).id(groupID)
+                } else if let session = store.session {
                     transcript(session)
                     composer
                 } else if store.showingProjectDetails, let project = store.project {
@@ -61,6 +63,13 @@ struct ContentView: View {
                     }
                     if !store.projectSessions.isEmpty {
                         Text("Chats in this project").font(.system(size: 12, weight: .semibold)).foregroundStyle(muted).padding(.top, 22).padding(.bottom, 6).padding(.leading, 8)
+                        ForEach(store.projectSharedGroups) { representative in
+                            Button { store.selectSharedGroup(representative.sharedAgent!.groupID, projectID: representative.projectID) } label: {
+                                Label("All agents · \(representative.createdAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "person.2")
+                                    .font(.system(size: 12)).lineLimit(1).padding(9)
+                                    .background(store.selectedSharedGroupID == representative.sharedAgent?.groupID ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
+                            }.buttonStyle(.plain)
+                        }
                         ForEach(store.projectSessions) { session in
                             Button { store.selectSession(session) } label: {
                                 HStack(spacing: 9) {
@@ -116,12 +125,12 @@ struct ContentView: View {
                 Text(store.project?.name.replacingOccurrences(of: "-", with: " ") ?? "Your research workspace").font(.system(size: 14, weight: .semibold)).lineLimit(1)
                 HStack(spacing: 5) {
                     if store.isRunning { ProgressView().controlSize(.mini) }
-                    Text(store.session?.state ?? store.project?.category ?? "Open research").font(.system(size: 11)).foregroundStyle(muted)
+                    Text(store.selectedSharedGroupID != nil ? "Parallel agents · shared chat" : store.session?.state ?? store.project?.category ?? "Open research").font(.system(size: 11)).foregroundStyle(muted)
                 }
             }
             Spacer()
             if let project = store.project {
-                if store.session != nil || !store.showingProjectDetails {
+                if store.session != nil || store.selectedSharedGroupID != nil || !store.showingProjectDetails {
                     Button("Project details") { store.showProjectDetails() }.buttonStyle(.bordered)
                 } else {
                     if let recent = store.projectSessions.first {
@@ -180,7 +189,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 24) {
-                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider) }
+                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider, speaker: session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · Round \($0.generation)" }) }
                         if store.isRunning { HStack(spacing: 9) { ProgressView().controlSize(.small); Text(session.state == "Preparing" ? "Preparing workspace…" : "Researching…").font(.system(size: 12)).foregroundStyle(muted) }.padding(.vertical, 12) }
                         Color.clear.frame(height: 1).id("bottom")
                     }.frame(maxWidth: 760, alignment: .leading).padding(.horizontal, 34).padding(.vertical, 20).frame(maxWidth: .infinity)
@@ -224,8 +233,17 @@ struct ContentView: View {
 struct MessageView: View {
     let message: ChatMessage
     let provider: Provider
+    var speaker: String? = nil
     @State private var expanded = false
     var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let speaker, message.role == "tool" || message.role == "status" {
+                Text(speaker).font(.system(size: 12, weight: .semibold)).foregroundStyle(ink)
+            }
+            content
+        }
+    }
+    @ViewBuilder var content: some View {
         if message.role == "tool" {
             DisclosureGroup(isExpanded: $expanded) {
                 Text(message.text).font(.system(size: 11, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
@@ -237,7 +255,7 @@ struct MessageView: View {
         } else {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text(message.role == "user" ? "You" : message.role == "error" ? "Needs attention" : provider.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(message.role == "error" ? Color.red : ink)
+                    Text(message.role == "user" ? speaker.map { "You → \($0)" } ?? "You" : message.role == "error" ? speaker.map { "\($0) · Needs attention" } ?? "Needs attention" : speaker ?? provider.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(message.role == "error" ? Color.red : ink)
                     Spacer()
                     Button { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(message.text, forType: .string) } label: { Image(systemName: "doc.on.doc").font(.system(size: 10)).foregroundStyle(muted) }.buttonStyle(.plain).help("Copy message")
                 }
