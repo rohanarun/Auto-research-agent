@@ -4,7 +4,7 @@ A native macOS auto-research harness with a Codex-style project sidebar and chat
 
 The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research). It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
 
-![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent.png)
+![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
 ## Quick start
 
