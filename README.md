@@ -2,8 +2,6 @@
 
 The idea is to make it dead simple to point your Codex or Claude at open problems, put unused tokens to work, and help push the frontier.
 
-We've all hit a usage reset with tokens left unused. Tokens are roughly equivalent to intelligence now, so why not donate that intelligence to a good cause instead?
-
 Auto-research agent is a native macOS app with a Codex-style project sidebar and chat. It helps you find GitHub projects with `auto-research.md` agent guides and makes starting a contribution a one-button click: pick an open problem and press Play.
 
 It runs the Codex or Claude Code CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
