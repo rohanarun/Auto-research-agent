@@ -1,0 +1,14 @@
+.build/
+build/
+build-cache/
+tmp/
+Runtime/
+evidence/
+Resources/Defaults.json
+Resources/catalog-source.html
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store

@@ -1,0 +1,71 @@
+# Auto-research agent
+
+A native macOS auto-research harness with a Codex-style project sidebar and chat. Point Codex or Claude Code at an open research repository, press Play, and let the agent follow its research instructions using your own CLI account.
+
+The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research). It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
+
+## Quick start
+
+Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and at least one installed CLI: [Codex](https://developers.openai.com/codex/cli) or [Claude Code](https://code.claude.com/docs/en/overview). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
+
+From a terminal in your external-volume development workspace:
+
+```sh
+git clone https://github.com/rohanarun/Auto-research-agent.git
+cd Auto-research-agent
+./scripts/build.sh
+open "build/Auto Research.app"
+```
+
+Open **Connections & settings**, check the detected CLI paths, and sign in if needed. Select a provider and press a project's Play button. This is an independent app; it is not an official OpenAI or Anthropic product.
+
+## Open the app
+
+Open `build/Auto Research.app`. The build targets the host architecture and has been tested on Apple Silicon. It is locally ad-hoc signed, not a notarized public release. Keep the build and its runtime workspace on the mounted external volume.
+
+The build generates an ignored `Resources/Defaults.json` from `Resources/Defaults.example.json`, discovering CLI executables from `PATH` and using this checkout's `Runtime/` folder. `Runtime/settings.json` stores settings after the first save. Model fields are intentionally empty so each CLI chooses its configured default. Existing runtime settings and chats are preserved.
+
+Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volume runtime directory), `RESEARCH_CODEX_PATH`, `RESEARCH_CLAUDE_PATH`, and `RESEARCH_APP_OUTPUT`. Configure these before the first build or edit CLI paths in the app. Moving an existing runtime requires preserving its files and settings; the build does not migrate active projects.
+
+## Use it
+
+- The top-left **Open research** list refreshes from the supplied Auto Research website. Search by project, owner or topic. A bundled source snapshot is available offline.
+- Press the play button next to a repository to create a chat, clone into the workspace if needed, load its `auto-research.md` verbatim, and run with the selected provider. If that file is absent, the agent is explicitly told to find the repository's actual guide and report which source it uses. It must ask if no actionable objective exists.
+- Type a follow-up and press Command-Return. Follow-ups resume the exact provider session, including after relaunch. Changing providers starts a new chat.
+- **Connections & settings** contains CLI paths, optional model overrides, permission settings, login and the editable research policy. Login runs the provider's official command and uses its browser flow. The app does not copy credential files. Claude requires its own sign-in.
+- **MCP tools** is an explicit allowlist for direct Codex MCP connections. The app discovers configured server names and disables unselected servers for each invocation. CLI plugins are not loaded in research runs. Nothing is enabled by default, so unrelated global integrations do not start with a research session. Global Codex configuration and credentials remain unchanged.
+- **Keep researching** opts into another model turn after successful completion, only when the agent explicitly decides another experiment is justified. Missing decisions, blockers, finished work and errors pause the loop. It uses `Resources/ContinuePolicy.md`. Turn it off or press Stop to end continuation. It is off by default and does not survive app restart.
+- The chat menu opens the repository, checkout, raw run logs, or exact CLI session in Terminal. Stop an in-app run before opening the same session in Terminal.
+- Add public GitHub repositories or existing external-SSD folders with the plus button. Existing checkouts are preserved and are never reset or automatically pulled.
+
+## Permissions and evidence
+
+Codex defaults to the workspace-write sandbox; read-only is available. The headless bridge sets approval policy to never, so operations needing additional approval fail visibly instead of hanging. Claude defaults to its automatic permission review, with accept-edits, plan and deny-unapproved modes available. No bypass-permissions option is enabled by the app. Configured CLI permissions can limit network or tool operations; use the Terminal handoff for interactive approvals.
+
+The UI distinguishes preparing, running, stopped, interrupted, completed and needs-attention states. Exit status alone is insufficient for success: the provider must emit a completed-turn event. A completed turn is not a verified research result; the editable research policy requires the agent to describe its evidence accurately.
+
+Only one in-app run writes a given project at a time. Other independently launched tools cannot be globally coordinated by this app. Stop cancels the selected CLI process and its currently observed child processes; independently detached remote work may need separate cleanup. Closing the window leaves research running; quitting prompts to stop active runs and saves history.
+
+## Data
+
+`Runtime/projects/` contains managed clones; `Runtime/state.json` contains chat history; `Runtime/sessions/` contains raw event logs; `Runtime/cache/` and `Runtime/tmp/` hold disposable output. The app validates the mounted external volume and rejects paths that escape it. Existing CLI-owned credentials and provider histories remain in their normal locations outside this workspace; the app does not migrate them.
+
+## Build and test
+
+```sh
+./scripts/build.sh
+TMPDIR="$PWD/tmp/" \
+CLANG_MODULE_CACHE_PATH="$PWD/build-cache/clang" \
+SWIFT_MODULECACHE_PATH="$PWD/build-cache/swift" \
+swift test --scratch-path "$PWD/.build" --cache-path "$PWD/build-cache/spm" --disable-sandbox
+```
+
+Set `RESEARCH_LIVE_CODEX_TEST=1` for the opt-in two-turn authenticated smoke test. This makes real provider requests. Core tests cover catalog extraction, session commands, protocol events, storage boundaries, exact instruction selection, UTF-8 process I/O and cancellation. The repository has no third-party Swift dependencies.
+
+Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
+
+## Contributing and license
+
+Contributions are welcome. Include the problem, the expected behavior, and relevant test results. For protocol or process changes, add a regression test using synthetic events; real provider tests are opt-in and use the contributor's account. Do not include credentials, local account configuration, chat transcripts, research checkouts, or raw provider logs in issues or pull requests.
+
+Licensed under the [MIT License](LICENSE). Codex, Claude Code, the fetched catalog, and the research repositories are separate projects with their own terms and licenses; their contents are not relicensed by this repository.

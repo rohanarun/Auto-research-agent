@@ -1,0 +1,3 @@
+Keep source, dependencies, builds, logs, experiments and screenshots in the user's configured workspace on a mounted, writable external volume. Verify the volume before writes. Never silently fall back to Documents, Desktop, iCloud Drive or a fake mount directory. Preserve existing sessions, checkouts and running workloads.
+
+Research behavior belongs in Resources/ResearchPolicy.md. Use evidence and editable model instructions instead of repository-specific research decisions or hard-coded model identifiers. Generate installation-specific paths with scripts/configure.py; do not commit runtime settings, account data, research logs or generated catalog snapshots.
