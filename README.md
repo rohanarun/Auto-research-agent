@@ -6,7 +6,13 @@ The sidebar discovers repositories from [Auto Research by Super](https://app.get
 
 ![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
-## Quick start
+## Download
+
+[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.1.0-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.1.0-arm64.dmg.sha256)
+
+Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
+
+## Build from source
 
 Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and at least one installed CLI: [Codex](https://developers.openai.com/codex/cli) or [Claude Code](https://code.claude.com/docs/en/overview). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
 
@@ -23,7 +29,7 @@ Open **Connections & settings**, check the detected CLI paths, and sign in if ne
 
 ## Open the app
 
-Open `build/Auto Research.app`. The build targets the host architecture and has been tested on Apple Silicon. It is locally ad-hoc signed, not a notarized public release. Keep the build and its runtime workspace on the mounted external volume.
+Open `build/Auto Research.app`. The build targets the host architecture and has been tested on Apple Silicon. Source builds are locally ad-hoc signed; the downloadable release above is signed and notarized. Keep the build and its runtime workspace on the mounted external volume.
 
 The build generates an ignored `Resources/Defaults.json` from `Resources/Defaults.example.json`, discovering CLI executables from `PATH` and using this checkout's `Runtime/` folder. `Runtime/settings.json` stores settings after the first save. Model fields are intentionally empty so each CLI chooses its configured default. Existing runtime settings and chats are preserved.
 
@@ -68,6 +74,10 @@ Set `RESEARCH_LIVE_CODEX_TEST=1` for the opt-in two-turn authenticated smoke tes
 Set `RESEARCH_LIVE_DASHBOARD_TEST=1` to verify the public backend chart feeds; this test makes no provider CLI calls.
 
 Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
+
+## Package a release
+
+Set `RESEARCH_SIGNING_IDENTITY` to your Developer ID Application identity and `RESEARCH_NOTARY_PROFILE` to an existing notarytool keychain profile, then run `./scripts/package_dmg.sh`. The script generates portable defaults, signs and notarizes the app and DMG, staples both tickets, verifies the image, and writes the release and checksum under `build/distribution/`. It does not upload files or interrupt running research.
 
 ## Contributing and license
 

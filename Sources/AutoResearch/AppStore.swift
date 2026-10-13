@@ -35,7 +35,9 @@ import ResearchCore
     private var checkingAuth = false
     private var historyIsReadable = true
     private let resourceDirectory: URL
-    private let settingsFile: URL
+    private var settingsFile: URL
+    private var needsWorkspace = false
+    private var starting = false
 
     init() {
         let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
@@ -43,7 +45,14 @@ import ResearchCore
         resourceDirectory = FileManager.default.fileExists(atPath: bundled.appendingPathComponent("Defaults.json").path)
             ? bundled : executable.deletingLastPathComponent().appendingPathComponent("Resources")
         // The build embeds installation defaults; the runtime settings remain user editable.
-        let defaults = try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json")))
+        let bundledDefaults = try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json")))
+        settings = bundledDefaults
+        settingsFile = URL(fileURLWithPath: bundledDefaults.workspaceRoot).appendingPathComponent("settings.json")
+        needsWorkspace = bundledDefaults.workspaceRoot.isEmpty
+        if !needsWorkspace { loadWorkspace(bundledDefaults) }
+    }
+
+    private func loadWorkspace(_ defaults: ResearchCore.Settings) {
         settingsFile = URL(fileURLWithPath: defaults.workspaceRoot).appendingPathComponent("settings.json")
         settings = (try? Data(contentsOf: settingsFile)).flatMap { try? JSONDecoder().decode(ResearchCore.Settings.self, from: $0) } ?? defaults
         policy = (try? String(contentsOf: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("research-policy.md"), encoding: .utf8))
@@ -77,7 +86,14 @@ import ResearchCore
     var hasActiveRuns: Bool { !runners.isEmpty }
     func running(_ project: ResearchProject) -> Bool { sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
 
-    func start() async { await refreshCatalog(); await refreshAuth(); await refreshMCPServers() }
+    func start() async {
+        guard !starting else { return }; starting = true
+        if needsWorkspace {
+            let resolved = await PortableSetup.resolve(settings)
+            loadWorkspace(resolved); needsWorkspace = false
+        }
+        await refreshCatalog(); await refreshAuth(); await refreshMCPServers()
+    }
     func refreshCatalog() async {
         guard !refreshing else { return }; refreshing = true; defer { refreshing = false }
         do {
@@ -124,7 +140,7 @@ import ResearchCore
         saveTask = Task { try? await Task.sleep(for: .milliseconds(300)); guard !Task.isCancelled else { return }; persist() }
     }
     func persist() {
-        guard historyIsReadable else { return }
+        guard historyIsReadable, !needsWorkspace else { return }
         do {
             let root = try Workspace.validate(settings.workspaceRoot)
             let state = SavedState(projects: projects, sessions: sessions, selectedProjectID: selectedProjectID, selectedSessionID: selectedSessionID, provider: provider)
@@ -304,6 +320,7 @@ import ResearchCore
     func shutdown() { for id in Array(runners.keys) { stop(id) }; loginRunner?.stop(); persist() }
 
     func refreshAuth() async {
+        guard !needsWorkspace else { return }
         guard !checkingAuth else { return }; checkingAuth = true; defer { checkingAuth = false }
         for provider in Provider.allCases {
             guard FileManager.default.isExecutableFile(atPath: settings.executable(provider)) else { auth[provider] = "Not installed"; continue }
