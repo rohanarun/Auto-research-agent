@@ -1,0 +1,39 @@
+{
+  "checked_unix": 1792106288.6034281,
+  "status": "offline preparation verified; not a performance experiment",
+  "production_native_path": "AppStore.launchCloud -> CLI.chat -> DaytonaRunner",
+  "captured_native_requests": 64,
+  "initial_cli_control_requests_byte_equal": 37,
+  "successor_reinjection_local_fixtures": 27,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "research_groups_started": 0,
+  "real_provider_parity_verified": false,
+  "production_source_modified": false,
+  "corrected_endpoint": "All three original frozen milestones plus canonical nonbaseline words and fresh independent replay",
+  "remaining_blockers": [
+    "Cloud Codex usage limit",
+    "Actual provider context, binary/image/environment and resolved-effort equality review",
+    "Versioned native and CLI driver common-clock barrier and target endpoint integration"
+  ],
+  "important_limit": "Initial prompts can be identical; subsequent research checkpoint contents naturally diverge. Replay fixtures only verify identical literal injection formatting. Runtime/provider/cache/load randomness remains observable and must be reported.",
+  "local_tests": {
+    "actual_native_request_capture": {
+      "requests": 64,
+      "initial": 37,
+      "successor_fixture": 27,
+      "passed": true
+    },
+    "parity_tests": 4,
+    "endpoint_gate_tests": 2,
+    "observer_endpoint_simulation": 1,
+    "full_swift_suite": "passed; provider/inference opt-in tests skipped; see source log"
+  },
+  "evidence_hashes": {
+    "Tests/AutoResearchTests/BenchmarkPromptParityTests.swift": "da24740bec442dfc9761d93705933efc65266f1407c8f1d803be79c555bf0e2d",
+    "scripts/benchmark_parity.py": "2c83f167ae5471aa70d1f7848c9e6e9ccfcd3c17cbe6f9afc5ef34a85c7b64e7",
+    "scripts/test_benchmark_parity.py": "def71fef646d570abc9e48bc7c8818addbba9badb0101e18bd8f11f76d02f9bb",
+    "evidence/matched-prompt-capture-tests.log": "3b7e495a6623ef58cef8013b1fc2b02f337c05e49fb787f5cb6b2f1b4afcbc24",
+    "evidence/matched-control-full-tests.log": "21ffd6c6371f930d8850e283e9b2dbb9c8268d557cb90da0f0eac8c0a45f5623"
+  }
+}
