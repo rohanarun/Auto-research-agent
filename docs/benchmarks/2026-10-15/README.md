@@ -61,14 +61,14 @@ and cancelled without starting research. Keychain round-trip, management-token
 confinement, ownership checks and archive-tampering tests are in the source suite.
 These are transport/lifecycle checks, not evidence of better research results.
 
-## Codex CLI versus our Auto Research app: provisional comparison
+## Codex CLI vs Auto-research parallel harness: provisional comparison
 
 Snapshot: **15 October 2026, 22:42 UTC — 26/65 native app slots independently
 revalidated**, two observations of five planned per configuration. Full native
 manual terminal audit and the remaining trials are pending. The earlier CLI arm
 has **65/65 fully audited trials**: 20 independent and 45 fast-sharing.
 
-![Codex CLI versus our Auto Research app, with and without sharing](native-harness-progress/codex-cli-vs-native-harness.png)
+![Codex CLI vs Auto-research parallel harness, with and without sharing](native-harness-progress/codex-cli-vs-native-harness.png)
 
 The four columns compare both harnesses without sharing and with fast checkpoint
 sharing every 60, 180 or 300 seconds. Rows separate candidate submission from

@@ -1,5 +1,5 @@
 {
-  "checked_unix": 1792104127.593468,
+  "checked_unix": 1792104173.655589,
   "native_rows": 26,
   "earlier_rows": 65,
   "cell_statistics_match_trial_rows": true,
@@ -7,12 +7,9 @@
   "native_full_manual_audit_complete": false,
   "visual_review_complete": true,
   "chart_sha256": {
-    "codex-cli-vs-native-harness.png": "4a37e1bae77238b26f26ee986105f91c20b3e234b0c25c7057a9f66e93a4e576",
+    "codex-cli-vs-native-harness.png": "073dc0fbf25730081a0315cd08e20c49b16217cf427382d0efb75d4197327dbe",
     "native-current-timings.png": "9c9f69fdc3d32ec6f930a07ca80bd6097de9753362e166a56bbcfd16cc5acfdf"
   },
-  "visual_review_unix": 1792104143.066411,
-  "visual_review_notes": "Both figures visually inspected; comparison regenerated to use common per-row bounds covering every trial point, with legible labels/denominators and no clipped lines. Native timings chart layout unchanged from inspected figure.",
-  "comparison_cli_independent_trials": 20,
-  "comparison_cli_sharing_trials": 45,
-  "comparison_native_trials": 26
+  "visual_review_unix": 1792104187.266016,
+  "visual_review_notes": "Exact requested title and matching legend visually inspected; common axes contain all trial points. Native timing values/layout match inspected previous snapshot."
 }

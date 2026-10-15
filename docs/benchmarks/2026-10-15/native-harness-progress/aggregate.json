@@ -1,6 +1,6 @@
 {
   "status": "PROVISIONAL: native study and full native manual audit incomplete",
-  "asof_unix": 1792104127.22366,
+  "asof_unix": 1792104173.2315361,
   "asof_utc": "15 Oct 2026, 22:42 UTC",
   "native_successes": 26,
   "native_planned": 65,
@@ -1644,7 +1644,7 @@
   "source_sha256": {
     "earlier-audited-final-aggregate.json": "c62b6bd4d23b5277803a5c52ca0c87e9cc174f698558079417d870fe9791cf68",
     "preserved-native-parent-successes.json": "474f61acd96ac0f9e9f421ac95f89f40fca0addaa373ee7732e32ebc35ad295e",
-    "native-cloud-status.json": "70da5be15dccc8b9f8a4ae6f1f2e155e3d40d90bbec5542869ba0ebdab46c373"
+    "native-cloud-status.json": "d54cce61f9f26e2a06010d44cc8a8cd220ea183f1ade1277ecf7830664e4695a"
   },
   "scope": [
     "All arms use Codex; this compares orchestration/harnesses, not different models.",
