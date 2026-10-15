@@ -70,7 +70,7 @@ extension AppStore {
                 if !next.isEmpty { launchCloud(id,project:project,request:next);return }
             } else if let client,let boxID {
                 keepResearching.remove(id)
-                await cleanupCloudWorkers([boxID],client:client)
+                if cloudDrains[id] == true,finished?.state != "Needs attention" { await cleanupCloudWorkers([boxID],client:client) }
             }
         }
     }
@@ -159,7 +159,11 @@ extension AppStore {
             self.sharedRuns[project.id] = SharedRunStatus(groupID:group,sharesContext:options.enabled,generation:generation,phase:phase,sessionIDs:ids,message:message)
             if [.failed,.stopped,.completed].contains(phase) {
                 if let message { self.error = message }
-                if let client { self.cloudCleanup.formUnion(boxes);Task { await self.cleanupCloudWorkers(boxes,client:client) } };self.persist()
+                let drained = boxes.filter { box in
+                    let sessions = self.sessions.filter { $0.cloud?.sandboxID == box }
+                    return !sessions.isEmpty && sessions.allSatisfy { self.cloudDrains[$0.id] == true && $0.state != "Needs attention" }
+                }
+                if let client { self.cloudCleanup.formUnion(drained);Task { await self.cleanupCloudWorkers(drained,client:client) } };self.persist()
             }
         },waitForCompletion: { ids in
             for id in ids { await self.workerTasks[id]?.value }

@@ -11,7 +11,7 @@ extension AppStore {
     func cloudClient() throws -> DaytonaClient {
         _ = try Workspace.validate(settings.workspaceRoot)
         if let daytonaClient { return daytonaClient }
-        let client = try DaytonaClient(apiKey:DaytonaKeychain.read(daytona.installID),installID:daytona.installID,knownOwnedIDs:cloudOwnedIDs,apiURL:URL(string:"https://app.daytona.io/api")!)
+        let client = try DaytonaClient(apiKey:DaytonaKeychain.read(daytona.installID),installID:daytona.installID,knownOwnedIDs:cloudOwnedIDs,apiURL:URL(string:"https://app.daytona.io/api")!,readRetryInterval:daytona.pollSeconds)
         daytonaClient = client;return client
     }
     func saveDaytonaKey(_ value: String) {

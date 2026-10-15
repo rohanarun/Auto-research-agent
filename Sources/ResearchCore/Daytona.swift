@@ -54,6 +54,7 @@ public actor DaytonaClient {
     private let session: URLSession
     private let apiURL: URL
     private let installID: String
+    private let readRetryInterval: TimeInterval
     private var owned: Set<String>
     private var previews: [String: Preview] = [:]
     private struct Preview: Decodable { let url: URL;let token: String }
@@ -66,11 +67,12 @@ public actor DaytonaClient {
             completionHandler(request.url?.scheme == "https" && request.url?.host == host && (requiredPrefix.map { request.url?.path.hasPrefix($0) == true } ?? true) ? request : nil)
         }
     }
-    public init(apiKey: String, installID: String, knownOwnedIDs: Set<String> = [], apiURL: URL, session: URLSession = .shared) throws {
+    public init(apiKey: String, installID: String, knownOwnedIDs: Set<String> = [], apiURL: URL, session: URLSession = .shared, readRetryInterval: TimeInterval = 2) throws {
         guard apiURL.scheme == "https",apiURL.host == "app.daytona.io",apiURL.path == "/api",!apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ResearchError("Enter a Daytona API key for the official Daytona service.")
         }
-        self.key = apiKey;self.installID = installID;self.owned = knownOwnedIDs;self.apiURL = apiURL;self.session = session
+        guard readRetryInterval.isFinite,readRetryInterval > 0 else { throw ResearchError("Invalid cloud read recovery interval.") }
+        self.key = apiKey;self.installID = installID;self.owned = knownOwnedIDs;self.apiURL = apiURL;self.session = session;self.readRetryInterval = readRetryInterval
     }
     private func request(_ url: URL, method: String, body: [String: Any]?, management: Bool, token: String? = nil) async throws -> Data {
         var req = URLRequest(url: url);req.httpMethod = method;req.timeoutInterval = 90
@@ -80,12 +82,32 @@ public actor DaytonaClient {
             req.setValue("Bearer " + key, forHTTPHeaderField: "Authorization")
         } else if let token { req.setValue(token, forHTTPHeaderField: "X-Daytona-Preview-Token") }
         if let body { req.httpBody = try JSONSerialization.data(withJSONObject: body) }
-        let (data,response) = try await session.data(for: req,delegate:RedirectPolicy(host:url.host,requiredPrefix:management ? apiURL.path + "/" : nil))
-        guard let http = response as? HTTPURLResponse,(200..<300).contains(http.statusCode) else {
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-            throw ResearchError("Daytona returned HTTP \(status) for \(management ? "management" : "sandbox control"). Check the connection, quota and sandbox state; existing work is preserved.")
+        // A failed observation must not abandon a still-running model. Retry
+        // only management GETs within the existing request timeout. Mutating
+        // requests retain their original uncertainty/reconciliation behavior.
+        let readDeadline = Date().addingTimeInterval(req.timeoutInterval)
+        while true {
+            do {
+                if management,method == "GET" {
+                    let remaining = readDeadline.timeIntervalSinceNow
+                    guard remaining > 0 else { throw ResearchError("Daytona management reads remained unavailable through the request timeout; remote work is preserved for reconciliation.") }
+                    req.timeoutInterval = remaining
+                }
+                let (data,response) = try await session.data(for: req,delegate:RedirectPolicy(host:url.host,requiredPrefix:management ? apiURL.path + "/" : nil))
+                let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+                if management,method == "GET",[408,429,500,502,503,504].contains(status),Date() < readDeadline {
+                    let serverDelay = (response as? HTTPURLResponse)?.value(forHTTPHeaderField:"Retry-After").flatMap(Double.init)
+                    let delay = max(readRetryInterval,serverDelay ?? readRetryInterval)
+                    try await Task.sleep(for:.seconds(min(delay,max(0,readDeadline.timeIntervalSinceNow))));continue
+                }
+                guard (200..<300).contains(status) else {
+                    throw ResearchError("Daytona returned HTTP \(status) for \(management ? "management" : "sandbox control"). Check the connection, quota and sandbox state; existing work is preserved.")
+                }
+                return data
+            } catch let error as URLError where management && method == "GET" && [.timedOut,.networkConnectionLost,.cannotConnectToHost,.cannotFindHost,.notConnectedToInternet].contains(error.code) && Date() < readDeadline {
+                try await Task.sleep(for:.seconds(min(readRetryInterval,max(0,readDeadline.timeIntervalSinceNow))))
+            }
         }
-        return data
     }
     private func api(_ path: String, method: String = "GET", body: [String: Any]? = nil) async throws -> Data {
         guard path.hasPrefix("/"),!path.contains("..") else { throw ResearchError("Invalid Daytona API path.") }

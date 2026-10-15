@@ -20,6 +20,7 @@ public final class DaytonaRunner: ProcessBackend, @unchecked Sendable {
         let operation = UUID().uuidString
         var args = command.arguments
         if !login { args = ["-c", "model_reasoning_effort=" + DaytonaClient.quote(configuration.reasoningEffort), "-c", "features.memories=false", "-c", "features.multi_agent=false"] + args }
+        do {
         _ = try await client.call(cloud.sandboxID, action: "launch", payload: ["id":operation,"state_id":cloud.stateID,"previous_state_id":cloud.previousStateID as Any? ?? NSNull(),"login":login,"arguments":args,"input":command.input ?? ""])
         var offsets = [0,0];var raw = [Data(),Data()];var pending = [Data(),Data()];var stopSent = false
         while true {
@@ -42,6 +43,20 @@ public final class DaytonaRunner: ProcessBackend, @unchecked Sendable {
             }
             // Cancellation is handled above so the owned process is drained first.
             try? await Task.sleep(for:.seconds(configuration.pollSeconds))
+        }
+        } catch {
+            // The launch receipt may have been lost after remote acceptance.
+            // Stop that same operation even when local polling fails; never
+            // create a replacement or leave cleanup assuming it was drained.
+            do {
+                let receipt = try await client.call(cloud.sandboxID,action:"stop",payload:["id":operation])
+                guard ["ended","failed","not_started"].contains(receipt["phase"] as? String ?? ""),let cleanup = receipt["cleanup"] as? [String:Any],let remaining = cleanup["remaining_pids"] as? [Int],remaining.isEmpty else {
+                    throw ResearchError("Cloud process drain was not confirmed. Owned sandbox \(cloud.sandboxID), operation \(operation), remains preserved.")
+                }
+            } catch let drainError {
+                throw ResearchError("\(error.localizedDescription) \(drainError.localizedDescription)")
+            }
+            throw error
         }
     }
 }

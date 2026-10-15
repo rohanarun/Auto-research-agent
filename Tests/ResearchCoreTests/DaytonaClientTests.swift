@@ -4,15 +4,58 @@ import CryptoKit
 
 private final class DaytonaProtocol: URLProtocol, @unchecked Sendable {
     static var handler: ((URLRequest) throws -> Data)?
+    static var statusCode = 200
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
-        do { let data = try Self.handler!(request);client?.urlProtocol(self,didReceive:HTTPURLResponse(url:request.url!,statusCode:200,httpVersion:nil,headerFields:nil)!,cacheStoragePolicy:.notAllowed);client?.urlProtocol(self,didLoad:data);client?.urlProtocolDidFinishLoading(self) }
+        do { Self.statusCode = 200;let data = try Self.handler!(request);client?.urlProtocol(self,didReceive:HTTPURLResponse(url:request.url!,statusCode:Self.statusCode,httpVersion:nil,headerFields:nil)!,cacheStoragePolicy:.notAllowed);client?.urlProtocol(self,didLoad:data);client?.urlProtocolDidFinishLoading(self) }
         catch { client?.urlProtocol(self,didFailWithError:error) }
     }
     override func stopLoading() {}
 }
 final class DaytonaClientTests: XCTestCase {
+    func testTransientManagementReadRecoversWithoutRepeatingLaunch() async throws {
+        try await exerciseRunnerFailure(status:502,expectRecovery:true)
+    }
+    func testTerminalPollingFailureStopsTheSameOwnedOperation() async throws {
+        try await exerciseRunnerFailure(status:401,expectRecovery:false)
+    }
+    private func exerciseRunnerFailure(status: Int,expectRecovery: Bool) async throws {
+        let configuration = URLSessionConfiguration.ephemeral;configuration.protocolClasses = [DaytonaProtocol.self]
+        let id = UUID().uuidString;let install = UUID().uuidString;var launches: [String] = [];var stops: [String] = [];var failedRead = false
+        DaytonaProtocol.handler = { request in
+            let object: [String:Any]
+            if request.url?.host == "app.daytona.io" {
+                if !launches.isEmpty,!failedRead { failedRead = true;DaytonaProtocol.statusCode = status;return Data("{}".utf8) }
+                if request.url!.path.hasSuffix("preview-url") { object = ["url":"https://owned.example/","token":"preview-only"] }
+                else { object = ["id":id,"state":"started","labels":["autoresearch-install":install]] }
+            } else {
+                var body = request.httpBody ?? Data()
+                if body.isEmpty,let stream = request.httpBodyStream { stream.open();defer { stream.close() };var buffer = [UInt8](repeating:0,count:4096);while stream.hasBytesAvailable { let n = stream.read(&buffer,maxLength:buffer.count);if n <= 0 { break };body.append(buffer,count:n) } }
+                let command = (try JSONSerialization.jsonObject(with:body) as! [String:Any])["command"] as! String
+                let encoded = command.components(separatedBy:"'")[1]
+                let payload = try JSONSerialization.jsonObject(with:Data(base64Encoded:encoded)!) as! [String:Any]
+                let operation = payload["id"] as! String
+                let receipt: [String:Any]
+                if command.contains("bridge.py launch") { launches.append(operation);receipt = ["phase":"requested"] }
+                else if command.contains("bridge.py stop") { stops.append(operation);receipt = ["phase":"ended","exit_code":-15,"cleanup":["remaining_pids":[Int]()]] }
+                else { receipt = ["stdout":"","stderr":"","stdout_offset":0,"stderr_offset":0,"stdout_eof":true,"stderr_eof":true,"status":["phase":"ended","exit_code":0,"cleanup":["remaining_pids":[Int]()]]] }
+                object = ["exitCode":0,"result":String(decoding:try JSONSerialization.data(withJSONObject:receipt),as:UTF8.self)]
+            }
+            return try JSONSerialization.data(withJSONObject:object)
+        }
+        defer { DaytonaProtocol.handler = nil }
+        let client = try DaytonaClient(apiKey:"fixture",installID:install,knownOwnedIDs:[id],apiURL:URL(string:"https://app.daytona.io/api")!,session:URLSession(configuration:configuration),readRetryInterval:0.001)
+        let options = DaytonaConfiguration(snapshot:"unused",codexPackage:"unused",reasoningEffort:"high",pollSeconds:0.001,logChunkBytes:100)
+        let runner = DaytonaRunner(client:client,cloud:CloudSession(sandboxID:id,stateID:UUID().uuidString),configuration:options)
+        do {
+            let result = try await runner.run(Command("codex",[]),onLine:{_,_ in })
+            XCTAssertTrue(expectRecovery);XCTAssertEqual(result.code,0)
+        } catch { XCTAssertFalse(expectRecovery);XCTAssertTrue(error.localizedDescription.contains("401"),error.localizedDescription) }
+        XCTAssertEqual(launches.count,1);XCTAssertTrue(failedRead)
+        if expectRecovery { XCTAssertEqual(stops.count,0) }
+        else { XCTAssertEqual(stops,launches,"Failure cleanup must stop the exact accepted operation without relaunch") }
+    }
     func testExecutionPreferenceNeverMovesAnExistingChatToAnotherBackend() {
         var chat = ResearchSession(projectID:"owner/repo",title:"New",provider:.codex)
         XCTAssertFalse(chat.usesCloud(preferCloud:false));XCTAssertTrue(chat.usesCloud(preferCloud:true))
