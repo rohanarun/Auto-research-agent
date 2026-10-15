@@ -1,0 +1,83 @@
+{
+  "status": "PREPARED ONLY \u2014 no research launched; current cloud provider reports usage limit",
+  "created_unix": 1792104900.7919538,
+  "purpose": "Controlled Codex CLI vs Auto-research parallel harness discovery comparison, without baseline-resubmission success",
+  "research_model": "gpt-6-astra",
+  "reasoning_effort": "high",
+  "temperature": "unchanged",
+  "groups": 130,
+  "per_harness_groups": 65,
+  "agent_counts_without_sharing": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "agent_counts_with_sharing": [
+    2,
+    3,
+    4
+  ],
+  "sharing_cadence_seconds": [
+    60,
+    180,
+    300
+  ],
+  "repeats_per_configuration": 5,
+  "group_elapsed_cap_seconds": 3600,
+  "cooldown_before_each_group_seconds": 300,
+  "primary_endpoint": {
+    "all_frozen_milestones_required": true,
+    "milestones": [
+      {
+        "id": "pr78",
+        "historical_commit": "1c1f1e4ee87a6895eaea622e1a33dcd4b0aa62cf",
+        "certificate_path": "research/coordinate-flags/certificate.json",
+        "target_kappa": "12857195906507/250000000000000000",
+        "target_bit_saving": "25715714341/500000000000000"
+      },
+      {
+        "id": "pr79",
+        "historical_commit": "9a58e62cf9e8954a4dde3c9b1372d733c276a6d1",
+        "certificate_path": "certificates/balanced-split-kappa.json",
+        "target_kappa": "25872812736433/500000000000000000",
+        "target_bit_saving": "51748303221339/1000000000000000000"
+      },
+      {
+        "id": "pr80",
+        "historical_commit": "88ca39571907343a49e97f328971ec7bcd26fbfd",
+        "certificate_path": "certificates/indexed-cycle-kappa.json",
+        "target_kappa": "261356445457/5000000000000000",
+        "target_bit_saving": "408390793141/7812500000000000"
+      }
+    ],
+    "baseline_reproduction_counts_as_success": false,
+    "canonical_word_equality_check": true,
+    "independent_external_revalidation_required": true,
+    "partial_milestones_are_secondary_progress_only": true
+  },
+  "matching_requirements": [
+    "Identical pinned CLI build, model and resolved effort evidence in both arms; missing effort metadata must be reported and resolved before causal comparison.",
+    "Identical initial model-visible base/developer/user prompts for matching arm/agent-index/cadence; compare actual transcripts, not launcher intent. Both receive the same unchanged baseline and exact same discovery objective.",
+    "Fresh private workspace and auth-only provider state, no interactive saved chats/history/memory/other-trial or solution leakage.",
+    "Same worker resources, same compiler/Python, same validator resources/admission, matched blocked dispatch/concurrency; randomize interleaving before freeze and publish all slots.",
+    "Common clock begins before CLI launch in both arms and includes process startup/sharing/queue; provisioning/cooldown separately recorded. No asymmetric timing exclusion.",
+    "Never stop on valid=true alone. Continue after baseline/changed-but-no-target submissions until all frozen targets plus independent replay or cap; no forced sharing waits.",
+    "Use actual same-group checkpoint injection only for sharing; literal snapshots and fresh IDs plus response corroboration. No synthesis model.",
+    "No endpoint/task/provider/scheduling changes mid-study. All invalid/baseline/partial/timeout/infra outcomes retained separately.",
+    "Do not claim discovery speedup without target-reaching trials and denominators; censored trials require honest time-to-target analysis."
+  ],
+  "launch_preconditions": [
+    "Provider/account capacity available; do not loop unavailable inference.",
+    "New versioned runners and observer must CALL the endpoint gate, never the old valid=true stop branch.",
+    "A genuine external-checker baseline calibration must be valid=true but research_success=false.",
+    "Exact-prompt and clock parity smoke review passes before any main trial.",
+    "Stop/cancellation regression and owned-process drain pass."
+  ],
+  "old_study_excluded": {
+    "cli_baseline_reproductions": 65,
+    "native_baseline_endpoints": 26,
+    "cannot_be_pooled_as_discovery_success": true
+  },
+  "frozen_checker_sha256": "14f1996de675f023b111609207daecd4fb0238d0b61bfb27870dae572b7516f2"
+}

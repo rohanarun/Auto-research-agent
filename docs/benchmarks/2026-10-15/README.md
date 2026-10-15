@@ -1,5 +1,8 @@
 # Parallel-agent checkpoint experiments — 15 October 2026
 
+> **Benchmark endpoint correction:** These timings measure reproduction and submission of an already supplied valid baseline. The old `valid=true` stop condition did not require a new improvement. They do **not** demonstrate discovery speed, research improvement, or a benefit from sharing/the harness. Any implication of such a speedup is withdrawn. Existing files/results are retained as historical evidence, not relabeled as successful discoveries.
+
+
 The release ships **fast checkpoint sharing only**: agents maintain compact
 checkpoint files while working; the harness drains owned processes, snapshots
 those files, joins their literal contents, and launches fresh sessions with the
@@ -64,8 +67,7 @@ These are transport/lifecycle checks, not evidence of better research results.
 ## Codex CLI vs Auto-research parallel harness: provisional comparison
 
 Snapshot: **15 October 2026, 22:42 UTC — 26/65 native app slots independently
-revalidated**, two observations of five planned per configuration. Full native
-manual terminal audit and the remaining trials are pending. The earlier CLI arm
+revalidated**, two observations of five planned per configuration. The native run has stopped after a provider usage limit; its full manual terminal audit is pending. The remaining flawed-endpoint trials will not be run. The earlier CLI arm
 has **65/65 fully audited trials**: 20 independent and 45 fast-sharing.
 
 ![Codex CLI vs Auto-research parallel harness, with and without sharing](native-harness-progress/codex-cli-vs-native-harness.png)

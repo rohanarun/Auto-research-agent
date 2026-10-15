@@ -1,4 +1,4 @@
-Current native charts — 15 Oct 2026, 22:42 UTC
+Current native charts — 15 Oct 2026, 22:53 UTC
 
 All arms use Codex; this compares orchestration/harnesses, not different models.
 First frozen-checker valid=true includes the eligible baseline; no novelty or theorem claim.

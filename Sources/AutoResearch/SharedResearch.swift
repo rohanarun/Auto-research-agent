@@ -36,7 +36,13 @@ extension AppStore {
         }
         sharedOptions[projectID] = options; save()
     }
-    func stopSharedResearch(_ projectID: String) { sharedCycles[projectID]?.stop() }
+    func stopSharedResearch(_ projectID: String) {
+        sharedCycles[projectID]?.stop()
+        // Independent cycles await unstructured worker tasks. Cancelling the
+        // cycle does not cancel those tasks, so signal their owned runners now
+        // rather than waiting for completion before reaching the drain hook.
+        for id in sharedRuns[projectID]?.sessionIDs ?? [] { stopWorker(id) }
+    }
     func synchronizeSharedResearch(_ projectID: String) { sharedCycles[projectID]?.synchronize() }
 
     func startSharedResearch(_ project: ResearchProject, request: String? = nil) {
