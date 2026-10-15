@@ -61,23 +61,33 @@ and cancelled without starting research. Keychain round-trip, management-token
 confinement, ownership checks and archive-tampering tests are in the source suite.
 These are transport/lifecycle checks, not evidence of better research results.
 
-## Native production harness: provisional progress
+## Codex CLI versus our Auto Research app: provisional comparison
 
-Snapshot: **15 October 2026, 22:26 UTC — 13/65 native slots independently
-revalidated**, one observation of five planned per configuration. Full native
-manual terminal audit and the remaining trials are pending.
+Snapshot: **15 October 2026, 22:42 UTC — 26/65 native app slots independently
+revalidated**, two observations of five planned per configuration. Full native
+manual terminal audit and the remaining trials are pending. The earlier CLI arm
+has **65/65 fully audited trials**: 20 independent and 45 fast-sharing.
+
+![Codex CLI versus our Auto Research app, with and without sharing](native-harness-progress/codex-cli-vs-native-harness.png)
+
+The four columns compare both harnesses without sharing and with fast checkpoint
+sharing every 60, 180 or 300 seconds. Rows separate candidate submission from
+checker validation. Lines show means; faint dots show individual trials. Agent
+counts are 1–4 without sharing and 2–4 with sharing. One agent has no peer and
+serves as the no-sharing reference; no artificial one-agent sharing result is
+inserted. Counts above the panels identify successes out of five planned repeats.
+
+Both systems run Codex CLI. “Our Auto Research app” means our production native
+macOS orchestration harness, not the Codex desktop app. Its benchmark creates fresh
+private Daytona workers and fresh provider state; it does not benchmark a saved
+interactive app chat. The earlier CLI controller also used isolated fresh workers.
+The CLI version, Python/compiler, policies, account/cache/provider load, scheduling
+and checker queues differ, so these historical comparisons do not establish a
+causal speedup or sharing benefit.
 
 ![Current native app submission and validation times](native-harness-progress/native-current-timings.png)
-![Earlier Codex CLI controller versus native parallel harness](native-harness-progress/codex-cli-vs-native-harness.png)
 
-Both harnesses run Codex. The comparison separates native independent agents
-from fast sharing at 60/180/300-second cadences and uses the earlier fully audited
-20-trial CLI controller as the reference. Earlier CLI cells have five observations;
-native cells currently have one. The underlying CLI version, Python/compiler,
-policies, account/cache/provider load, scheduling and checker queues differ.
-These partial historical comparisons do not establish a causal speedup.
-
-All 13 native successes are baseline-eligible finite constructions; no new
+All included successes are baseline-eligible finite constructions; no new
 milestone gain is established. Preparation and the 300-second cooldown are outside
 the research clock; validation includes checker admission/wait and execution.
 
@@ -85,5 +95,5 @@ the research clock; validation includes checker admission/wait and execution.
 [aggregates and source hashes](native-harness-progress/aggregate.json),
 [visual/data review](native-harness-progress/data-review.json), and
 [vector comparison chart](native-harness-progress/codex-cli-vs-native-harness.svg)
-are included for inspection. These charts are provisional until the native study
-and full audit finish.
+are included for inspection. These charts remain provisional until the native
+study and full audit finish.
