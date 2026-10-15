@@ -1,0 +1,69 @@
+{
+  "asof_utc": "2026-10-15T23:32:32.533367+00:00",
+  "recoveries": [
+    [
+      "Native block 1",
+      37,
+      37
+    ],
+    [
+      "Native block 2",
+      34,
+      37
+    ]
+  ],
+  "manual_audits": [
+    [
+      "Codex CLI \u00b7 independent",
+      517,
+      517
+    ],
+    [
+      "Codex CLI \u00b7 fast sharing",
+      1006,
+      1006
+    ],
+    [
+      "Native block 1",
+      307,
+      307
+    ],
+    [
+      "Native block 2 \u00b7 indexed so far",
+      158,
+      514
+    ],
+    [
+      "CLI \u00b7 naive sharing",
+      228,
+      966
+    ]
+  ],
+  "native2_workers_exported": 34,
+  "native2_usage_unknown_sessions": 3,
+  "research_agents_running": 0,
+  "corrected_groups_started": 0,
+  "corrected_groups_planned": 130,
+  "old_native_endpoint_results_preserved": 26,
+  "established_primary_milestone_gains": 0,
+  "offline_matched_initial_requests": 37,
+  "old_results_are_not_discovery_speedup_evidence": true,
+  "recovery_errors": [],
+  "local_free_bytes": 1027801088,
+  "blockers": [
+    "Provider usage limit",
+    "Driver clock/endpoint integration and actual runtime parity checks"
+  ],
+  "source_sha256": {
+    "auto-research-harness-daytona-20261015-transport-recovery-1/continuations/cleanup-recovery-1/completion.json": "77352905b40ceb023cf583992fa49216fc645b9e9dbdb612381a18b1ec97e106",
+    "auto-research-harness-daytona-20261015-cleanup-recovery-1/continuations/post-limit-cleanup-1/progress.json": "b244b5083d3d9bbbd62d31b7ab5e18f8b5e892944c5b50061c86361e555e8a0e",
+    "auto-research-harness-daytona-20261015-transport-recovery-1/evidence/first-block-final-integrity-and-transport-review.json": "aa1a49ac585a5bcd75b81da14c57133c1ea336ae2847e92a7a5202aed36b4bd4",
+    "auto-research-harness-daytona-20261015-cleanup-recovery-1/evidence/terminal-metadata-review.json": "92ba1b59b320e920ee8b2536d7d4ea93117b460de09dc2349da4e2a6054c326e",
+    "integer-mult-diversity-daytona-20261015/evidence/independent-arm-final-review.json": "3021aec3353d24dfc0b80216100be8a40c8ca7efd72f6b7b6a115bbdf442c786",
+    "integer-mult-diversity-sharing-daytona-20261015/evidence/sharing-arm-final-review.json": "99603f1a567d583e74fa9cb736762f59fbcdaf604ca6ffa5a8fee362800d53e3",
+    "integer-mult-diversity-naive-sharing-daytona-20261015/evidence/naive-tool-index.json": "bfa63865eb72d74adb87bf1f74a0134e3efd714a89331f165ec9b2fedf80bddc",
+    "integer-mult-diversity-naive-sharing-daytona-20261015/evidence/naive-manual-tool-review.json": "a15e6ea34534a2bd42116fdabe725fa18a2a8d93063ec7a8c9e5d4856c797057",
+    "auto-research-discovery-comparison-20261015/matched-control-preparation-review.json": "5ad3715983cb7665e442c8dd1fddf3ef29d5b857378ea2337b120428b63c8e00",
+    "auto-research-discovery-comparison-20261015/protocol.json": "32a768d99aacd92703d3c08fee8a05420e19763c3365deee34b22b09ae7c3127"
+  }
+}

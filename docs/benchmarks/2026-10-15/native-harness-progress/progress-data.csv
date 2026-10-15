@@ -1,0 +1,8 @@
+category,cohort,completed,denominator,percent
+recovery,Native block 1,37,37,100.0
+recovery,Native block 2,34,37,91.89189189189189
+manual_tool_audit,Codex CLI · independent,517,517,100.0
+manual_tool_audit,Codex CLI · fast sharing,1006,1006,100.0
+manual_tool_audit,Native block 1,307,307,100.0
+manual_tool_audit,Native block 2 · indexed so far,158,514,30.739299610894943
+manual_tool_audit,CLI · naive sharing,228,966,23.60248447204969

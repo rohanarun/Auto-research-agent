@@ -1,0 +1,14 @@
+{
+  "data_bounds_checked": true,
+  "plotted_rows_match_csv_json": true,
+  "visual_review_complete": true,
+  "artifact_sha256": {
+    "progress-data.csv": "1a2fb5cfafc6cda5a34a3f7bf385b77c3c2279b9706a2a97be4950c1a4110ec0",
+    "progress-data.json": "f1f9c59d0c76f3fe01cfbe1154dadc38c381b030ac6953290f45f6cf64eb8cae",
+    "verification-progress.png": "77b436ffb3601208bf6dc083645d1b09e1033150163c15e19fa9dc3b5344d316",
+    "verification-progress.svg": "cb046d0a502579ba859e8fcb1aefa5d5de6a1770da293d736fbe80040c603e0c"
+  },
+  "visual_review_unix": 1792107191.282839,
+  "visual_findings": "Viewed full-resolution PNG: all titles, row labels, denominators, axes and status notes legible; no clipped or overlapping plot data. No red subtitle. Independently checked every plotted row against CSV/JSON.",
+  "csv_independently_checked": true
+}
