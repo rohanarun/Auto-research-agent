@@ -126,6 +126,11 @@ extension AppStore {
     }
     func recoverCloudBox(_ id: String, client: DaytonaClient) async throws {
         cloudCleanup.insert(id);defer { cloudCleanup.remove(id) }
+        try await cloudRecoveryQueue.run(id:id) {
+            try await self.exportCloudRecovery(id,client:client)
+        }
+    }
+    private func exportCloudRecovery(_ id: String, client: DaytonaClient) async throws {
         let root = try Workspace.directory(settings.workspaceRoot,"cloud/recovery/" + id + "/" + UUID().uuidString)
         let receipt = try await client.call(id,action:"pack")
         guard let sha = receipt["sha256"] as? String,let bytes = receipt["bytes"] as? Int,let count = receipt["entries"] as? Int else { throw ResearchError("Cloud export did not return a recovery receipt.") }

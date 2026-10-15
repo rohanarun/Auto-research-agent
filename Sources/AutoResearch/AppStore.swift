@@ -30,6 +30,7 @@ import ResearchCore
     @Published var daytonaLoginOutput = ""
     @Published var daytonaBusy = false
     @Published var cloudCleanup = Set<String>()
+    let cloudRecoveryQueue = CloudRecoveryQueue()
     var cloudDrains: [UUID:Bool] = [:]
     var cloudRuntime: [String:String]?
     var daytonaClient: DaytonaClient?
