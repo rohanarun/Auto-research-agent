@@ -45,6 +45,12 @@ public struct ResearchSession: Codable, Identifiable, Sendable {
     public var createdAt: Date
     public var state: String
     public var sharedAgent: SharedAgent?
+    public var cloud: CloudSession?
+    /// A saved chat stays on its original backend. The preference selects only
+    /// chats that have not yet acquired a checkout or provider conversation.
+    public func usesCloud(preferCloud: Bool) -> Bool {
+        cloud != nil || (preferCloud && providerSessionID == nil && workingDirectory == nil)
+    }
     public var closedAt: Date?
     public init(projectID: String, title: String, provider: Provider) {
         id = UUID(); self.projectID = projectID; self.title = title; self.provider = provider

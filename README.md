@@ -12,13 +12,55 @@ The sidebar discovers repositories from [Auto Research by Super](https://app.get
 
 ## Download
 
-[Download for macOS — Apple Silicon (.dmg)](https://getsupers.com/downloads/Auto-research-agent-1.2.3-arm64.dmg) · [SHA-256 checksum](https://getsupers.com/downloads/Auto-research-agent-1.2.3-arm64.dmg.sha256)
+[Download for macOS — Apple Silicon (.dmg)](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg) · [SHA-256 checksum](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg.sha256)
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
+## Daytona execution
+
+In **Connections & settings → Daytona**, enter your Daytona API key and click
+**Save key**, then **Connect**. The key is stored in macOS Keychain and is sent only
+to Daytona's management API. Click **Sign in to cloud Codex** and complete the
+separate official device login. The app never uploads your Mac's Codex account
+files. A local CLI installation is not required for Daytona execution.
+
+Choose **Daytona sandboxes · Codex**, then use the same Play, agent-count and Share
+context controls. Each parallel agent gets a private Linux sandbox and checkout;
+source snapshots preserve tracked working files and non-ignored untracked files.
+Ignored dependencies and Git history are not uploaded. Public GitHub projects
+without a local checkout are cloned directly in cloud workers. Claude and local
+MCP connections currently run on this Mac only.
+
+Fast sharing maintains `RESEARCH_CHECKPOINT.md` while agents work. At a handoff,
+the harness drains its owned processes, saves immutable checkpoints and topic
+files, joins the checkpoint text verbatim, and supplies the bundle to fresh
+provider sessions in the same private checkouts. **No synthesis-model call** is
+made. The old transcript-synthesis design is not a selectable app mode.
+
+Cloud compute is billed to your Daytona account. Stop drains owned CLI work,
+downloads a credential-excluded recovery archive, checks every manifest entry and
+SHA-256, then stops and archives successful exports. An export failure stops
+compute while preserving the original filesystem. **Stop owned cloud compute**
+also reconciles this installation's labeled sandboxes after an interrupted setup;
+it never deletes them or touches another installation's workers. Idle stopping is
+configured in `Resources/DaytonaDefaults.json` (60 minutes by default). The app
+must remain open for scheduled checkpoint handoffs.
+
+## Experiment charts
+
+[Report, charts and machine-readable data](docs/benchmarks/2026-10-15/README.md)
+include the audited 20 independent and 45 fast-sharing trials, the explicitly
+partial historical Mac comparison, and an as-of provisional old-synthesis arm.
+These are baseline-eligible finite-word construction checks: no milestone
+improvement was demonstrated, and different resource queues and provider load
+prevent causal speedup claims.
+
+![Fast sharing versus independent agents](docs/benchmarks/2026-10-15/timing-comparison.png)
+![Daytona versus historical Mac controls](docs/benchmarks/2026-10-15/daytona-versus-historical-mac.png)
+
 ## Build from source
 
-Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and at least one installed CLI: [Codex](https://developers.openai.com/codex/cli) or [Claude Code](https://code.claude.com/docs/en/overview). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
+Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and, for local execution, at least one installed CLI: [Codex](https://developers.openai.com/codex/cli) or [Claude Code](https://code.claude.com/docs/en/overview). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
 
 From a terminal in your external-volume development workspace:
 
@@ -52,21 +94,21 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 - The chat menu opens the repository, checkout, raw run logs, or exact CLI session in Terminal. Stop an in-app run before opening the same session in Terminal.
 - Add public GitHub repositories or existing external-SSD folders with the plus button. Existing checkouts are preserved and are never reset or automatically pulled.
 
-## Parallel agents with shared context
+## Parallel agents on the same problem
 
-Turn on **Share context** below the project header, choose the number of agents and how often they should share, then press **Play**. This is optional and off by default. The initial settings are two agents and a ten-minute interval; both are editable before starting. Each agent uses the selected Codex or Claude CLI and its configured model and account.
+Parallel mode is optional and off by default. The initial count is two agents; optional sharing defaults to a ten-minute interval. Both are editable before starting. Each agent uses the selected Codex or Claude CLI and its configured model and account. Existing saved sharing groups retain their settings.
 
-Each agent works in an independent checkout of the same project. At each interval, the app stops the current runs and waits for them to exit, saves every agent's visible conversation, and asks the selected model to combine their findings, failures, evidence, and next steps. Only after the model confirms a complete handoff does the app replace them with fresh CLI sessions, each receiving the same shared context. Every successor keeps its own checkout and links back to its previous chat. This transfers saved conversation context; it does not copy a provider's hidden internal state.
+Enable **Parallel agents**, choose the count, and send one problem or start research. Every agent receives that problem in its own checkout. Leave **Share context** off for independent work: each agent runs its own session without peer notes, coordinated roles, timed interruptions, or replacement sessions. Everyone's output appears together in **All agents**, with agent labels and links to individual chats. This combined display does not feed one agent's output into another's context. Independent checkouts live under `Runtime/parallel-agents/`.
 
-Parallel runs open in **All agents**, a single live chat that interleaves messages from every worker. Responses, tool activity, instructions and errors identify the agent number, CLI provider and round. The status indicators show each agent’s current state. The feed keeps earlier rounds and reopens after relaunch. The input stays visible in All agents: choose a recipient with **Send to**, draft while agents run, then stop the group and press Enter to follow up in that agent’s existing session. Click an agent’s status indicator or use **Agents** to open its individual chat, then **All agents** to return to the combined feed. Use **Share now** to synchronize early, or **Stop agents** to stop the group. Turning off Share context also stops the group. Old chats, transcripts, handoffs and checkout files remain available. If a worker or synthesis fails, the group pauses without launching replacement sessions. Quitting stops the group, and reopening never restarts it automatically. Manual follow-ups and Terminal handoffs require stopping the group first.
+Turn **Share context** on before launch to enable checkpoint sharing and choose its interval. Each cycle drains current runs, snapshots compact checkpoints and supporting files, then passes all checkpoint contents verbatim plus an evidence index into fresh sessions. Agents retain their own checkouts and choose relevant `RESEARCH_CONTEXT/*.md` topic files by their descriptive names. There is no extra synthesis-model call. Every successor links back to its previous chat; hidden provider state is not transferred.
 
-The combined chat with three simulated test agents:
+The **All agents** input stays visible: choose a recipient with **Send to**, draft while agents run, then stop or wait for the group to finish before sending a follow-up to that agent. Use **Stop agents** for the whole group. Sharing groups also offer **Share now**. Group settings are locked while active. In independent mode, one agent's failure does not cancel its peers; the group reports any failure once the remaining agents finish. In sharing mode, a worker or publication failure pauses the group before replacements start. Old chats and checkout files remain available, including after relaunch. Quitting asks to stop active runs. Agent behavior for independent work is editable in `Resources/IndependentAgentPolicy.md`.
 
 ![Combined parallel chat with agent numbers, providers, rounds, and per-agent status](docs/images/shared-agent-chat.png)
 
 Independent checkouts include committed files, dirty tracked changes, and non-ignored untracked files from the original repository. Ignored dependencies and local secrets are not copied; each agent must establish its own environment. Git submodules are not yet supported in this mode. The original checkout is preserved. Sharing context does not automatically merge code between agents: the model identifies useful changes and their locations so successors can inspect and incorporate them deliberately.
 
-Agent count multiplies concurrent CLI usage; each sharing cycle also runs a synthesis turn. An interval can interrupt an experiment, so the editable `Resources/SharedAgentPolicy.md` asks agents to save evidence incrementally and treat interrupted work as incomplete. Synthesis behavior lives in `Resources/SharedContextPolicy.md`; initial settings live in `Resources/SharedContextDefaults.json`. Snapshots and agent checkouts are stored under `Runtime/shared-context/`.
+Agent count multiplies concurrent CLI usage. Each agent periodically updates a minimal `RESEARCH_CHECKPOINT.md` during research. Sharing snapshots these checkpoints and includes their contents directly in successor prompts alongside an evidence-file index, without a separate synthesis turn; successor agents still spend tokens reading the context they need. An interval can interrupt an experiment, so the editable `Resources/SharedAgentPolicy.md` asks agents to save evidence incrementally and treat interrupted work as incomplete. Context-reading instructions live in `Resources/SharedContextPolicy.md`; initial settings live in `Resources/SharedContextDefaults.json`. Snapshots and agent checkouts are stored under `Runtime/shared-context/`.
 
 ## Permissions and evidence
 
@@ -94,7 +136,7 @@ Set `RESEARCH_LIVE_CODEX_TEST=1` for the opt-in two-turn authenticated smoke tes
 
 Set `RESEARCH_LIVE_DASHBOARD_TEST=1` to verify the public backend chart feeds; this test makes no provider CLI calls.
 
-Set `RESEARCH_LIVE_SHARED_TEST=1` to verify a shared handoff using two real Codex workers, one synthesis turn, and two fresh successor sessions. This uses your logged-in CLI account. The ordinary test suite checks replacement ordering, cancellation, failed synthesis, legacy history loading, and independent checkout preservation without provider requests.
+Set `RESEARCH_LIVE_SHARED_TEST=1` to verify a shared handoff using two real Codex workers, a shared file index, and two fresh successor sessions. This uses your logged-in CLI account. The ordinary test suite checks replacement ordering, cancellation, failed context publication, legacy history loading, and independent checkout preservation without provider requests.
 
 Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
 

@@ -1,0 +1,39 @@
+arm,id,agents,submission_seconds,validation_seconds,batch
+Daytona independent,trial-1-4-agents,4,97.21395754814148,123.7611367800273,historical
+Daytona independent,trial-1-2-agents,2,96.28096985816956,120.02038202993572,historical
+Daytona independent,trial-1-1-agents,1,117.93076157569885,136.0157614260679,historical
+Daytona independent,trial-1-3-agents,3,105.8310558795929,129.0434607049683,historical
+Daytona independent,trial-2-4-agents,4,70.73227882385254,91.88081196392886,historical
+Daytona independent,trial-2-3-agents,3,74.70375394821167,96.5931909129722,historical
+Daytona independent,trial-2-2-agents,2,114.44626688957214,239.45621747302357,historical
+Daytona independent,trial-2-1-agents,1,92.18130731582642,258.6564283029875,historical
+Daytona independent,trial-3-3-agents,3,114.21671104431152,169.24362938001286,historical
+Daytona independent,trial-3-1-agents,1,142.97967433929443,293.61439824895933,historical
+Daytona independent,trial-3-2-agents,2,85.18268203735352,115.67920562601648,historical
+Daytona independent,trial-3-4-agents,4,74.73086667060852,111.69069475401193,historical
+Daytona independent,trial-4-2-agents,2,92.72878503799438,274.5486017030198,historical
+Daytona independent,trial-4-3-agents,3,92.73356509208679,185.23161156999413,historical
+Daytona independent,trial-4-1-agents,1,111.6244809627533,146.4235662750434,historical
+Daytona independent,trial-4-4-agents,4,95.53204250335693,132.33729290496558,historical
+Daytona independent,trial-5-2-agents,2,113.46099615097046,257.6525719820056,historical
+Daytona independent,trial-5-4-agents,4,88.65184283256531,340.2110250609694,historical
+Daytona independent,trial-5-3-agents,3,100.02093625068665,149.9646727340296,historical
+Daytona independent,trial-5-1-agents,1,130.8456678390503,327.1866046009818,historical
+Historical Mac controls,trial-1-4-agents,4,265.8850779533386,278.8663637638092,historical
+Historical Mac controls,trial-1-2-agents,2,429.274347782135,439.06336998939514,historical
+Historical Mac controls,trial-1-1-agents,1,296.45431208610535,305.1956059932709,historical
+Historical Mac controls,trial-1-3-agents,3,473.94517183303833,484.23597383499146,historical
+Historical Mac controls,trial-2-4-agents,4,237.11221504211426,251.9961302280426,historical
+Historical Mac controls,trial-2-3-agents,3,214.5293366909027,225.17273378372192,historical
+Historical Mac controls,trial-2-2-agents,2,237.13703203201294,247.61163711547852,historical
+Historical Mac controls,trial-2-1-agents,1,412.71345615386963,422.6110520362854,historical
+Historical Mac controls,trial-3-3-agents,3,187.61602592468262,198.08794403076172,historical
+Historical Mac controls,trial-3-1-agents,1,338.31291604042053,347.65515398979187,historical
+Historical Mac controls,trial-3-2-agents,2,346.86720991134644,356.9122817516327,historical
+Historical Mac controls,trial-3-4-agents,4,241.67739009857178,255.6899061203003,historical
+Historical Mac controls,trial-4-2-agents,2,268.8953778743744,278.869665145874,historical
+Historical Mac controls,trial-4-3-agents,3,110.61078596115112,120.3029990196228,historical
+Historical Mac controls,trial-4-1-agents,1,192.07697820663452,201.9044771194458,historical
+Historical Mac controls,trial-4-4-agents,4,278.68292593955994,293.69522309303284,historical
+Historical Mac controls,trial-5-2-agents,2,404.281281709671,412.94152188301086,historical
+Historical Mac controls,trial-5-4-agents,4,267.5140497684479,282.098251581192,historical

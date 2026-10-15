@@ -1,11 +1,21 @@
 import SwiftUI
 import ResearchCore
 
+/// A single toolbar row; detailed configuration stays in the settings popover.
 struct SharedContextControls: View {
     @ObservedObject var store: AppStore
     let project: ResearchProject
+    @State private var showingConfiguration = false
     private var options: SharedContextOptions { store.sharedConfiguration(project.id) }
     private var active: Bool { store.sharedActive(project.id) }
+    private var group: UUID? { store.relevantSharedGroup(project.id) }
+    private var agents: [ResearchSession] {
+        guard let group else { return [] }
+        return SharedTranscript.latestAgents(in: store.sessions, projectID: project.id, groupID: group)
+    }
+    private var mode: String {
+        options.parallelEnabled ? "\(options.agentCount) agents · \(options.enabled ? "Sharing" : "Independent")" : "Single agent"
+    }
     private func binding<T>(_ key: WritableKeyPath<SharedContextOptions, T>) -> Binding<T> {
         Binding(get: { options[keyPath: key] }, set: { value in
             var updated = options; updated[keyPath: key] = value
@@ -13,54 +23,73 @@ struct SharedContextControls: View {
         })
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 16) {
-                Toggle("Share context", isOn: binding(\.enabled)).toggleStyle(.switch).controlSize(.small)
-                    .help("Run parallel agents in independent checkouts and periodically combine their contexts into fresh sessions. Uses your selected CLI account.")
-                if options.enabled {
-                    HStack(spacing: 5) {
-                        Text("Agents")
-                        TextField("Count", value: binding(\.agentCount), format: .number).frame(width: 42).accessibilityLabel("Parallel agent count")
-                        Stepper("Agent count", value: binding(\.agentCount), in: 2...Int.max).labelsHidden()
-                    }.disabled(active)
-                    HStack(spacing: 5) {
-                        Text("Share every")
-                        TextField("Minutes", value: binding(\.intervalMinutes), format: .number).frame(width: 52).accessibilityLabel("Context sharing interval in minutes")
-                        Text("min")
-                    }.disabled(active)
+        HStack(spacing: 10) {
+            Button { showingConfiguration.toggle() } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: options.parallelEnabled ? "person.2" : "person")
+                    Text(mode)
+                    Image(systemName: "chevron.down").font(.system(size: 8, weight: .semibold))
                 }
-                Spacer(minLength: 0)
-                if let group = store.relevantSharedGroup(project.id) {
+            }
+            .help("Research settings").accessibilityLabel("Research settings: \(mode)")
+            .popover(isPresented: $showingConfiguration, arrowEdge: .bottom) { configuration }
+            if let group {
+                Menu {
                     Button("All agents") { store.selectSharedGroup(group, projectID: project.id) }
-                        .disabled(store.selectedSharedGroupID == group)
-                }
+                    Divider()
+                    ForEach(agents) { session in
+                        Button("Agent \(session.sharedAgent!.index) · \(session.state)") { store.selectSession(session) }
+                    }
+                    if active && options.enabled {
+                        Divider()
+                        Button("Share now") { store.synchronizeSharedResearch(project.id) }
+                            .disabled(store.sharedRuns[project.id]?.phase != .researching)
+                    }
+                } label: {
+                    Text(store.session?.sharedAgent.map { "Agent \($0.index)" } ?? "All agents")
+                }.menuStyle(.borderlessButton).fixedSize()
             }
             if let run = store.sharedRuns[project.id] {
-                HStack(spacing: 12) {
-                    Text("Round \(run.generation) · \(run.phase.rawValue)").foregroundStyle(.secondary)
-                    if !run.sessionIDs.isEmpty {
-                        Menu("Agents") {
-                            ForEach(run.sessionIDs, id: \.self) { id in
-                                if let session = store.sessions.first(where: { $0.id == id }) {
-                                    Button("\(session.title) · \(session.state)") { store.selectSession(session) }
-                                }
-                            }
-                        }.fixedSize()
-                    }
-                    Spacer(minLength: 0)
-                    if active {
-                        Button("Share now") { store.synchronizeSharedResearch(project.id) }.disabled(run.phase != .researching)
-                        Button("Stop agents") { store.stopSharedResearch(project.id) }
+                HStack(spacing: 5) {
+                    if active { ProgressView().controlSize(.mini) }
+                    Text(run.phase.rawValue).foregroundStyle(.secondary).lineLimit(1)
+                }
+                if active {
+                    Button { store.stopSharedResearch(project.id) } label: { Image(systemName: "stop.fill") }
+                        .help("Stop agents").accessibilityLabel("Stop agents")
+                }
+            }
+        }.font(.system(size: 11)).buttonStyle(.plain).controlSize(.small)
+    }
+    private var configuration: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Research settings").font(.system(size: 13, weight: .semibold))
+            Toggle("Parallel agents", isOn: binding(\.parallelEnabled)).toggleStyle(.switch)
+            if options.parallelEnabled {
+                HStack {
+                    Text("Agents")
+                    Spacer()
+                    TextField("Count", value: binding(\.agentCount), format: .number)
+                        .frame(width: 48).accessibilityLabel("Parallel agent count")
+                    Stepper("Agent count", value: binding(\.agentCount), in: 2...Int.max).labelsHidden()
+                }
+                Toggle("Share context", isOn: binding(\.enabled)).toggleStyle(.switch)
+                if options.enabled {
+                    HStack {
+                        Text("Share every")
+                        Spacer()
+                        TextField("Minutes", value: binding(\.intervalMinutes), format: .number)
+                            .frame(width: 52).accessibilityLabel("Context sharing interval in minutes")
+                        Text("min")
                     }
                 }
-            } else if options.enabled {
-                Text("Play starts \(options.agentCount) agents. Each sharing cycle saves their contexts and replaces their sessions.")
-                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
+            Text(active ? "Stop the current run to change its settings." : options.enabled && options.parallelEnabled
+                 ? "Agents periodically share compact checkpoints in fresh sessions."
+                 : "Each agent works independently on the same problem.")
+                .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
-        .font(.system(size: 11))
-        .textFieldStyle(.roundedBorder)
-        .padding(.horizontal, 28).padding(.bottom, 14)
-        .animation(.easeOut(duration: 0.16), value: options.enabled)
+        .disabled(active).font(.system(size: 12)).controlSize(.small)
+        .textFieldStyle(.roundedBorder).padding(20).frame(width: 290)
     }
 }

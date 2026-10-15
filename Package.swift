@@ -6,7 +6,8 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [.executable(name: "AutoResearch", targets: ["AutoResearch"])],
     targets: [
-        .target(name: "ResearchCore"),
+        .systemLibrary(name: "CArchive"),
+        .target(name: "ResearchCore", dependencies: ["CArchive"]),
         .executableTarget(name: "AutoResearch", dependencies: ["ResearchCore"]),
         .testTarget(name: "ResearchCoreTests", dependencies: ["ResearchCore"]),
         .testTarget(name: "AutoResearchTests", dependencies: ["AutoResearch"])

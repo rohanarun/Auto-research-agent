@@ -1,14 +1,25 @@
 import Foundation
 
 public struct SharedContextOptions: Codable, Equatable, Sendable {
+    public var parallelEnabled: Bool
     public var enabled: Bool
     public var agentCount: Int
     public var intervalMinutes: Double
-    public init(enabled: Bool, agentCount: Int, intervalMinutes: Double) {
+    public init(enabled: Bool, agentCount: Int, intervalMinutes: Double, parallelEnabled: Bool? = nil) {
+        self.parallelEnabled = parallelEnabled ?? enabled
         self.enabled = enabled; self.agentCount = agentCount; self.intervalMinutes = intervalMinutes
     }
+    private enum CodingKeys: String, CodingKey { case parallelEnabled, enabled, agentCount, intervalMinutes }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try values.decode(Bool.self, forKey: .enabled)
+        parallelEnabled = try values.decodeIfPresent(Bool.self, forKey: .parallelEnabled) ?? enabled
+        agentCount = try values.decode(Int.self, forKey: .agentCount)
+        intervalMinutes = try values.decode(Double.self, forKey: .intervalMinutes)
+    }
     public func validate() throws {
-        guard agentCount >= 2 else { throw ResearchError("Shared context needs at least two agents.") }
+        guard agentCount >= 2 else { throw ResearchError("Parallel research needs at least two agents.") }
+        guard enabled else { return }
         guard intervalMinutes.isFinite, intervalMinutes > 0, intervalMinutes * 60 < Double(Int64.max) / 1_000_000_000 else {
             throw ResearchError("Enter a positive synchronization interval in minutes.")
         }
@@ -21,28 +32,34 @@ public struct SharedAgent: Codable, Sendable {
     public var generation: Int
     public var previousSessionID: UUID?
     public var contextFile: String?
-    public init(groupID: UUID, index: Int, generation: Int, previousSessionID: UUID?, contextFile: String?) {
+    public var sharesContext: Bool?
+    public var agentCount: Int?
+    public var isIndependent: Bool { sharesContext == false }
+    public init(groupID: UUID, index: Int, generation: Int, previousSessionID: UUID?, contextFile: String?, sharesContext: Bool? = nil, agentCount: Int? = nil) {
         self.groupID = groupID; self.index = index; self.generation = generation
         self.previousSessionID = previousSessionID; self.contextFile = contextFile
+        self.sharesContext = sharesContext; self.agentCount = agentCount
     }
 }
 
 /// Owns the replacement boundary: drained workers -> durable snapshot -> successful
-/// synthesis -> new sessions. Cancellation or a failed merge never starts replacements.
+/// file index -> new sessions. Cancellation or a failed publication never starts replacements.
 @MainActor public final class SharedContextCycle {
-    public enum Phase: String { case preparing = "Preparing agents", researching = "Researching", capturing = "Saving contexts", merging = "Combining contexts", stopped = "Stopped", failed = "Needs attention" }
+    public enum Phase: String { case preparing = "Preparing agents", researching = "Researching", capturing = "Saving contexts", merging = "Sharing context files", completed = "Completed", stopped = "Stopped", failed = "Needs attention" }
     public struct Hooks {
         public var prepare: () async throws -> Void
         public var launch: (Int, URL?, [UUID]) throws -> [UUID]
         public var drain: ([UUID]) async -> Void
-        public var capture: ([UUID], Int, URL?) throws -> URL
+        public var capture: ([UUID], Int, URL?) async throws -> URL
         public var merge: (URL) async throws -> URL
         public var retire: ([UUID]) -> Void
         public var cancelOperation: () -> Void
         public var update: (Phase, Int, [UUID], String?) -> Void
-        public init(prepare: @escaping () async throws -> Void, launch: @escaping (Int, URL?, [UUID]) throws -> [UUID], drain: @escaping ([UUID]) async -> Void, capture: @escaping ([UUID], Int, URL?) throws -> URL, merge: @escaping (URL) async throws -> URL, retire: @escaping ([UUID]) -> Void, cancelOperation: @escaping () -> Void, update: @escaping (Phase, Int, [UUID], String?) -> Void) {
+        public var waitForCompletion: ([UUID]) async throws -> Void
+        public init(prepare: @escaping () async throws -> Void, launch: @escaping (Int, URL?, [UUID]) throws -> [UUID], drain: @escaping ([UUID]) async -> Void, capture: @escaping ([UUID], Int, URL?) async throws -> URL, merge: @escaping (URL) async throws -> URL, retire: @escaping ([UUID]) -> Void, cancelOperation: @escaping () -> Void, update: @escaping (Phase, Int, [UUID], String?) -> Void, waitForCompletion: @escaping ([UUID]) async throws -> Void = { _ in }) {
             self.prepare = prepare; self.launch = launch; self.drain = drain; self.capture = capture; self.merge = merge
             self.retire = retire; self.cancelOperation = cancelOperation; self.update = update
+            self.waitForCompletion = waitForCompletion
         }
     }
     private let hooks: Hooks
@@ -68,6 +85,14 @@ public struct SharedAgent: Codable, Sendable {
             hooks.update(.preparing, generation, ids, nil)
             try await hooks.prepare(); try Task.checkCancellation()
             ids = try hooks.launch(generation, nil, [])
+            if !options.enabled {
+                hooks.update(.researching, generation, ids, nil)
+                try await hooks.waitForCompletion(ids)
+                try Task.checkCancellation()
+                active = false
+                hooks.update(.completed, generation, ids, nil)
+                return
+            }
             while true {
                 hooks.update(.researching, generation, ids, nil)
                 let sleeper = Task<Void, Error> { try await Task.sleep(for: .seconds(options.intervalMinutes * 60)) }
@@ -77,7 +102,7 @@ public struct SharedAgent: Codable, Sendable {
                 try Task.checkCancellation()
                 hooks.update(.capturing, generation, ids, nil)
                 await hooks.drain(ids); try Task.checkCancellation()
-                let snapshot = try hooks.capture(ids, generation, context)
+                let snapshot = try await hooks.capture(ids, generation, context)
                 hooks.update(.merging, generation, ids, nil)
                 let combined = try await hooks.merge(snapshot)
                 try Task.checkCancellation()

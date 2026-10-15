@@ -1,0 +1,8 @@
+{
+  "snapshot": "daytona-medium",
+  "codexPackage": "@openai/codex",
+  "reasoningEffort": "high",
+  "pollSeconds": 2,
+  "logChunkBytes": 262144,
+  "idleStopMinutes": 60
+}

@@ -6,11 +6,13 @@ struct ConnectionsView: View {
     @ObservedObject var store: AppStore
     @Environment(\.dismiss) private var dismiss
     @State private var tab = "Connections"
+    init(store: AppStore, initialTab: String = "Connections") { self.store = store;_tab = State(initialValue:initialTab) }
+    @State private var daytonaKey = ""
     @State private var loginInput = ""
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Your research workspace").font(.system(size: 23, weight: .semibold)); Spacer(); Button("Done") { store.saveSettings() }.keyboardShortcut(.defaultAction).disabled(store.hasActiveRuns) }
-            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
+            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
             if tab == "Connections" {
                 ForEach(Provider.allCases) { provider in
                     VStack(alignment: .leading, spacing: 12) {
@@ -40,6 +42,36 @@ struct ConnectionsView: View {
                     ScrollView { Text(.init(store.loginOutput)).font(.system(size: 11, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(height: 115)
                     HStack { SecureField("Response if the CLI requests a code", text: $loginInput); Button("Submit") { store.sendLoginInput(loginInput); loginInput = "" } }
                 }
+            } else if tab == "Daytona" {
+                VStack(alignment:.leading,spacing:16) {
+                    Picker("Run research",selection:Binding(get:{store.daytona.enabled},set:{store.setCloudExecution($0)})) {
+                        Text("This Mac").tag(false);Text("Daytona sandboxes · Codex").tag(true)
+                    }.pickerStyle(.segmented).disabled(store.hasActiveRuns)
+                    Text("Private parallel sandboxes").font(.headline)
+                    Text("Each agent has its own Linux checkout. Share context uses live-written checkpoint files, combines them directly, then supplies the bundle to fresh sessions. Your Mac account files are never uploaded.").font(.system(size:13)).foregroundStyle(.secondary)
+                    HStack {
+                        SecureField("Daytona API key",text:$daytonaKey).textFieldStyle(.roundedBorder)
+                        Button("Save key") { store.saveDaytonaKey(daytonaKey);daytonaKey = "" }.disabled(daytonaKey.isEmpty || store.hasActiveRuns || store.daytonaBusy)
+                    }
+                    HStack {
+                        Text(store.daytonaStatus).font(.system(size:12)).textSelection(.enabled)
+                        Spacer()
+                        Button("Connect") { store.connectDaytona(signIn:false) }.disabled(store.daytonaBusy || store.hasActiveRuns)
+                        Button("Sign in to cloud Codex") { store.connectDaytona(signIn:true) }.disabled(store.daytonaBusy || store.hasActiveRuns)
+                    }
+                    Text("The API key is stored in macOS Keychain. Cloud model access uses the official device login separately. Cloud compute is billed to your Daytona account. Completed work is downloaded and verified before workers are archived; failed exports preserve the sandbox. Idle sandboxes also stop after \(store.daytona.idleStopMinutes) minutes.").font(.system(size:12)).foregroundStyle(.secondary)
+                    if !store.daytonaLoginOutput.isEmpty {
+                        ScrollView { Text(store.daytonaLoginOutput).font(.system(size:11,design:.monospaced)).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading) }.frame(height:150)
+                        if store.daytonaBusy { Button("Cancel cloud sign-in") { store.cancelCloudLogin() } }
+                        Link("Open Codex device sign-in",destination:URL(string:"https://auth.openai.com/codex/device")!)
+                    }
+                    HStack {
+                        Button("Stop owned cloud compute") { store.stopCloudCompute() }.disabled(store.hasActiveRuns || store.daytonaBusy || !store.cloudCleanup.isEmpty)
+                        Button("Remove saved key") { store.removeDaytonaKey() }.disabled(store.hasActiveRuns || store.daytonaBusy || !store.cloudCleanup.isEmpty)
+                    }
+                    if !store.cloudCleanup.isEmpty { Text("Verifying and archiving \(store.cloudCleanup.count) worker(s)…").font(.caption).foregroundStyle(.secondary) }
+                    Spacer()
+                }
             } else if tab == "MCP" {
                 Text("Choose which direct Codex MCP connections this app may start. None are enabled by default. CLI plugins are not loaded in research runs. Your global configuration is preserved.").font(.system(size: 13)).foregroundStyle(.secondary)
                 ScrollView {
@@ -67,7 +99,7 @@ struct ConnectionsView: View {
                 Spacer()
             }
             if store.hasActiveRuns { Text("Stop active research before changing settings.").font(.system(size: 12)).foregroundStyle(.secondary); Button("Close") { dismiss() } }
-        }.padding(28).frame(width: 710, height: store.loginProvider == nil ? 610 : 790)
+        }.padding(28).frame(width: 710, height: store.loginProvider == nil && !(tab == "Daytona" && !store.daytonaLoginOutput.isEmpty) ? 610 : 790)
     }
 }
 

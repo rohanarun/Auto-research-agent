@@ -17,7 +17,7 @@ struct ContentView: View {
             Rectangle().fill(Color.black.opacity(0.075)).frame(width: 1)
             VStack(spacing: 0) {
                 header
-                if let project = store.project { SharedContextControls(store: store, project: project) }
+                Divider().opacity(0.4)
                 if let groupID = store.selectedSharedGroupID, let project = store.project {
                     SharedChatView(store: store, projectID: project.id, groupID: groupID).id(groupID)
                     composer
@@ -150,35 +150,40 @@ struct ContentView: View {
     }
     var header: some View {
         HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(store.project?.name.replacingOccurrences(of: "-", with: " ") ?? "Your research workspace").font(.system(size: 14, weight: .semibold)).lineLimit(1)
-                HStack(spacing: 5) {
-                    if store.isRunning { ProgressView().controlSize(.mini) }
-                    Text(store.selectedSharedGroupID != nil ? "Parallel agents · shared chat" : store.session?.state ?? store.project?.category ?? "Open research").font(.system(size: 11)).foregroundStyle(muted)
-                }
-            }
-            Spacer()
+            Text(store.project?.name.replacingOccurrences(of: "-", with: " ") ?? "Your research workspace")
+                .font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                .truncationMode(.tail).frame(maxWidth: .infinity, alignment: .leading)
             if let project = store.project {
-                if store.session != nil || store.selectedSharedGroupID != nil || !store.showingProjectDetails {
-                    Button("Project details") { store.showProjectDetails() }.buttonStyle(.bordered)
-                } else {
-                    if let recent = store.projectSessions.first {
-                        Button("Open chat") { store.selectSession(recent) }.buttonStyle(.bordered)
+                SharedContextControls(store: store, project: project).fixedSize()
+                if store.showingProjectDetails && store.session == nil && store.selectedSharedGroupID == nil {
+                    Button { store.play(project) } label: { Image(systemName: "play.fill") }
+                        .help("Start research").accessibilityLabel("Start selected research project")
+                } else if store.selectedSharedGroupID == nil && store.session?.sharedAgent == nil {
+                    if store.isRunning { ProgressView().controlSize(.mini) }
+                    Text(store.session?.state ?? "Ready").foregroundStyle(muted).lineLimit(1)
+                    if store.isRunning {
+                        Button { if let id = store.selectedSessionID { store.stop(id) } } label: { Image(systemName: "stop.fill") }
+                            .help("Stop research").accessibilityLabel("Stop research")
                     }
-                    Button { store.play(project) } label: {
-                        Label(store.running(project) ? "View running research" : "Start research", systemImage: "play.fill")
-                            .font(.system(size: 12, weight: .medium)).padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(ink, in: Capsule()).foregroundStyle(.white)
-                    }.buttonStyle(.plain).accessibilityLabel("Start selected research project")
                 }
             }
             Menu {
                 ForEach(Provider.allCases) { provider in Button(provider.title) { store.provider = provider; store.newChat() } }
             } label: {
-                HStack(spacing: 7) { Circle().fill(store.auth[store.session?.provider ?? store.provider] == "Connected" ? Color.green : .orange).frame(width: 6, height: 6); Text((store.session?.provider ?? store.provider).title).font(.system(size: 12, weight: .medium)) }
-            }.menuStyle(.borderlessButton).fixedSize().padding(.horizontal, 12).padding(.vertical, 7).background(sidebarColor, in: Capsule())
-            Button { store.newChat() } label: { Image(systemName: "square.and.pencil") }.buttonStyle(.plain).help("New chat")
+                HStack(spacing: 5) {
+                    Circle().fill(store.auth[store.session?.provider ?? store.provider] == "Connected" ? Color.green : .orange).frame(width: 5, height: 5)
+                    Text((store.session?.provider ?? store.provider).title)
+                }
+            }.menuStyle(.borderlessButton).fixedSize()
+            Button { store.newChat() } label: { Image(systemName: "square.and.pencil") }
+                .help("New chat").accessibilityLabel("New chat")
             Menu {
+                if let project = store.project {
+                    Button("Project details") { store.showProjectDetails() }
+                    Button("Start research") { store.play(project) }
+                    if let recent = store.projectSessions.first { Button("Open latest chat") { store.selectSession(recent) } }
+                    Divider()
+                }
                 if let url = store.project?.githubURL { Link("View repository", destination: url) }
                 Button("Show project in Finder") { store.revealProject() }.disabled(store.session?.workingDirectory == nil && store.project?.localPath == nil)
                 Button("Show run logs") { store.revealLogs() }.disabled(store.session == nil)
@@ -190,7 +195,10 @@ struct ContentView: View {
                 }
                 Button("Connections & settings") { store.showSettings = true }
             } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).fixedSize()
-        }.padding(.horizontal, 28).padding(.top, 26).padding(.bottom, 22)
+        }
+        .font(.system(size: 11)).buttonStyle(.plain).controlSize(.small)
+        .padding(.horizontal, 20).padding(.vertical, 12)
+        .frame(height: 48)
     }
     var welcome: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -223,7 +231,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 24) {
-                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider, speaker: session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · Round \($0.generation)" }) }
+                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider, speaker: session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · \($0.isIndependent ? "Independent" : "Round \($0.generation)")" }) }
                         if store.isRunning { HStack(spacing: 9) { ProgressView().controlSize(.small); Text(session.state == "Preparing" ? "Preparing workspace…" : "Researching…").font(.system(size: 12)).foregroundStyle(muted) }.padding(.vertical, 12) }
                         Color.clear.frame(height: 1).id("bottom")
                     }.frame(maxWidth: 760, alignment: .leading).padding(.horizontal, 34).padding(.vertical, 20).frame(maxWidth: .infinity)

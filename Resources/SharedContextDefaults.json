@@ -1,4 +1,5 @@
 {
+  "parallelEnabled": false,
   "enabled": false,
   "agentCount": 2,
   "intervalMinutes": 10

@@ -25,6 +25,17 @@ import ResearchCore
     @Published var availableMCPServers: [String] = []
     @Published var enabledMCPServers: Set<String> = []
     @Published var keepResearching = Set<UUID>()
+    @Published var daytona: DaytonaConfiguration
+    @Published var daytonaStatus = "Not connected"
+    @Published var daytonaLoginOutput = ""
+    @Published var daytonaBusy = false
+    @Published var cloudCleanup = Set<String>()
+    var cloudDrains: [UUID:Bool] = [:]
+    var cloudRuntime: [String:String]?
+    var daytonaClient: DaytonaClient?
+    var daytonaLoginCancelled = false
+    var daytonaLoginRunner: ProcessRunner?
+    var cloudOwnedIDs = Set<String>()
     var runners: [UUID: ProcessRunner] = [:]
     var workerTasks: [UUID: Task<Void, Never>] = [:]
     @Published var sharedOptions: [String: SharedContextOptions] = [:]
@@ -33,10 +44,10 @@ import ResearchCore
     var sharedOperations: [String: ProcessRunner] = [:]
     var sharedDefaults: SharedContextOptions
     var activePaths: [UUID: String] = [:]
-    private var stopped = Set<UUID>()
-    private var eventMessages: [UUID: [String: UUID]] = [:]
-    private var failed = Set<UUID>()
-    private var completed = Set<UUID>()
+    var stopped = Set<UUID>()
+    var eventMessages: [UUID: [String: UUID]] = [:]
+    var failed = Set<UUID>()
+    var completed = Set<UUID>()
     private var loginRunner: ProcessRunner?
     private var saveTask: Task<Void, Never>?
     private var checkingAuth = false
@@ -56,6 +67,7 @@ import ResearchCore
         sharedDefaults = try! JSONDecoder().decode(SharedContextOptions.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("SharedContextDefaults.json")))
         // The build embeds installation defaults; the runtime settings remain user editable.
         let bundledDefaults = overrideDefaults ?? (try! JSONDecoder().decode(ResearchCore.Settings.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("Defaults.json"))))
+        daytona = try! JSONDecoder().decode(DaytonaConfiguration.self,from:Data(contentsOf:resourceDirectory.appendingPathComponent("DaytonaDefaults.json")))
         settings = bundledDefaults
         settingsFile = URL(fileURLWithPath: bundledDefaults.workspaceRoot).appendingPathComponent("settings.json")
         needsWorkspace = bundledDefaults.workspaceRoot.isEmpty
@@ -65,6 +77,8 @@ import ResearchCore
     private func loadWorkspace(_ defaults: ResearchCore.Settings) {
         settingsFile = URL(fileURLWithPath: defaults.workspaceRoot).appendingPathComponent("settings.json")
         settings = (try? Data(contentsOf: settingsFile)).flatMap { try? JSONDecoder().decode(ResearchCore.Settings.self, from: $0) } ?? defaults
+        if let saved = try? Data(contentsOf:URL(fileURLWithPath:settings.workspaceRoot).appendingPathComponent("daytona.json")),let config = try? JSONDecoder().decode(DaytonaConfiguration.self,from:saved) { daytona = config }
+        if let ids = try? Data(contentsOf:URL(fileURLWithPath:settings.workspaceRoot).appendingPathComponent("daytona-owned.json")),let decoded = try? JSONDecoder().decode(Set<String>.self,from:ids) { cloudOwnedIDs = decoded }
         policy = (try? String(contentsOf: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("research-policy.md"), encoding: .utf8))
             ?? (try? String(contentsOf: resourceDirectory.appendingPathComponent("ResearchPolicy.md"), encoding: .utf8)) ?? ""
         if let data = try? Data(contentsOf: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("mcp-selection.json")), let names = try? JSONDecoder().decode([String].self, from: data) { enabledMCPServers = Set(names) }
@@ -102,7 +116,7 @@ import ResearchCore
     var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt == nil }.sorted { $0.createdAt > $1.createdAt } }
     var closedProjectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt != nil }.sorted { $0.closedAt! > $1.closedAt! } }
     var isRunning: Bool { selectedSessionID.map { runners[$0] != nil } ?? false }
-    var hasActiveRuns: Bool { !runners.isEmpty || sharedCycles.values.contains { $0.active } }
+    var hasActiveRuns: Bool { daytonaBusy || !cloudCleanup.isEmpty || !runners.isEmpty || sharedCycles.values.contains { $0.active } }
     func running(_ project: ResearchProject) -> Bool { sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
 
     func start() async {
@@ -216,7 +230,7 @@ import ResearchCore
             return
         }
         if let existing = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(existing); return }
-        if sharedConfiguration(project.id).enabled { startSharedResearch(project); return }
+        if sharedConfiguration(project.id).parallelEnabled { startSharedResearch(project); return }
         select(project)
         let session = ResearchSession(projectID: project.id, title: "Research · \(project.name)", provider: provider)
         sessions.append(session); selectedSessionID = session.id
@@ -225,7 +239,7 @@ import ResearchCore
     func send(to recipientID: UUID? = nil) {
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
-        guard !sharedActive(project.id) else { error = "Stop the shared-context group before sending a manual follow-up."; return }
+        guard !sharedActive(project.id) else { error = "Stop the parallel group before sending a manual follow-up."; return }
         if let group = selectedSharedGroupID {
             guard let recipientID, SharedTranscript.latestAgents(in: sessions, projectID: project.id, groupID: group).contains(where: { $0.id == recipientID }) else {
                 error = "Choose an agent in this group before sending a follow-up."; return
@@ -239,7 +253,7 @@ import ResearchCore
             return
         }
         if recipientID != nil { error = "Select the agent's group before sending a follow-up."; return }
-        if selectedSessionID == nil, sharedConfiguration(project.id).enabled { composer = ""; startSharedResearch(project, request: request); return }
+        if selectedSessionID == nil, sharedConfiguration(project.id).parallelEnabled { composer = ""; startSharedResearch(project, request: request); return }
         if let other = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(other); error = "This project already has an active run. Stop it before starting another writer."; return }
         composer = ""
         let id: UUID
@@ -258,6 +272,7 @@ import ResearchCore
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
+        if sessions.first(where: { $0.id == id })?.usesCloud(preferCloud:daytona.enabled) == true { launchCloud(id, project:project, request:request);return }
         guard runners[id] == nil else { return }
         let targetPath = sessions.first(where: { $0.id == id })?.workingDirectory ?? project.localPath ?? URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("projects/\(project.repository)").path
         let target = URL(fileURLWithPath: targetPath).resolvingSymlinksInPath().path
@@ -305,8 +320,11 @@ import ResearchCore
                 }
                 guard !stopped.contains(id) else { throw CancellationError() }
                 if let shared = current.sharedAgent {
-                    prompt += "\n\nParallel research agent \(shared.index) of \(sharedConfiguration(project.id).agentCount), generation \(shared.generation). Your assigned checkout is \(directory.path)."
-                    if let path = shared.contextFile {
+                    let count = shared.agentCount ?? sharedConfiguration(project.id).agentCount
+                    prompt += shared.isIndependent
+                        ? "\n\nIndependent parallel agent \(shared.index) of \(count). Solve the same user problem independently in your assigned checkout: \(directory.path). No peer context is supplied or exchanged."
+                        : "\n\nParallel research agent \(shared.index) of \(count), generation \(shared.generation). Your assigned checkout is \(directory.path)."
+                    if !shared.isIndependent, let path = shared.contextFile {
                         prompt += "\nShared context copied into this fresh session from \(path):\n\n" + (try String(contentsOfFile: path, encoding: .utf8))
                     }
                 }
@@ -316,7 +334,7 @@ import ResearchCore
                 FileManager.default.createFile(atPath: logURL.path, contents: nil, attributes: [.posixPermissions: 0o600])
                 let log = try FileHandle(forWritingTo: logURL); let logLock = NSLock()
                 defer { try? log.close() }
-                let sharedPolicy = current.sharedAgent == nil ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent("SharedAgentPolicy.md"), encoding: .utf8)
+                let sharedPolicy = current.sharedAgent == nil ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent(current.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"), encoding: .utf8)
                 let fullPolicy = policy + "\n\n" + sharedPolicy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
                 var disabledMCPServers: [String] = []
                 if current.provider == .codex {
@@ -358,7 +376,7 @@ import ResearchCore
             }
             runners.removeValue(forKey: id); activePaths.removeValue(forKey: id); persist()
             let finishedSession = sessions.first(where: { $0.id == id })
-            if finishedSession?.sharedAgent != nil, finishedSession?.state == "Needs attention" {
+            if let agent = finishedSession?.sharedAgent, !agent.isIndependent, finishedSession?.state == "Needs attention" {
                 sharedCycles[project.id]?.stop(failure: "An agent needs attention. Review its chat before starting another group.")
             }
             if keepResearching.contains(id), finishedSession?.state == "Completed", nextDecision == "continue" {
@@ -398,7 +416,15 @@ import ResearchCore
         if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
         else { stopWorker(id) }
     }
-    func shutdown() { for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); persist() }
+    func shutdown() { for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
+        if let client = daytonaClient,let connection = daytona.connectionSandboxID {
+            cloudCleanup.insert(connection)
+            Task {
+                do { try await client.stop(connection,archive:false) } catch { self.error = "Cloud connection stop could not be confirmed: " + error.localizedDescription }
+                cloudCleanup.remove(connection)
+            }
+        }
+        persist() }
 
     func refreshAuth() async {
         guard !needsWorkspace else { return }
@@ -437,12 +463,13 @@ import ResearchCore
     }
     func sendLoginInput(_ input: String) { loginRunner?.sendInput(input) }
     func cancelLogin() { loginRunner?.stop(); loginProvider = nil }
-    func revealProject() { if let path = session?.workingDirectory ?? project?.localPath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
+    func revealProject() { if session?.cloud != nil { NSWorkspace.shared.open(URL(string:"https://app.daytona.io/dashboard/sandboxes")!);return }; if let path = session?.workingDirectory ?? project?.localPath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
     func revealLogs() {
         guard let id = selectedSessionID else { return }
         NSWorkspace.shared.open(URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("sessions/\(id.uuidString)"))
     }
     func openTerminal() {
+        guard session?.cloud == nil else { error = "This chat runs in Daytona. Open its sandbox from the project button; its CLI history stays in that private sandbox.";return }
         guard let session, let directory = session.workingDirectory, let providerID = session.providerSessionID else { error = "Start a chat first to open its CLI session in Terminal."; return }
         guard !sharedActive(session.projectID) else { error = "Stop the shared-context group before continuing one of its sessions in Terminal."; return }
         do {

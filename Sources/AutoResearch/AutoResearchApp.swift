@@ -7,7 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if store?.hasActiveRuns == true {
             let alert = NSAlert(); alert.messageText = "Stop research and quit?"
-            alert.informativeText = "Active CLI runs will be stopped. Your chats and project files will be preserved."
+            alert.informativeText = "Owned local and cloud runs will be stopped. Your chats and project files will be preserved."
             alert.addButton(withTitle: "Stop and quit"); alert.addButton(withTitle: "Keep researching")
             if alert.runModal() != .alertFirstButtonReturn { return .terminateCancel }
         }

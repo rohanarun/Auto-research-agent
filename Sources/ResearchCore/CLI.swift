@@ -51,18 +51,27 @@ public struct ProcessResult: Sendable {
     public var stderr: String
 }
 
+public protocol ProcessBackend: AnyObject, Sendable {
+    func run(_ command: Command, onLine: @escaping (String, Bool) -> Void) async throws -> ProcessResult
+    func stop()
+    func sendInput(_ text: String)
+}
+
 public final class ProcessRunner: @unchecked Sendable {
     private let lock = NSLock()
     private var process: Process?
     private var input: FileHandle?
     private var cancelled = false
-    public init() {}
+    private let backend: (any ProcessBackend)?
+    public init(backend: (any ProcessBackend)? = nil) { self.backend = backend }
 
     public func sendInput(_ text: String) {
+        if let backend { backend.sendInput(text); return }
         lock.lock(); let handle = input; lock.unlock()
         try? handle?.write(contentsOf: Data((text + "\n").utf8))
     }
     public func stop() {
+        if let backend { backend.stop(); return }
         lock.lock(); cancelled = true; let running = process; lock.unlock()
         guard let running, running.isRunning else { return }
         let parent = running.processIdentifier
@@ -83,7 +92,8 @@ public final class ProcessRunner: @unchecked Sendable {
     }
 
     public func run(_ command: Command, directory: URL, environment: [String: String] = [:], interactive: Bool = false, onLine: @escaping (String, Bool) -> Void = { _, _ in }) async throws -> ProcessResult {
-        try await withCheckedThrowingContinuation { continuation in
+        if let backend { return try await backend.run(command, onLine: onLine) }
+        return try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 let task = Process(); let out = Pipe(); let err = Pipe(); let stdin = Pipe()
                 task.executableURL = URL(fileURLWithPath: command.executable)

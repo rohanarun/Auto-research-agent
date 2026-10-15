@@ -1,0 +1,17 @@
+{
+  "created_unix": 1792096953.257967,
+  "source_sha256": {
+    "audited_independent_fast_trials": "225dfe2cfca5d15727692e7b07186a3ab13f4c5ed80eae04694dfa94b0ebe030",
+    "historical_comparison_source": "65e2674c52e22e45f3b0c9cb82bf42be83c80cf84a12266efe0a05185d48bafe"
+  },
+  "historical_success_denominators_by_agent_count": {
+    "1": "4/5",
+    "2": "5/5",
+    "3": "4/5",
+    "4": "5/5"
+  },
+  "independent": "20/20, full manual audit passed",
+  "fast": "45/45 logical slots, full manual audit passed; one original capacity failure retained separately",
+  "naive": "Separate comparison in progress; provisional snapshot added before release",
+  "sharing_method_shipped": "Fast live checkpoints and direct file reinjection only"
+}

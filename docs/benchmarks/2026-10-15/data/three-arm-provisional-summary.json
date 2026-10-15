@@ -1,0 +1,1403 @@
+{
+  "status": "PROVISIONAL: naive trials and full manual audit pending",
+  "generated_unix": 1792097954.3952792,
+  "naive_successes": 45,
+  "naive_planned": 45,
+  "naive_attempts_ended": 45,
+  "cells": [
+    {
+      "arm": "Independent",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 119.11237840652466,
+        "median": 117.93076157569885,
+        "sample_sd": 19.30068206440771,
+        "min": 92.18130731582642,
+        "max": 142.97967433929443
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 232.379351770808,
+        "median": 258.6564283029875,
+        "sample_sd": 86.7510366822591,
+        "min": 136.0157614260679,
+        "max": 327.1866046009818
+      }
+    },
+    {
+      "arm": "Independent",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 100.41993999481201,
+        "median": 96.28096985816956,
+        "sample_sd": 12.99294000843035,
+        "min": 85.18268203735352,
+        "max": 114.44626688957214
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 201.47139576280023,
+        "median": 239.45621747302357,
+        "sample_sd": 77.35311369999508,
+        "min": 115.67920562601648,
+        "max": 274.5486017030198
+      }
+    },
+    {
+      "arm": "Independent",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 97.50120444297791,
+        "median": 100.02093625068665,
+        "sample_sd": 14.97996802666453,
+        "min": 74.70375394821167,
+        "max": 114.21671104431152
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 146.0153130603954,
+        "median": 149.9646727340296,
+        "sample_sd": 34.72628730370958,
+        "min": 96.5931909129722,
+        "max": 185.23161156999413
+      }
+    },
+    {
+      "arm": "Independent",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 85.37219767570495,
+        "median": 88.65184283256531,
+        "sample_sd": 12.059964196694185,
+        "min": 70.73227882385254,
+        "max": 97.21395754814148
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 159.9761922927806,
+        "median": 123.7611367800273,
+        "sample_sd": 101.89271814368772,
+        "min": 91.88081196392886,
+        "max": 340.2110250609694
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 124.87745304107666,
+        "median": 122.90525317192078,
+        "sample_sd": 13.091927002007447,
+        "min": 108.9065101146698,
+        "max": 140.01305747032166
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 136.72877470180393,
+        "median": 135.75554594956338,
+        "sample_sd": 13.129565792818934,
+        "min": 120.29223491810262,
+        "max": 151.75784031115472
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 85.64594249725342,
+        "median": 80.03142023086548,
+        "sample_sd": 12.459467095986197,
+        "min": 76.30906701087952,
+        "max": 106.56056928634644
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 97.42155306600034,
+        "median": 91.8327048625797,
+        "sample_sd": 12.56696486992418,
+        "min": 87.86058772727847,
+        "max": 118.56673770956695
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 82.00927171707153,
+        "median": 81.49117612838745,
+        "sample_sd": 6.431858407467993,
+        "min": 73.08667397499084,
+        "max": 91.19083762168884
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 93.6187660638243,
+        "median": 93.40348729118705,
+        "sample_sd": 6.806457027684228,
+        "min": 84.4541522692889,
+        "max": 103.22674069553614
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 156.83704590797424,
+        "median": 124.9719614982605,
+        "sample_sd": 85.34865530974575,
+        "min": 61.52562737464905,
+        "max": 273.81847620010376
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 168.538685528934,
+        "median": 136.45791495591402,
+        "sample_sd": 85.36132890456861,
+        "min": 73.68876274675131,
+        "max": 285.94602949358523
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 84.32448506355286,
+        "median": 89.60044455528259,
+        "sample_sd": 13.14949791680589,
+        "min": 69.41290187835693,
+        "max": 96.0944299697876
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 96.81618150658906,
+        "median": 101.35481993108988,
+        "sample_sd": 13.020180396441209,
+        "min": 81.15936293639243,
+        "max": 109.6336981896311
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 75.12373456954955,
+        "median": 76.490966796875,
+        "sample_sd": 4.348619287569227,
+        "min": 69.31213688850403,
+        "max": 80.57201790809631
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 86.64143500700592,
+        "median": 87.17913694679737,
+        "sample_sd": 4.278423283550323,
+        "min": 80.964685164392,
+        "max": 92.13598868623376
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 100.84902710914612,
+        "median": 121.16556072235107,
+        "sample_sd": 33.55067244128013,
+        "min": 63.164363384246826,
+        "max": 128.76014065742493
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 112.10928265452385,
+        "median": 131.25038914382458,
+        "sample_sd": 33.19415745899638,
+        "min": 73.92485881224275,
+        "max": 140.8510109167546
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 79.27851014137268,
+        "median": 81.04924631118774,
+        "sample_sd": 17.03617637056335,
+        "min": 57.13306021690369,
+        "max": 102.00565242767334
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 91.59449603781104,
+        "median": 92.64428791031241,
+        "sample_sd": 15.966914900245188,
+        "min": 72.20111918449402,
+        "max": 113.53947728127241
+      }
+    },
+    {
+      "arm": "Fast checkpoint",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 74.85595598220826,
+        "median": 74.72158885002136,
+        "sample_sd": 12.725496627117899,
+        "min": 55.38734483718872,
+        "max": 90.15083193778992
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 86.93144132308662,
+        "median": 87.37869898043573,
+        "sample_sd": 12.526466520842213,
+        "min": 67.20595637895167,
+        "max": 101.85983808711171
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 260.41335973739626,
+        "median": 302.96564507484436,
+        "sample_sd": 112.08516555920828,
+        "min": 60.82900261878967,
+        "max": 325.3961606025696
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 275.4387999527156,
+        "median": 317.2963550761342,
+        "sample_sd": 111.7084623363906,
+        "min": 76.59335358068347,
+        "max": 341.43454069271684
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 69.59889125823975,
+        "median": 66.58349752426147,
+        "sample_sd": 9.329806277711562,
+        "min": 61.55039834976196,
+        "max": 82.90938758850098
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 84.44996195584535,
+        "median": 82.71878143027425,
+        "sample_sd": 8.557828523536367,
+        "min": 75.88648992031813,
+        "max": 96.64741655439138
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 72.33604907989502,
+        "median": 69.71500945091248,
+        "sample_sd": 14.547622097323275,
+        "min": 59.92794108390808,
+        "max": 97.12994265556335
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 87.75707475319504,
+        "median": 85.16004445031285,
+        "sample_sd": 14.954219309939589,
+        "min": 76.03610635176301,
+        "max": 113.33255571871996
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 190.23693027496338,
+        "median": 65.31185960769653,
+        "sample_sd": 172.91989792075108,
+        "min": 61.40866804122925,
+        "max": 385.4032516479492
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 212.64853378236293,
+        "median": 83.41476528346539,
+        "sample_sd": 179.76289891706435,
+        "min": 77.65021789446473,
+        "max": 418.83401696011424
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 67.1749294757843,
+        "median": 66.01199793815613,
+        "sample_sd": 4.136487120645307,
+        "min": 62.97029519081116,
+        "max": 73.21274423599243
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 82.0668372631073,
+        "median": 81.90511721745133,
+        "sample_sd": 3.807437605448935,
+        "min": 76.85137310624123,
+        "max": 87.24328247457743
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 63.71135215759277,
+        "median": 60.293498277664185,
+        "sample_sd": 8.327672481371568,
+        "min": 55.94804406166077,
+        "max": 75.89897966384888
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 79.41098806411028,
+        "median": 77.23097368702292,
+        "sample_sd": 9.349203519269182,
+        "min": 71.62356105074286,
+        "max": 94.03375961259007
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 210.6720006942749,
+        "median": 67.9432942867279,
+        "sample_sd": 198.81676070028345,
+        "min": 62.53255820274353,
+        "max": 445.8496632575989
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 227.05080923214555,
+        "median": 84.54777555912733,
+        "sample_sd": 197.570678238351,
+        "min": 81.48789793252945,
+        "max": 459.8434662669897
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 66.85927548408509,
+        "median": 65.81583762168884,
+        "sample_sd": 7.260328404118447,
+        "min": 59.44475317001343,
+        "max": 78.8665075302124
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 82.36638683751225,
+        "median": 80.00794079899788,
+        "sample_sd": 9.141391202276258,
+        "min": 73.4040154889226,
+        "max": 97.83238216862082
+      }
+    },
+    {
+      "arm": "Naive synthesis",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "successes": 5,
+      "planned": 5,
+      "submission_seconds": {
+        "n": 5,
+        "mean": 66.91327452659607,
+        "median": 67.18267321586609,
+        "sample_sd": 6.609221343845962,
+        "min": 58.972328424453735,
+        "max": 76.72284579277039
+      },
+      "validation_seconds": {
+        "n": 5,
+        "mean": 81.80438499450683,
+        "median": 81.03356396779418,
+        "sample_sd": 5.707064445719796,
+        "min": 75.54286998137832,
+        "max": 90.98671764135361
+      }
+    }
+  ],
+  "rows": [
+    {
+      "arm": "Independent",
+      "id": "trial-1-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 97.21395754814148,
+      "validation_seconds": 123.7611367800273
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-1-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 96.28096985816956,
+      "validation_seconds": 120.02038202993572
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-1-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 117.93076157569885,
+      "validation_seconds": 136.0157614260679
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-1-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 105.8310558795929,
+      "validation_seconds": 129.0434607049683
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 70.73227882385254,
+      "validation_seconds": 91.88081196392886
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 74.70375394821167,
+      "validation_seconds": 96.5931909129722
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 114.44626688957214,
+      "validation_seconds": 239.45621747302357
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 92.18130731582642,
+      "validation_seconds": 258.6564283029875
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 114.21671104431152,
+      "validation_seconds": 169.24362938001286
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 142.97967433929443,
+      "validation_seconds": 293.61439824895933
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 85.18268203735352,
+      "validation_seconds": 115.67920562601648
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 74.73086667060852,
+      "validation_seconds": 111.69069475401193
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 92.72878503799438,
+      "validation_seconds": 274.5486017030198
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 92.73356509208679,
+      "validation_seconds": 185.23161156999413
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 111.6244809627533,
+      "validation_seconds": 146.4235662750434
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 95.53204250335693,
+      "validation_seconds": 132.33729290496558
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 113.46099615097046,
+      "validation_seconds": 257.6525719820056
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 88.65184283256531,
+      "validation_seconds": 340.2110250609694
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 100.02093625068665,
+      "validation_seconds": 149.9646727340296
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 130.8456678390503,
+      "validation_seconds": 327.1866046009818
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 122.90525317192078,
+      "validation_seconds": 135.75554594956338
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 106.56056928634644,
+      "validation_seconds": 118.56673770956695
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 81.34532713890076,
+      "validation_seconds": 91.3909900803119
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 61.52562737464905,
+      "validation_seconds": 73.68876274675131
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 95.51776599884033,
+      "validation_seconds": 107.0712999869138
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 76.490966796875,
+      "validation_seconds": 88.74969378858805
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 128.76014065742493,
+      "validation_seconds": 140.8510109167546
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 102.00565242767334,
+      "validation_seconds": 113.53947728127241
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-1-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 90.15083193778992,
+      "validation_seconds": 101.85983808711171
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 136.1200728416443,
+      "validation_seconds": 147.65894882939756
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 80.03142023086548,
+      "validation_seconds": 91.8327048625797
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 82.93234372138977,
+      "validation_seconds": 95.6184599827975
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 273.81847620010376,
+      "validation_seconds": 285.94602949358523
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 96.0944299697876,
+      "validation_seconds": 109.6336981896311
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 80.57201790809631,
+      "validation_seconds": 92.13598868623376
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 65.286550283432,
+      "validation_seconds": 78.02089419774711
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 57.13306021690369,
+      "validation_seconds": 72.20111918449402
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-2-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 73.43963742256165,
+      "validation_seconds": 87.37869898043573
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 108.9065101146698,
+      "validation_seconds": 120.29223491810262
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 87.51466369628906,
+      "validation_seconds": 99.11300767026842
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 91.19083762168884,
+      "validation_seconds": 103.22674069553614
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 110.45013332366943,
+      "validation_seconds": 121.86734218895435
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 69.41290187835693,
+      "validation_seconds": 81.15936293639243
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 72.40702390670776,
+      "validation_seconds": 84.17767044901848
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 63.164363384246826,
+      "validation_seconds": 73.92485881224275
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 81.04924631118774,
+      "validation_seconds": 92.64428791031241
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-3-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 74.72158885002136,
+      "validation_seconds": 87.3689568657428
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 140.01305747032166,
+      "validation_seconds": 151.75784031115472
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 77.8139922618866,
+      "validation_seconds": 89.73472736030817
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 81.49117612838745,
+      "validation_seconds": 93.40348729118705
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 213.41903114318848,
+      "validation_seconds": 224.7333782594651
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 70.99688291549683,
+      "validation_seconds": 84.86172648891807
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 69.31213688850403,
+      "validation_seconds": 80.964685164392
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 125.86852049827576,
+      "validation_seconds": 136.4992602020502
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 86.70691108703613,
+      "validation_seconds": 98.582914121449
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-4-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 55.38734483718872,
+      "validation_seconds": 67.20595637895167
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 116.44237160682678,
+      "validation_seconds": 128.17930350080132
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 76.30906701087952,
+      "validation_seconds": 87.86058772727847
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 73.08667397499084,
+      "validation_seconds": 84.4541522692889
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 124.9719614982605,
+      "validation_seconds": 136.45791495591402
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 89.60044455528259,
+      "validation_seconds": 101.35481993108988
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 76.8365273475647,
+      "validation_seconds": 87.17913694679737
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 121.16556072235107,
+      "validation_seconds": 131.25038914382458
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 69.4976806640625,
+      "validation_seconds": 81.00468169152737
+    },
+    {
+      "arm": "Fast checkpoint",
+      "id": "trial-5-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 80.58037686347961,
+      "validation_seconds": 90.84375630319118
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 302.96564507484436,
+      "validation_seconds": 317.2963550761342
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 75.35371708869934,
+      "validation_seconds": 89.24431808292866
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 59.92794108390808,
+      "validation_seconds": 76.03610635176301
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 373.7965340614319,
+      "validation_seconds": 418.83401696011424
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 66.01199793815613,
+      "validation_seconds": 81.90511721745133
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 68.51872611045837,
+      "validation_seconds": 82.54099860787392
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 67.9432942867279,
+      "validation_seconds": 84.54777555912733
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 59.44475317001343,
+      "validation_seconds": 73.4040154889226
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-1-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 67.18267321586609,
+      "validation_seconds": 81.03356396779418
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 315.052698135376,
+      "validation_seconds": 328.94525108858943
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 66.58349752426147,
+      "validation_seconds": 82.71878143027425
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 69.71500945091248,
+      "validation_seconds": 86.18532474711537
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 65.26433801651001,
+      "validation_seconds": 83.34348937869072
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 62.97029519081116,
+      "validation_seconds": 76.85137310624123
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 60.293498277664185,
+      "validation_seconds": 77.23097368702292
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 445.8496632575989,
+      "validation_seconds": 459.8434662669897
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 63.61608862876892,
+      "validation_seconds": 79.75273277238011
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-2-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 76.72284579277039,
+      "validation_seconds": 90.98671764135361
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 325.3961606025696,
+      "validation_seconds": 341.43454069271684
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 61.597455739974976,
+      "validation_seconds": 77.75280379131436
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 70.86614966392517,
+      "validation_seconds": 85.16004445031285
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 65.31185960769653,
+      "validation_seconds": 83.41476528346539
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 69.36279129981995,
+      "validation_seconds": 83.57137406244874
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 75.89897966384888,
+      "validation_seconds": 94.03375961259007
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 62.53255820274353,
+      "validation_seconds": 81.48789793252945
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 78.8665075302124,
+      "validation_seconds": 97.83238216862082
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-3-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 63.28664994239807,
+      "validation_seconds": 79.34101939573884
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 60.82900261878967,
+      "validation_seconds": 76.59335358068347
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 82.90938758850098,
+      "validation_seconds": 96.64741655439138
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 97.12994265556335,
+      "validation_seconds": 113.33255571871996
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 385.4032516479492,
+      "validation_seconds": 400.0001793950796
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 64.31681871414185,
+      "validation_seconds": 80.76303945481777
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 55.94804406166077,
+      "validation_seconds": 71.62356105074286
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 410.1802730560303,
+      "validation_seconds": 426.32810470461845
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 66.55319046974182,
+      "validation_seconds": 80.83486295863986
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-4-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 58.972328424453735,
+      "validation_seconds": 75.54286998137832
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-2-agents-1-minutes",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "submission_seconds": 297.8232922554016,
+      "validation_seconds": 312.92449932545424
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-2-agents-3-minutes",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "submission_seconds": 61.55039834976196,
+      "validation_seconds": 75.88648992031813
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-2-agents-5-minutes",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "submission_seconds": 64.04120254516602,
+      "validation_seconds": 78.07134249806404
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-3-agents-1-minutes",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "submission_seconds": 61.40866804122925,
+      "validation_seconds": 77.65021789446473
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-3-agents-3-minutes",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "submission_seconds": 73.21274423599243,
+      "validation_seconds": 87.24328247457743
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-3-agents-5-minutes",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "submission_seconds": 57.897512674331665,
+      "validation_seconds": 71.62564736232162
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-4-agents-1-minutes",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "submission_seconds": 66.85421466827393,
+      "validation_seconds": 83.0468016974628
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-4-agents-3-minutes",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "submission_seconds": 65.81583762168884,
+      "validation_seconds": 80.00794079899788
+    },
+    {
+      "arm": "Naive synthesis",
+      "id": "trial-5-4-agents-5-minutes",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "submission_seconds": 68.40187525749207,
+      "validation_seconds": 82.11775398626924
+    }
+  ],
+  "failed_attempts_separate": [],
+  "source_sha256": {
+    "final-trials.csv": "225dfe2cfca5d15727692e7b07186a3ab13f4c5ed80eae04694dfa94b0ebe030",
+    "cloud-status.json": "5b9d5796f67e6a0cfec946e74ea9494aaaabab4c32af83cae1030c65013bb225"
+  },
+  "scope": "First frozen-checker-valid finite construction, baseline eligible; no novelty guarantee. Different times/provider load/cache and checker scheduling prevent causal speedup claims. All65 older accepted pairs equal the baseline. New naive exact-word audit pending."
+}
