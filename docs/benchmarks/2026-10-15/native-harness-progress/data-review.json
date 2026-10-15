@@ -1,0 +1,19 @@
+{
+  "checked_unix": 1792103185.331407,
+  "native_rows": 13,
+  "earlier_rows": 20,
+  "cell_statistics_match_trial_rows": true,
+  "historical_means_match_audited_aggregate": true,
+  "native_full_manual_audit_complete": false,
+  "visual_review_complete": true,
+  "chart_sha256": {
+    "codex-cli-vs-native-harness.png": "15cdcebcfa74ff9fb57dd4a8dbdddf15e330daa990aa11009ef807db8c8f5c4c",
+    "native-current-timings.png": "47d49ba204d09665fb961e70db28df5ebf1ba87425c52f890d4ec25955690886"
+  },
+  "visual_review_unix": 1792103215.542619,
+  "visual_findings": [
+    "Both exported PNGs visually inspected at full layout: titles, axes, group labels, values, legend and caveats legible; no clipped content.",
+    "Native1/5 versus historical5/count denominators explicit. Submission and validation separate. All data match trial-row aggregates.",
+    "All series use Codex; chart compares orchestration/harnesses, not models. Native results provisional and baseline eligible."
+  ]
+}

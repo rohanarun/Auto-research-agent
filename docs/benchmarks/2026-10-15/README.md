@@ -60,3 +60,30 @@ A separate actual device-login test streamed the official URL/code into the app
 and cancelled without starting research. Keychain round-trip, management-token
 confinement, ownership checks and archive-tampering tests are in the source suite.
 These are transport/lifecycle checks, not evidence of better research results.
+
+## Native production harness: provisional progress
+
+Snapshot: **15 October 2026, 22:26 UTC — 13/65 native slots independently
+revalidated**, one observation of five planned per configuration. Full native
+manual terminal audit and the remaining trials are pending.
+
+![Current native app submission and validation times](native-harness-progress/native-current-timings.png)
+![Earlier Codex CLI controller versus native parallel harness](native-harness-progress/codex-cli-vs-native-harness.png)
+
+Both harnesses run Codex. The comparison separates native independent agents
+from fast sharing at 60/180/300-second cadences and uses the earlier fully audited
+20-trial CLI controller as the reference. Earlier CLI cells have five observations;
+native cells currently have one. The underlying CLI version, Python/compiler,
+policies, account/cache/provider load, scheduling and checker queues differ.
+These partial historical comparisons do not establish a causal speedup.
+
+All 13 native successes are baseline-eligible finite constructions; no new
+milestone gain is established. Preparation and the 300-second cooldown are outside
+the research clock; validation includes checker admission/wait and execution.
+
+[Trial CSV](native-harness-progress/trials.csv),
+[aggregates and source hashes](native-harness-progress/aggregate.json),
+[visual/data review](native-harness-progress/data-review.json), and
+[vector comparison chart](native-harness-progress/codex-cli-vs-native-harness.svg)
+are included for inspection. These charts are provisional until the native study
+and full audit finish.

@@ -1,0 +1,685 @@
+{
+  "status": "PROVISIONAL: native study and full native manual audit incomplete",
+  "asof_unix": 1792103185.038315,
+  "asof_utc": "15 Oct 2026, 22:26 UTC",
+  "native_successes": 13,
+  "native_planned": 65,
+  "earlier_cli_successes": 20,
+  "earlier_cli_planned": 20,
+  "native_cells": [
+    {
+      "arm": "independent",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 43.30358290672302,
+        "median": 43.30358290672302,
+        "sample_sd": null,
+        "min": 43.30358290672302,
+        "max": 43.30358290672302
+      },
+      "validation": {
+        "n": 1,
+        "mean": 58.15465545654297,
+        "median": 58.15465545654297,
+        "sample_sd": null,
+        "min": 58.15465545654297,
+        "max": 58.15465545654297
+      }
+    },
+    {
+      "arm": "independent",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 114.3048369884491,
+        "median": 114.3048369884491,
+        "sample_sd": null,
+        "min": 114.3048369884491,
+        "max": 114.3048369884491
+      },
+      "validation": {
+        "n": 1,
+        "mean": 130.65043759346008,
+        "median": 130.65043759346008,
+        "sample_sd": null,
+        "min": 130.65043759346008,
+        "max": 130.65043759346008
+      }
+    },
+    {
+      "arm": "independent",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 123.42178654670715,
+        "median": 123.42178654670715,
+        "sample_sd": null,
+        "min": 123.42178654670715,
+        "max": 123.42178654670715
+      },
+      "validation": {
+        "n": 1,
+        "mean": 191.68253588676453,
+        "median": 191.68253588676453,
+        "sample_sd": null,
+        "min": 191.68253588676453,
+        "max": 191.68253588676453
+      }
+    },
+    {
+      "arm": "independent",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 121.62008213996887,
+        "median": 121.62008213996887,
+        "sample_sd": null,
+        "min": 121.62008213996887,
+        "max": 121.62008213996887
+      },
+      "validation": {
+        "n": 1,
+        "mean": 152.989399433136,
+        "median": 152.989399433136,
+        "sample_sd": null,
+        "min": 152.989399433136,
+        "max": 152.989399433136
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 120.80551862716675,
+        "median": 120.80551862716675,
+        "sample_sd": null,
+        "min": 120.80551862716675,
+        "max": 120.80551862716675
+      },
+      "validation": {
+        "n": 1,
+        "mean": 162.36054801940918,
+        "median": 162.36054801940918,
+        "sample_sd": null,
+        "min": 162.36054801940918,
+        "max": 162.36054801940918
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 112.44976496696472,
+        "median": 112.44976496696472,
+        "sample_sd": null,
+        "min": 112.44976496696472,
+        "max": 112.44976496696472
+      },
+      "validation": {
+        "n": 1,
+        "mean": 130.84626960754395,
+        "median": 130.84626960754395,
+        "sample_sd": null,
+        "min": 130.84626960754395,
+        "max": 130.84626960754395
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 123.10197162628174,
+        "median": 123.10197162628174,
+        "sample_sd": null,
+        "min": 123.10197162628174,
+        "max": 123.10197162628174
+      },
+      "validation": {
+        "n": 1,
+        "mean": 156.47444009780884,
+        "median": 156.47444009780884,
+        "sample_sd": null,
+        "min": 156.47444009780884,
+        "max": 156.47444009780884
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 56.16906213760376,
+        "median": 56.16906213760376,
+        "sample_sd": null,
+        "min": 56.16906213760376,
+        "max": 56.16906213760376
+      },
+      "validation": {
+        "n": 1,
+        "mean": 72.75944137573242,
+        "median": 72.75944137573242,
+        "sample_sd": null,
+        "min": 72.75944137573242,
+        "max": 72.75944137573242
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 115.75092077255249,
+        "median": 115.75092077255249,
+        "sample_sd": null,
+        "min": 115.75092077255249,
+        "max": 115.75092077255249
+      },
+      "validation": {
+        "n": 1,
+        "mean": 137.414204120636,
+        "median": 137.414204120636,
+        "sample_sd": null,
+        "min": 137.414204120636,
+        "max": 137.414204120636
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 115.19604516029358,
+        "median": 115.19604516029358,
+        "sample_sd": null,
+        "min": 115.19604516029358,
+        "max": 115.19604516029358
+      },
+      "validation": {
+        "n": 1,
+        "mean": 134.38251972198486,
+        "median": 134.38251972198486,
+        "sample_sd": null,
+        "min": 134.38251972198486,
+        "max": 134.38251972198486
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 106.34446954727173,
+        "median": 106.34446954727173,
+        "sample_sd": null,
+        "min": 106.34446954727173,
+        "max": 106.34446954727173
+      },
+      "validation": {
+        "n": 1,
+        "mean": 122.00030755996704,
+        "median": 122.00030755996704,
+        "sample_sd": null,
+        "min": 122.00030755996704,
+        "max": 122.00030755996704
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 115.81313800811768,
+        "median": 115.81313800811768,
+        "sample_sd": null,
+        "min": 115.81313800811768,
+        "max": 115.81313800811768
+      },
+      "validation": {
+        "n": 1,
+        "mean": 169.40769577026367,
+        "median": 169.40769577026367,
+        "sample_sd": null,
+        "min": 169.40769577026367,
+        "max": 169.40769577026367
+      }
+    },
+    {
+      "arm": "fast",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "successes": 1,
+      "planned": 5,
+      "submission": {
+        "n": 1,
+        "mean": 121.03062057495117,
+        "median": 121.03062057495117,
+        "sample_sd": null,
+        "min": 121.03062057495117,
+        "max": 121.03062057495117
+      },
+      "validation": {
+        "n": 1,
+        "mean": 149.18957901000977,
+        "median": 149.18957901000977,
+        "sample_sd": null,
+        "min": 149.18957901000977,
+        "max": 149.18957901000977
+      }
+    }
+  ],
+  "native_rows": [
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-independent-n1",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "arm": "independent",
+      "submission_seconds": 43.30358290672302,
+      "validation_seconds": 58.15465545654297
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n2-i300",
+      "agents": 2,
+      "cadence_seconds": 300,
+      "arm": "fast",
+      "submission_seconds": 106.34446954727173,
+      "validation_seconds": 122.00030755996704
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n4-i300",
+      "agents": 4,
+      "cadence_seconds": 300,
+      "arm": "fast",
+      "submission_seconds": 121.03062057495117,
+      "validation_seconds": 149.18957901000977
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n3-i180",
+      "agents": 3,
+      "cadence_seconds": 180,
+      "arm": "fast",
+      "submission_seconds": 115.75092077255249,
+      "validation_seconds": 137.414204120636
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-independent-n3",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "arm": "independent",
+      "submission_seconds": 123.42178654670715,
+      "validation_seconds": 191.68253588676453
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n2-i180",
+      "agents": 2,
+      "cadence_seconds": 180,
+      "arm": "fast",
+      "submission_seconds": 56.16906213760376,
+      "validation_seconds": 72.75944137573242
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-independent-n4",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "arm": "independent",
+      "submission_seconds": 121.62008213996887,
+      "validation_seconds": 152.989399433136
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n4-i180",
+      "agents": 4,
+      "cadence_seconds": 180,
+      "arm": "fast",
+      "submission_seconds": 115.19604516029358,
+      "validation_seconds": 134.38251972198486
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-independent-n2",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "arm": "independent",
+      "submission_seconds": 114.3048369884491,
+      "validation_seconds": 130.65043759346008
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n4-i60",
+      "agents": 4,
+      "cadence_seconds": 60,
+      "arm": "fast",
+      "submission_seconds": 123.10197162628174,
+      "validation_seconds": 156.47444009780884
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n3-i60",
+      "agents": 3,
+      "cadence_seconds": 60,
+      "arm": "fast",
+      "submission_seconds": 112.44976496696472,
+      "validation_seconds": 130.84626960754395
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n3-i300",
+      "agents": 3,
+      "cadence_seconds": 300,
+      "arm": "fast",
+      "submission_seconds": 115.81313800811768,
+      "validation_seconds": 169.40769577026367
+    },
+    {
+      "cohort": "Native app (ongoing)",
+      "id": "app-r1-fast-n2-i60",
+      "agents": 2,
+      "cadence_seconds": 60,
+      "arm": "fast",
+      "submission_seconds": 120.80551862716675,
+      "validation_seconds": 162.36054801940918
+    }
+  ],
+  "earlier_cli_rows": [
+    {
+      "arm": "Independent",
+      "id": "trial-1-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 97.21395754814148,
+      "validation_seconds": 123.7611367800273,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": null,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-1-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 96.28096985816956,
+      "validation_seconds": 120.02038202993572,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": null,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-1-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 117.93076157569885,
+      "validation_seconds": 136.0157614260679,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": null,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-1-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 105.8310558795929,
+      "validation_seconds": 129.0434607049683,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": null,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 70.73227882385254,
+      "validation_seconds": 91.88081196392886,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 1.4080083929002285e-05,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 74.70375394821167,
+      "validation_seconds": 96.5931909129722,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 9.899958968162537e-06,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 114.44626688957214,
+      "validation_seconds": 239.45621747302357,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 105.53922559297644,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-2-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 92.18130731582642,
+      "validation_seconds": 258.6564283029875,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 149.06716710410547,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 114.21671104431152,
+      "validation_seconds": 169.24362938001286,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 34.16330316395033,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 142.97967433929443,
+      "validation_seconds": 293.61439824895933,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 134.0360123310238,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 85.18268203735352,
+      "validation_seconds": 115.67920562601648,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 9.012196536990814,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-3-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 74.73086667060852,
+      "validation_seconds": 111.69069475401193,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 14.993601405993104,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 92.72878503799438,
+      "validation_seconds": 274.5486017030198,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 163.04624884505756,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 92.73356509208679,
+      "validation_seconds": 185.23161156999413,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 73.09907946095336,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 111.6244809627533,
+      "validation_seconds": 146.4235662750434,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 17.464206309989095,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-4-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 95.53204250335693,
+      "validation_seconds": 132.33729290496558,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 19.507804363965988,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-2-agents",
+      "agents": 2,
+      "cadence_seconds": 0,
+      "submission_seconds": 113.46099615097046,
+      "validation_seconds": 257.6525719820056,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 124.79249824793078,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-4-agents",
+      "agents": 4,
+      "cadence_seconds": 0,
+      "submission_seconds": 88.65184283256531,
+      "validation_seconds": 340.2110250609694,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 234.18844133499078,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-3-agents",
+      "agents": 3,
+      "cadence_seconds": 0,
+      "submission_seconds": 100.02093625068665,
+      "validation_seconds": 149.9646727340296,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 31.773924074019305,
+      "cohort": "Earlier Codex CLI controller"
+    },
+    {
+      "arm": "Independent",
+      "id": "trial-5-1-agents",
+      "agents": 1,
+      "cadence_seconds": 0,
+      "submission_seconds": 130.8456678390503,
+      "validation_seconds": 327.1866046009818,
+      "prompt_complete_generations": 0,
+      "response_complete_generations": 0,
+      "checker_queue_seconds": 179.00490768102463,
+      "cohort": "Earlier Codex CLI controller"
+    }
+  ],
+  "source_sha256": {
+    "earlier-audited-final-aggregate.json": "c62b6bd4d23b5277803a5c52ca0c87e9cc174f698558079417d870fe9791cf68",
+    "preserved-native-parent-successes.json": "474f61acd96ac0f9e9f421ac95f89f40fca0addaa373ee7732e32ebc35ad295e",
+    "native-cloud-status.json": null
+  },
+  "scope": [
+    "All arms use Codex; this compares orchestration/harnesses, not different models.",
+    "First frozen-checker valid=true includes the eligible baseline; no novelty or theorem claim.",
+    "Native data are partial, full manual audit pending; native sample SD undefined at n=1.",
+    "Earlier CLI results are fully audited; CLI version, Python/compiler, app policies, account/cache/provider load, scheduling and checker queues differ.",
+    "Validation includes checker admission/wait and execution; provisioning and 300s cooldown excluded.",
+    "Successful-only observations are shown with denominators. No infrastructure failure is imputed as a fast or slow scientific result.",
+    "This descriptive historical comparison does not establish causal scaling or a sharing benefit."
+  ]
+}

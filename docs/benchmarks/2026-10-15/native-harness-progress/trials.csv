@@ -1,0 +1,34 @@
+cohort,id,arm,agents,cadence_seconds,submission_seconds,validation_seconds
+Earlier Codex CLI controller,trial-1-4-agents,Independent,4,0,97.21395754814148,123.7611367800273
+Earlier Codex CLI controller,trial-1-2-agents,Independent,2,0,96.28096985816956,120.02038202993572
+Earlier Codex CLI controller,trial-1-1-agents,Independent,1,0,117.93076157569885,136.0157614260679
+Earlier Codex CLI controller,trial-1-3-agents,Independent,3,0,105.8310558795929,129.0434607049683
+Earlier Codex CLI controller,trial-2-4-agents,Independent,4,0,70.73227882385254,91.88081196392886
+Earlier Codex CLI controller,trial-2-3-agents,Independent,3,0,74.70375394821167,96.5931909129722
+Earlier Codex CLI controller,trial-2-2-agents,Independent,2,0,114.44626688957214,239.45621747302357
+Earlier Codex CLI controller,trial-2-1-agents,Independent,1,0,92.18130731582642,258.6564283029875
+Earlier Codex CLI controller,trial-3-3-agents,Independent,3,0,114.21671104431152,169.24362938001286
+Earlier Codex CLI controller,trial-3-1-agents,Independent,1,0,142.97967433929443,293.61439824895933
+Earlier Codex CLI controller,trial-3-2-agents,Independent,2,0,85.18268203735352,115.67920562601648
+Earlier Codex CLI controller,trial-3-4-agents,Independent,4,0,74.73086667060852,111.69069475401193
+Earlier Codex CLI controller,trial-4-2-agents,Independent,2,0,92.72878503799438,274.5486017030198
+Earlier Codex CLI controller,trial-4-3-agents,Independent,3,0,92.73356509208679,185.23161156999413
+Earlier Codex CLI controller,trial-4-1-agents,Independent,1,0,111.6244809627533,146.4235662750434
+Earlier Codex CLI controller,trial-4-4-agents,Independent,4,0,95.53204250335693,132.33729290496558
+Earlier Codex CLI controller,trial-5-2-agents,Independent,2,0,113.46099615097046,257.6525719820056
+Earlier Codex CLI controller,trial-5-4-agents,Independent,4,0,88.65184283256531,340.2110250609694
+Earlier Codex CLI controller,trial-5-3-agents,Independent,3,0,100.02093625068665,149.9646727340296
+Earlier Codex CLI controller,trial-5-1-agents,Independent,1,0,130.8456678390503,327.1866046009818
+Native app (ongoing),app-r1-independent-n1,independent,1,0,43.30358290672302,58.15465545654297
+Native app (ongoing),app-r1-fast-n2-i300,fast,2,300,106.34446954727173,122.00030755996704
+Native app (ongoing),app-r1-fast-n4-i300,fast,4,300,121.03062057495117,149.18957901000977
+Native app (ongoing),app-r1-fast-n3-i180,fast,3,180,115.75092077255249,137.414204120636
+Native app (ongoing),app-r1-independent-n3,independent,3,0,123.42178654670715,191.68253588676453
+Native app (ongoing),app-r1-fast-n2-i180,fast,2,180,56.16906213760376,72.75944137573242
+Native app (ongoing),app-r1-independent-n4,independent,4,0,121.62008213996887,152.989399433136
+Native app (ongoing),app-r1-fast-n4-i180,fast,4,180,115.19604516029358,134.38251972198486
+Native app (ongoing),app-r1-independent-n2,independent,2,0,114.3048369884491,130.65043759346008
+Native app (ongoing),app-r1-fast-n4-i60,fast,4,60,123.10197162628174,156.47444009780884
+Native app (ongoing),app-r1-fast-n3-i60,fast,3,60,112.44976496696472,130.84626960754395
+Native app (ongoing),app-r1-fast-n3-i300,fast,3,300,115.81313800811768,169.40769577026367
+Native app (ongoing),app-r1-fast-n2-i60,fast,2,60,120.80551862716675,162.36054801940918
