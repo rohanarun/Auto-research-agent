@@ -7,9 +7,9 @@
   "native_full_manual_audit_complete": false,
   "visual_review_complete": true,
   "chart_sha256": {
-    "codex-cli-vs-native-harness.png": "14c507978b134a53eb07d618c2f4ce61b0f0554792923c6775f07458d445aec6",
+    "codex-cli-vs-native-harness.png": "9be79e89f8d0fc837a53b9b314288a62fc7ad4f65b23207301685ba63de5ee96",
     "native-current-timings.png": "1d2fd55c71535a1c0f0cc6d401081f4d976d4eed9c09aae4c8d2666b5458fd12"
   },
-  "visual_review_unix": 1792104900.795135,
-  "visual_review_notes": "Both corrected figures manually viewed. Prominent baseline reproduction warning and unchanged numeric points inspected. Not evidence of discovery speedup."
+  "visual_review_unix": 1792105561.1272929,
+  "visual_review_notes": "Removed only the red subtitle at human request. Updated comparison PNG manually viewed; original exact title and all data/limitations retained. Underlying trial rows identical to prior publication."
 }
