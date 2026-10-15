@@ -6,8 +6,6 @@ Auto-research agent is a native macOS app with a Codex-style project sidebar and
 
 It runs the Codex or Claude Code CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
 
-The sidebar discovers repositories from [Auto Research by Super](https://app.getsupers.com/auto-research), with owner exclusions configured in `Resources/CatalogPolicy.json`. Layr-Labs projects are excluded from the sidebar, including saved catalog entries. Existing chats and checkouts are preserved. It supports one-click research launches, persistent conversations, live tool output, stop controls, provider login, and an optional model-directed research loop.
-
 ![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
 ## Download
