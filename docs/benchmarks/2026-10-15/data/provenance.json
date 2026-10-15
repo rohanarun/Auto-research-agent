@@ -13,5 +13,12 @@
   "independent": "20/20, full manual audit passed",
   "fast": "45/45 logical slots, full manual audit passed; one original capacity failure retained separately",
   "naive": "Separate comparison in progress; provisional snapshot added before release",
-  "sharing_method_shipped": "Fast live checkpoints and direct file reinjection only"
+  "sharing_method_shipped": "Fast live checkpoints and direct file reinjection only",
+  "published_csv_sha256": {
+    "daytona-versus-mac-trials.csv": "28d5f891052b574ab909926fd1d45b071cb9d280781ae96daaae3fcf30764ad2",
+    "independent-and-fast-statistics.csv": "ed5a02174952e789c7f599399618416d0cc9f7573b72e73e8a2afcb532526266",
+    "independent-and-fast-trials.csv": "b9c8767685dfd408cb8abeba20172c3a25f74c02fad76c1b33552ee556c03f02",
+    "three-arm-provisional-trials.csv": "b746af3fa6ea617df45dcff3a724bd20547a05c05e67d6c855255c7153296991"
+  },
+  "daytona_batch_labels": "Derived from frozen dispatch: trial 1 initial four-group wave; trials 2-5 expanded sixteen-group batch; historical Mac separate."
 }
