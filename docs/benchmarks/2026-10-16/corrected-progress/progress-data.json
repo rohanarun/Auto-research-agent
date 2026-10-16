@@ -1,16 +1,16 @@
 {
-  "asof_utc": "2026-10-16T01:20:49.277050+00:00",
-  "phase": "preparing both arms",
+  "asof_utc": "2026-10-16T01:23:10.921905+00:00",
+  "phase": "research",
   "arms": {
     "cli": {
       "planned": 65,
-      "started": 0,
+      "started": 1,
       "completed": 0,
       "targets": 0
     },
     "native": {
       "planned": 65,
-      "started": 0,
+      "started": 1,
       "completed": 0,
       "targets": 0
     }
@@ -18,13 +18,13 @@
   "current_pair": {
     "agents_per_arm": 2,
     "sharing_interval_seconds": 300,
-    "prepared_workers": 2,
+    "prepared_workers": 4,
     "planned_workers": 4,
-    "observers_armed": 0,
+    "observers_armed": 2,
     "planned_observers": 2
   },
-  "actual_main_provider_sessions_observed": 0,
-  "source_snapshot_sha256": "43de3152fcc2149446af4ce83206f2c110e19c3d184422cecc3db85e01948a5a",
+  "actual_main_provider_sessions_observed": 4,
+  "source_snapshot_sha256": "66a850ed567b45a7473eef1e171cb840a71e84dda6aae2f77f7995c02492a19a",
   "main_trial_endpoint": "All three frozen milestones, canonical nonbaseline construction and independent replay",
   "preflight_calls_excluded": 2,
   "observable_controls_user_approved": true,
