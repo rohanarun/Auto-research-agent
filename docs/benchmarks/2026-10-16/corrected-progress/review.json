@@ -1,11 +1,14 @@
 {
+  "reviewed_unix": 1792115024.395308,
   "visually_inspected": true,
-  "no_clipping_or_overlap_observed": true,
-  "data_values_checked_against_source_status": true,
-  "charts_scope": "corrected fresh study only",
+  "no_clipping_or_overlap": true,
+  "plotted_counts_independently_recomputed": true,
+  "candidate_counts_match_saved_observer": true,
+  "source_sha256": "370b2056fb88ea99ef881f975662db3eb56c4d780e0428347991d1e7cd8be5d6",
   "artifact_sha256": {
-    "corrected-progress.png": "0bca332c176b90c8879f550cbfc369e7248e77ed82ecf48b42d2d6b97efcdee1",
-    "corrected-progress.pdf": "89831a27d3c1ab9efd952a045786e0486fddd44b7593b445eb015c7e382f2837",
-    "progress-data.json": "b28758d95702a34d3a30c37f7e2f71c70dcf89fb51a683d99a3b455744d4e636"
-  }
+    "corrected-progress.png": "89ad1884a9569b200a9b05a8224659b0c9c889fab9d2b0878b7762ed3e667210",
+    "corrected-progress.pdf": "4600ffbdd305d09a1512d550f20c83604393e544a51e9bc47b1a8388092e4eb8",
+    "progress-data.json": "6cf037b73278f8abd4c872a8612aaeaefbee40cc0fe9af33a7320a8cb1642ade"
+  },
+  "limitations": "Snapshot of ongoing first pair; no comparative performance conclusion. One worker reports a Python instruction interpretation blocker, recorded separately without changing live inputs."
 }
