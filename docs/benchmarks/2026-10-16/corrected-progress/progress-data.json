@@ -1,6 +1,6 @@
 {
-  "asof_utc": "2026-10-16T01:15:39.083685+00:00",
-  "phase": "cooldown",
+  "asof_utc": "2026-10-16T01:20:49.277050+00:00",
+  "phase": "preparing both arms",
   "arms": {
     "cli": {
       "planned": 65,
@@ -18,13 +18,13 @@
   "current_pair": {
     "agents_per_arm": 2,
     "sharing_interval_seconds": 300,
-    "prepared_workers": 0,
+    "prepared_workers": 2,
     "planned_workers": 4,
     "observers_armed": 0,
     "planned_observers": 2
   },
   "actual_main_provider_sessions_observed": 0,
-  "source_snapshot_sha256": "36c12b821234c2910d2611843c278c4918278a231da64a8be288fad052453676",
+  "source_snapshot_sha256": "43de3152fcc2149446af4ce83206f2c110e19c3d184422cecc3db85e01948a5a",
   "main_trial_endpoint": "All three frozen milestones, canonical nonbaseline construction and independent replay",
   "preflight_calls_excluded": 2,
   "observable_controls_user_approved": true,
