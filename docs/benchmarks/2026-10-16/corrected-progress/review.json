@@ -1,0 +1,11 @@
+{
+  "visually_inspected": true,
+  "no_clipping_or_overlap_observed": true,
+  "data_values_checked_against_source_status": true,
+  "charts_scope": "corrected fresh study only",
+  "artifact_sha256": {
+    "corrected-progress.png": "a4ab2b9d21c3db022594e6f93966f11cd3aa0518f8210ec66176cffad21ef297",
+    "corrected-progress.pdf": "a2be6d4bc57fb137d10f3d74e8fad5d488074aecdd4270c4f3d5f0bb7744d17b",
+    "progress-data.json": "fec801e6160596f0d1c72b3e3f9643a09c604a5620e65a5ad1927398a84b7554"
+  }
+}
