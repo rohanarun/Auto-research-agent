@@ -2,7 +2,7 @@
 
 ![Corrected experiment progress](corrected-progress.png)
 
-This is a timestamped progress snapshot of the new controlled experiment. The JSON supplies the plotted counts. The study has 65 fresh groups per arm: five repeats of independent 1/2/3/4 agents, and five repeats of 2/3/4 agents sharing every 60/180/300 seconds.
+This is a timestamped progress snapshot of the new controlled experiment. Started-slot counts retain interrupted attempts; they do not imply completed trials. The JSON supplies the plotted counts. The study has 65 fresh groups per arm: five repeats of independent 1/2/3/4 agents, and five repeats of 2/3/4 agents sharing every 60/180/300 seconds.
 
 A target requires all three frozen mathematical milestones, a canonical nonbaseline construction and independent external replay. Baseline submissions are not successes. Historical runs are excluded. Preparation, cooldown and availability preflights are not counted as research groups.
 
@@ -10,6 +10,6 @@ The user approved matching observable controls while disclosing unavailable prov
 
 One worker reported pausing over historical Python-version text, despite the common Linux instruction to use the installed runtime. The worker subsequently submitted candidates using the installed runtime. The earlier pause remains recorded as a run limitation; live prompts and environments remain unchanged.
 
-The first pair was interrupted after about 26.5 minutes by a controller DNS lookup failure. Both arms are recorded as infrastructure interruptions, with seven candidate snapshots each and no verified target. All four model processes were confirmed drained; evidence preservation and a transport repair are underway. Interrupted elapsed times are excluded from research performance statistics.
+The first pair was interrupted after about 26.5 minutes by a controller DNS lookup failure. Both arms are recorded as infrastructure interruptions, with seven candidate snapshots each and no verified target. All four original workers are now verified archived. The transport repair passed 37 tests; one fresh attempt has entered its required cooldown. No previous model session is resumed. Interrupted elapsed times are excluded from research performance statistics.
 
 [PDF](corrected-progress.pdf) · [Counts](progress-data.json)

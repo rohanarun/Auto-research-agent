@@ -1,14 +1,14 @@
 {
-  "reviewed_unix": 1792115753.601265,
+  "reviewed_unix": 1792116571.478527,
   "visually_inspected": true,
   "no_clipping_or_overlap": true,
   "plotted_counts_independently_recomputed": true,
-  "candidate_counts_match_terminal_observer": true,
-  "elapsed_stops_at_failure": true,
+  "started_slots_include_preserved_interrupted_attempt": true,
+  "fresh_attempt_still_cooldown": true,
   "artifact_sha256": {
-    "corrected-progress.png": "0289b4bbd2e0bc0adf7b61aeeafe17cf637449848c3abbea6c7ecedc53da96a3",
-    "corrected-progress.pdf": "2bf45ecf937870788eeeae231fa81f89b3665b005c95cec4c2b8aef86cfcf69b",
-    "progress-data.json": "c51c50e0fef074f41aa941ea1d9b05ce30b80fc3d093835c7ab7192827b6cb42"
+    "corrected-progress.png": "7da301373a95a4e8c7910b1b49da15158a03431f7696bd8580ecd56833aaeadd",
+    "corrected-progress.pdf": "ab1e1bffdcb68a221633feb2a7ea1412b63c33c0a5503d3758269057e0ad938e",
+    "progress-data.json": "b6c53c1e948a16af4b9236579390c2c1629de98f1ea7cc59c612088d75aecfd1"
   },
-  "classification": "Infrastructure interruption, not a completed no-target trial or budget failure. All four workers independently confirmed model-drained."
+  "scope": "0completed/targets. Prior24sessions are from interrupted attempt, not fresh retry. All4priorworkers verified archived; new coordinator423 started once after preservation."
 }
