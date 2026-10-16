@@ -1,5 +1,5 @@
 {
-  "asof_utc": "2026-10-16T01:31:18.664733+00:00",
+  "asof_utc": "2026-10-16T01:36:29.288681+00:00",
   "phase": "research",
   "arms": {
     "cli": {
@@ -23,14 +23,14 @@
     "observers_armed": 2,
     "planned_observers": 2
   },
-  "actual_main_provider_sessions_observed": 8,
-  "research_elapsed_seconds": 571.6342227458954,
+  "actual_main_provider_sessions_observed": 12,
+  "research_elapsed_seconds": 882.2581708431244,
   "candidate_snapshots": {
-    "cli": 0,
+    "cli": 4,
     "native": 1
   },
-  "external_observer_asof_unix": 1792114252.1117253,
-  "source_snapshot_sha256": "a7eddee2a6c617091d696b54c5e88a32e97379e05e2926d696431c5601cc1033",
+  "external_observer_asof_unix": 1792114551.65828,
+  "source_snapshot_sha256": "3a401e59056b47f86d3a38543a9bad907c7e6d544d700a82a574d63a4968cfc1",
   "main_trial_endpoint": "All three frozen milestones, canonical nonbaseline construction and independent replay",
   "preflight_calls_excluded": 2,
   "observable_controls_user_approved": true,

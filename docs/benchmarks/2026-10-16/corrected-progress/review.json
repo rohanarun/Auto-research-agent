@@ -4,8 +4,8 @@
   "data_values_checked_against_source_status": true,
   "charts_scope": "corrected fresh study only",
   "artifact_sha256": {
-    "corrected-progress.png": "c3aff946513cdfec0086d46ffd08df4f9c4516a7767956aa810acd03f9998015",
-    "corrected-progress.pdf": "15388905b8c2ac5c1fc61dca650fc51aa84d08d58d7dbd5b221da9fc328169a1",
-    "progress-data.json": "a1cc09d75da285f1f69ffad0e0e3d276d2ad06a4976c2ce93361bda8a718fa85"
+    "corrected-progress.png": "0bca332c176b90c8879f550cbfc369e7248e77ed82ecf48b42d2d6b97efcdee1",
+    "corrected-progress.pdf": "89831a27d3c1ab9efd952a045786e0486fddd44b7593b445eb015c7e382f2837",
+    "progress-data.json": "b28758d95702a34d3a30c37f7e2f71c70dcf89fb51a683d99a3b455744d4e636"
   }
 }
