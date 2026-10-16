@@ -1,18 +1,20 @@
 {
-  "asof_utc": "2026-10-16T01:46:51.875846+00:00",
-  "phase": "research",
+  "asof_utc": "2026-10-16T01:54:23.912913+00:00",
+  "phase": "Controller stopped: URLError",
   "arms": {
     "cli": {
       "planned": 65,
       "started": 1,
       "completed": 0,
-      "targets": 0
+      "targets": 0,
+      "interrupted": 1
     },
     "native": {
       "planned": 65,
       "started": 1,
       "completed": 0,
-      "targets": 0
+      "targets": 0,
+      "interrupted": 1
     }
   },
   "current_pair": {
@@ -23,14 +25,20 @@
     "observers_armed": 2,
     "planned_observers": 2
   },
-  "actual_main_provider_sessions_observed": 20,
-  "research_elapsed_seconds": 1504.8453357219696,
+  "actual_main_provider_sessions_observed": 24,
+  "research_elapsed_seconds": 1589.1253340244293,
+  "controller_failure": {
+    "unix": 1792115296.1558442,
+    "error_class": "URLError",
+    "message": "<urlopen error [Errno 8] nodename nor servname provided, or not known>",
+    "policy": "No replacement inference. Preserve exact owned worker and operation receipts."
+  },
   "candidate_snapshots": {
     "cli": 7,
     "native": 7
   },
-  "external_observer_asof_unix": 1792115211.4413846,
-  "source_snapshot_sha256": "f2d3bcb9f83d52fe93dd2176f2f298a3e3de0dca696cfa1823aaa416db06bc03",
+  "external_observer_asof_unix": 1792115461.2001112,
+  "source_snapshot_sha256": "983a40b26566587e798009de7afdf8a5e9e1fe8df3d59ad6bf8d832432da9c2d",
   "main_trial_endpoint": "All three frozen milestones, canonical nonbaseline construction and independent replay",
   "preflight_calls_excluded": 2,
   "observable_controls_user_approved": true,

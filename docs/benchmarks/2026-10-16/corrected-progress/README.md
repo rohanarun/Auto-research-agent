@@ -10,4 +10,6 @@ The user approved matching observable controls while disclosing unavailable prov
 
 One worker reported pausing over historical Python-version text, despite the common Linux instruction to use the installed runtime. The worker subsequently submitted candidates using the installed runtime. The earlier pause remains recorded as a run limitation; live prompts and environments remain unchanged.
 
+The first pair was interrupted after about 26.5 minutes by a controller DNS lookup failure. Both arms are recorded as infrastructure interruptions, with seven candidate snapshots each and no verified target. All four model processes were confirmed drained; evidence preservation and a transport repair are underway. Interrupted elapsed times are excluded from research performance statistics.
+
 [PDF](corrected-progress.pdf) · [Counts](progress-data.json)

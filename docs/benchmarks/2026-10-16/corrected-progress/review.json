@@ -1,14 +1,14 @@
 {
-  "reviewed_unix": 1792115245.888551,
+  "reviewed_unix": 1792115753.601265,
   "visually_inspected": true,
   "no_clipping_or_overlap": true,
   "plotted_counts_independently_recomputed": true,
-  "candidate_counts_match_saved_observer": true,
-  "source_sha256": "f2d3bcb9f83d52fe93dd2176f2f298a3e3de0dca696cfa1823aaa416db06bc03",
+  "candidate_counts_match_terminal_observer": true,
+  "elapsed_stops_at_failure": true,
   "artifact_sha256": {
-    "corrected-progress.png": "1ef2a0824d2a9445a7a8b11bb50ff8deaae97296cc294f3ae1610c4a45ce5471",
-    "corrected-progress.pdf": "6dfc7a775e7f8306a19932621085d69da4dba2dde26f010d751b89350a809b8e",
-    "progress-data.json": "672e411e91e8a07cc6fbc332fc14962c62a414ae57c282959edc390e26fba81e"
+    "corrected-progress.png": "0289b4bbd2e0bc0adf7b61aeeafe17cf637449848c3abbea6c7ecedc53da96a3",
+    "corrected-progress.pdf": "2bf45ecf937870788eeeae231fa81f89b3665b005c95cec4c2b8aef86cfcf69b",
+    "progress-data.json": "c51c50e0fef074f41aa941ea1d9b05ce30b80fc3d093835c7ab7192827b6cb42"
   },
-  "limitations": "Ongoing first pair, no comparative performance conclusion. Snapshot count includes invalid submissions and is not target success."
+  "classification": "Infrastructure interruption, not a completed no-target trial or budget failure. All four workers independently confirmed model-drained."
 }
