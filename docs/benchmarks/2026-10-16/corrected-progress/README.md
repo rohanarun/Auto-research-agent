@@ -8,6 +8,6 @@ A target requires all three frozen mathematical milestones, a canonical nonbasel
 
 The user approved matching observable controls while disclosing unavailable provider internals. Both arms use the same pinned CLI, initial prompt and arguments, resolved client settings, account and worker resources. Provider-side effort, final tool schemas and immutable container image digests are not independently verified. These progress counts do not establish a speed advantage.
 
-One worker reported pausing over historical Python-version text, despite the common Linux instruction to use the installed runtime. This is recorded as a run limitation; live prompts and environments remain unchanged.
+One worker reported pausing over historical Python-version text, despite the common Linux instruction to use the installed runtime. The worker subsequently submitted candidates using the installed runtime. The earlier pause remains recorded as a run limitation; live prompts and environments remain unchanged.
 
 [PDF](corrected-progress.pdf) · [Counts](progress-data.json)

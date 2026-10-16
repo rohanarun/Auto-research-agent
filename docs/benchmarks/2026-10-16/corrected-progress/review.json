@@ -1,14 +1,14 @@
 {
-  "reviewed_unix": 1792115024.395308,
+  "reviewed_unix": 1792115245.888551,
   "visually_inspected": true,
   "no_clipping_or_overlap": true,
   "plotted_counts_independently_recomputed": true,
   "candidate_counts_match_saved_observer": true,
-  "source_sha256": "370b2056fb88ea99ef881f975662db3eb56c4d780e0428347991d1e7cd8be5d6",
+  "source_sha256": "f2d3bcb9f83d52fe93dd2176f2f298a3e3de0dca696cfa1823aaa416db06bc03",
   "artifact_sha256": {
-    "corrected-progress.png": "89ad1884a9569b200a9b05a8224659b0c9c889fab9d2b0878b7762ed3e667210",
-    "corrected-progress.pdf": "4600ffbdd305d09a1512d550f20c83604393e544a51e9bc47b1a8388092e4eb8",
-    "progress-data.json": "6cf037b73278f8abd4c872a8612aaeaefbee40cc0fe9af33a7320a8cb1642ade"
+    "corrected-progress.png": "1ef2a0824d2a9445a7a8b11bb50ff8deaae97296cc294f3ae1610c4a45ce5471",
+    "corrected-progress.pdf": "6dfc7a775e7f8306a19932621085d69da4dba2dde26f010d751b89350a809b8e",
+    "progress-data.json": "672e411e91e8a07cc6fbc332fc14962c62a414ae57c282959edc390e26fba81e"
   },
-  "limitations": "Snapshot of ongoing first pair; no comparative performance conclusion. One worker reports a Python instruction interpretation blocker, recorded separately without changing live inputs."
+  "limitations": "Ongoing first pair, no comparative performance conclusion. Snapshot count includes invalid submissions and is not target success."
 }
