@@ -6,5 +6,8 @@
   "codexModel": "",
   "claudeModel": "",
   "codexSandbox": "workspace-write",
-  "claudePermissionMode": "auto"
+  "claudePermissionMode": "auto",
+  "opencodePath": "",
+  "opencodeModel": "",
+  "opencodePermission": "reject"
 }

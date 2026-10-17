@@ -31,6 +31,45 @@ final class ResearchCoreTests: XCTestCase {
         XCTAssertFalse(command.arguments.contains("--model")); XCTAssertFalse(command.arguments.contains("--dangerously-skip-permissions"))
         XCTAssertEqual(command.input, "request")
     }
+    func testOpenCodeResumeKeepsPromptOnStdinAndDoesNotAutoApproveByDefault() throws {
+        var config = try settings(); config.opencodePath = "/usr/local/bin/opencode"
+        let command = CLI.chat(provider: .opencode, settings: config, sessionID: "ses_specific", prompt: "literal $(echo surprise)", policy: "policy")
+        XCTAssertEqual(command.executable, "/usr/local/bin/opencode")
+        XCTAssertEqual(Array(command.arguments.prefix(3)), ["run", "--format", "json"])
+        XCTAssertEqual(command.arguments.firstIndex(of: "--session").map { command.arguments[$0 + 1] }, "ses_specific")
+        XCTAssertFalse(command.arguments.contains("--auto")); XCTAssertFalse(command.arguments.contains("--model"))
+        XCTAssertTrue(command.input!.hasPrefix("Harness instructions:\npolicy")); XCTAssertTrue(command.input!.contains("$(echo surprise)"))
+        config.opencodePermission = "auto"; config.opencodeModel = "provider/model-id"
+        let opted = CLI.chat(provider: .opencode, settings: config, sessionID: nil, prompt: "research", policy: "policy")
+        XCTAssertTrue(opted.arguments.contains("--auto")); XCTAssertFalse(opted.arguments.contains("--session"))
+        XCTAssertEqual(opted.arguments.firstIndex(of: "--model").map { opted.arguments[$0 + 1] }, "provider/model-id")
+        XCTAssertEqual(CLI.resumeArguments(.opencode, sessionID: "ses_x"), ["--session", "ses_x"])
+    }
+    func testOpenCodeDecoderTracksSessionToolsAndTurnEnd() {
+        let text = EventDecoder.decode(#"{"type":"text","timestamp":1,"sessionID":"ses_a","part":{"id":"prt_1","type":"text","text":"Done.\nRESEARCH_STATUS: continue"}}"#, provider: .opencode)
+        XCTAssertEqual(text, [.session("ses_a"), .message(id: "prt_1", role: "assistant", text: "Done.\nRESEARCH_STATUS: continue")])
+        let tool = EventDecoder.decode(#"{"type":"tool_use","timestamp":1,"sessionID":"ses_a","part":{"id":"prt_2","type":"tool","tool":"bash","state":{"status":"completed","input":{"command":"ls"},"output":"README.md"}}}"#, provider: .opencode)
+        XCTAssertEqual(tool, [.session("ses_a"), .message(id: "tool-prt_2", role: "tool", text: "bash\ncompleted\n{\n  \"command\" : \"ls\"\n}\nREADME.md")])
+        XCTAssertFalse(EventDecoder.decode(#"{"type":"step_finish","sessionID":"ses_a","part":{"type":"step-finish","reason":"tool-calls"}}"#, provider: .opencode).contains(.completed))
+        XCTAssertTrue(EventDecoder.decode(#"{"type":"step_finish","sessionID":"ses_a","part":{"type":"step-finish","reason":"stop"}}"#, provider: .opencode).contains(.completed))
+        // Shape observed from opencode 1.19 when the provider rejects a request.
+        let failure = EventDecoder.decode(#"{"type":"error","timestamp":1,"sessionID":"ses_a","error":{"name":"APIError","data":{"message":"Forbidden","statusCode":403}}}"#, provider: .opencode)
+        XCTAssertTrue(failure.contains(.failure("Forbidden"))); XCTAssertFalse(failure.contains(.completed))
+        XCTAssertEqual(EventDecoder.decode(#"{"type":"error","sessionID":"","error":{"type":"unknown","message":"You must provide a message"}}"#, provider: .opencode), [.failure("You must provide a message")])
+    }
+    func testOpenCodeSignInStatusReadsCredentialList() {
+        XCTAssertFalse(CLI.opencodeSignedIn("No authenticated integrations\n"))
+        XCTAssertFalse(CLI.opencodeSignedIn("┌  Credentials ~/.local/share/opencode/auth.json\n│\n└  0 credentials\n"))
+        XCTAssertTrue(CLI.opencodeSignedIn("┌  Credentials ~/.local/share/opencode/auth.json\n│\n└  0 credentials\n\n┌  Environment\n│\n●  Anthropic ANTHROPIC_API_KEY\n└  1 environment variable\n"))
+        XCTAssertTrue(CLI.opencodeSignedIn("Anthropic   Claude Pro/Max            stored\n"))
+    }
+    func testSettingsSavedBeforeOpenCodeStillLoad() throws {
+        let legacy = #"{"workspaceRoot":"/Volumes/x","catalogURL":"https://example.com","codexPath":"","claudePath":"","codexModel":"","claudeModel":"","codexSandbox":"workspace-write","claudePermissionMode":"auto"}"#
+        let decoded = try JSONDecoder().decode(Settings.self, from: Data(legacy.utf8))
+        XCTAssertEqual(decoded.opencodePath, ""); XCTAssertEqual(decoded.opencodePermission, "reject")
+        let roundTrip = try JSONDecoder().decode(Settings.self, from: JSONEncoder().encode(decoded))
+        XCTAssertEqual(roundTrip.opencodePermission, "reject"); XCTAssertEqual(roundTrip.workspaceRoot, "/Volumes/x")
+    }
     func testMCPSelectionIsGenericAndScopedToThisRun() throws {
         let names = try CLI.configuredMCPServers(Data(#"[{"name":"unrelated_service","enabled":true},{"name":"docs"}]"#.utf8))
         XCTAssertEqual(names, ["docs", "unrelated_service"])

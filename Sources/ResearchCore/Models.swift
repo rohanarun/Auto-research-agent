@@ -1,9 +1,15 @@
 import Foundation
 
 public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
-    case codex, claude
+    case codex, claude, opencode
     public var id: String { rawValue }
-    public var title: String { self == .codex ? "Codex" : "Claude" }
+    public var title: String {
+        switch self {
+        case .codex: "Codex"
+        case .claude: "Claude"
+        case .opencode: "OpenCode"
+        }
+    }
 }
 
 public struct ResearchProject: Codable, Identifiable, Hashable, Sendable {
@@ -67,7 +73,39 @@ public struct Settings: Codable, Sendable {
     public var claudeModel: String
     public var codexSandbox: String
     public var claudePermissionMode: String
-    public func executable(_ provider: Provider) -> String { provider == .codex ? codexPath : claudePath }
+    public var opencodePath: String
+    public var opencodeModel: String
+    /// "reject" lets OpenCode auto-reject permission prompts (its headless default);
+    /// "auto" passes --auto, approving anything the user's OpenCode config does not deny.
+    public var opencodePermission: String
+    public func executable(_ provider: Provider) -> String {
+        switch provider {
+        case .codex: codexPath
+        case .claude: claudePath
+        case .opencode: opencodePath
+        }
+    }
+}
+
+extension Settings {
+    private enum CodingKeys: String, CodingKey {
+        case workspaceRoot, catalogURL, codexPath, claudePath, codexModel, claudeModel, codexSandbox, claudePermissionMode, opencodePath, opencodeModel, opencodePermission
+    }
+    /// Settings saved before OpenCode support omit its keys; they decode to safe defaults.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        workspaceRoot = try c.decode(String.self, forKey: .workspaceRoot)
+        catalogURL = try c.decode(String.self, forKey: .catalogURL)
+        codexPath = try c.decode(String.self, forKey: .codexPath)
+        claudePath = try c.decode(String.self, forKey: .claudePath)
+        codexModel = try c.decode(String.self, forKey: .codexModel)
+        claudeModel = try c.decode(String.self, forKey: .claudeModel)
+        codexSandbox = try c.decode(String.self, forKey: .codexSandbox)
+        claudePermissionMode = try c.decode(String.self, forKey: .claudePermissionMode)
+        opencodePath = try c.decodeIfPresent(String.self, forKey: .opencodePath) ?? ""
+        opencodeModel = try c.decodeIfPresent(String.self, forKey: .opencodeModel) ?? ""
+        opencodePermission = try c.decodeIfPresent(String.self, forKey: .opencodePermission) ?? "reject"
+    }
 }
 
 public struct SavedState: Codable {
