@@ -213,7 +213,7 @@ struct ContentView: View {
             }.padding(.top, 28)
             HStack(alignment: .top, spacing: 22) {
                 hint("doc.text", "Repository-led", "Starts from its research guide")
-                hint("terminal", "Your CLI, your account", "Codex or Claude underneath")
+                hint("terminal", "Your CLI, your account", "Codex, Claude or OpenCode underneath")
                 hint("externaldrive", "A durable workspace", "Chats, code, and experiment logs")
             }.padding(.top, 58)
             Spacer()

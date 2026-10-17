@@ -26,6 +26,15 @@ public enum CLI {
             args += ["-"]
             return Command(settings.codexPath, args, input: "Harness instructions:\n\(policy)\n\nUser request:\n\(prompt)")
         }
+        if provider == .opencode {
+            // `opencode run` reads the message from stdin when no positional message is given.
+            // It has no system-prompt flag, so the policy travels with the request as for Codex.
+            var args = ["run", "--format", "json"]
+            if settings.opencodePermission == "auto" { args.append("--auto") }
+            if let sessionID { args += ["--session", sessionID] }
+            if !settings.opencodeModel.isEmpty { args += ["--model", settings.opencodeModel] }
+            return Command(settings.opencodePath, args, input: "Harness instructions:\n\(policy)\n\nUser request:\n\(prompt)")
+        }
         var args = ["--print", "--verbose", "--output-format", "stream-json", "--permission-mode", settings.claudePermissionMode, "--append-system-prompt", policy]
         if let sessionID { args += ["--resume", sessionID] }
         if !settings.claudeModel.isEmpty { args += ["--model", settings.claudeModel] }
@@ -41,7 +50,27 @@ public enum CLI {
         Command(executable, ["--disable", "plugins", "mcp", "list", "--json"])
     }
     public static func auth(_ provider: Provider, settings: Settings, login: Bool) -> Command {
-        Command(settings.executable(provider), provider == .codex ? (login ? ["login"] : ["login", "status"]) : ["auth", login ? "login" : "status"])
+        switch provider {
+        case .codex: Command(settings.codexPath, login ? ["login"] : ["login", "status"])
+        case .claude: Command(settings.claudePath, ["auth", login ? "login" : "status"])
+        case .opencode: Command(settings.opencodePath, ["auth", login ? "login" : "list"])
+        }
+    }
+    /// `opencode auth list` succeeds with no credentials, so status comes from its output.
+    public static func opencodeSignedIn(_ output: String) -> Bool {
+        let text = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty || text.contains("No authenticated integrations") { return false }
+        // Older releases print a credentials box ending in "0 credentials" plus any environment keys.
+        if text.range(of: #"(?m)\b0 credentials\b"#, options: .regularExpression) != nil, !text.contains("Environment") { return false }
+        return true
+    }
+    /// Arguments that reopen a provider conversation interactively in Terminal.
+    public static func resumeArguments(_ provider: Provider, sessionID: String) -> [String] {
+        switch provider {
+        case .codex: ["resume", sessionID]
+        case .claude: ["--resume", sessionID]
+        case .opencode: ["--session", sessionID]
+        }
     }
 }
 
@@ -102,6 +131,8 @@ public final class ProcessRunner: @unchecked Sendable {
                 environment.forEach { env[$0.key] = $0.value }
                 // Avoid inheriting nested-session guards from a parent coding agent.
                 env.removeValue(forKey: "CLAUDECODE")
+                // Some CLIs (OpenCode) resolve their project from $PWD rather than the process cwd.
+                env["PWD"] = directory.path
                 env["NO_COLOR"] = "1"; task.environment = env
                 task.standardOutput = out; task.standardError = err; task.standardInput = stdin
                 self.lock.lock()
@@ -186,6 +217,7 @@ public enum EventDecoder {
             }
             return []
         }
+        if provider == .opencode { return decodeOpenCode(object, type: type) }
         var events: [CLIEvent] = []
         if let id = object["session_id"] as? String { events.append(.session(id)) }
         if type == "assistant", let message = object["message"] as? [String: Any], let content = message["content"] as? [[String: Any]] {
@@ -210,6 +242,35 @@ public enum EventDecoder {
             if let denied = object["permission_denials"] as? [[String: Any]], !denied.isEmpty {
                 events.append(.failure("Claude denied \(denied.count) tool request(s). Review permission mode in Connections or continue this session in Terminal."))
             }
+        }
+        return events
+    }
+    /// `opencode run --format json` events: every line carries `sessionID`; content lives in `part`.
+    static func decodeOpenCode(_ object: [String: Any], type: String) -> [CLIEvent] {
+        var events: [CLIEvent] = []
+        if let id = object["sessionID"] as? String, !id.isEmpty { events.append(.session(id)) }
+        let part = object["part"] as? [String: Any] ?? [:]
+        let partID = part["id"] as? String ?? part["partID"] as? String ?? UUID().uuidString
+        switch type {
+        case "text":
+            if let text = part["text"] as? String, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                events.append(.message(id: partID, role: "assistant", text: text))
+            }
+        case "tool_use":
+            let state = part["state"] as? [String: Any] ?? [:]
+            let status = state["status"] as? String ?? "running"
+            let input = (try? JSONSerialization.data(withJSONObject: state["input"] ?? [:], options: [.prettyPrinted, .sortedKeys])).map { String(decoding: $0, as: UTF8.self) } ?? ""
+            let output = state["output"] as? String ?? state["error"] as? String ?? (state["error"] as? [String: Any])?["message"] as? String ?? ""
+            events.append(.message(id: "tool-\(partID)", role: "tool", text: "\(part["tool"] as? String ?? "Tool")\n\(status)\n\(input)\(output.isEmpty ? "" : "\n" + output)"))
+        case "step_finish":
+            // Intermediate steps end with "tool-calls"; the final step ends the turn.
+            let reason = part["reason"] as? String ?? ""
+            if reason != "tool-calls" && reason != "error" { events.append(.completed) }
+        case "error":
+            let error = object["error"] as? [String: Any]
+            let message = error?["message"] as? String ?? (error?["data"] as? [String: Any])?["message"] as? String ?? error?["name"] as? String ?? "OpenCode reported a failed turn."
+            events.append(.failure(message))
+        default: break
         }
         return events
     }

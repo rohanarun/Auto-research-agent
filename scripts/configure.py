@@ -16,7 +16,7 @@ def configure():
     runtime = validate(os.environ.get('RESEARCH_WORKSPACE', str(project / 'Runtime')))
     runtime.mkdir(parents=True, exist_ok=True)
     settings['workspaceRoot'] = str(runtime)
-    for provider in ('codex', 'claude'):
+    for provider in ('codex', 'claude', 'opencode'):
         override = os.environ.get('RESEARCH_' + provider.upper() + '_PATH')
         executable = override or shutil.which(provider) or ''
         if executable:

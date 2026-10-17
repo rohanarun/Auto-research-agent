@@ -35,6 +35,7 @@ import ResearchCore
         }
         settings.codexPath = executable(.codex)
         settings.claudePath = executable(.claude)
+        settings.opencodePath = executable(.opencode)
         return settings
     }
     private static func executable(_ provider: Provider) -> String {

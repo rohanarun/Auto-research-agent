@@ -9,32 +9,56 @@ struct ConnectionsView: View {
     init(store: AppStore, initialTab: String = "Connections") { self.store = store;_tab = State(initialValue:initialTab) }
     @State private var daytonaKey = ""
     @State private var loginInput = ""
+    private func installURL(_ provider: Provider) -> URL {
+        switch provider {
+        case .codex: URL(string: "https://developers.openai.com/codex/cli")!
+        case .claude: URL(string: "https://code.claude.com/docs/en/overview")!
+        case .opencode: URL(string: "https://opencode.ai/docs")!
+        }
+    }
+    private func pathBinding(_ provider: Provider) -> Binding<String> {
+        switch provider {
+        case .codex: $store.settings.codexPath
+        case .claude: $store.settings.claudePath
+        case .opencode: $store.settings.opencodePath
+        }
+    }
+    private func modelBinding(_ provider: Provider) -> Binding<String> {
+        switch provider {
+        case .codex: $store.settings.codexModel
+        case .claude: $store.settings.claudeModel
+        case .opencode: $store.settings.opencodeModel
+        }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Your research workspace").font(.system(size: 23, weight: .semibold)); Spacer(); Button("Done") { store.saveSettings() }.keyboardShortcut(.defaultAction).disabled(store.hasActiveRuns) }
             Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
             if tab == "Connections" {
-                ForEach(Provider.allCases) { provider in
+                // Three CLIs no longer fit the fixed sheet height, so the cards scroll.
+                ScrollView { VStack(alignment: .leading, spacing: 14) { ForEach(Provider.allCases) { provider in
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Image(systemName: "terminal").font(.system(size: 21))
                             VStack(alignment: .leading, spacing: 4) { Text(provider.title).font(.system(size: 16, weight: .semibold)); Text(store.auth[provider] ?? "Checking…").font(.system(size: 11)).foregroundStyle(.secondary) }
                             Spacer()
                             Button("Sign in") { store.login(provider) }.disabled(store.loginProvider != nil)
-                            Link("Install CLI", destination: URL(string: provider == .codex ? "https://developers.openai.com/codex/cli" : "https://code.claude.com/docs/en/overview")!)
+                            Link("Install CLI", destination: installURL(provider))
                         }
-                        TextField("CLI executable path", text: provider == .codex ? $store.settings.codexPath : $store.settings.claudePath).textFieldStyle(.roundedBorder)
+                        TextField("CLI executable path", text: pathBinding(provider)).textFieldStyle(.roundedBorder)
                         HStack {
-                            TextField("Model (empty uses your CLI default)", text: provider == .codex ? $store.settings.codexModel : $store.settings.claudeModel).textFieldStyle(.roundedBorder)
+                            TextField(provider == .opencode ? "Model as provider/model (empty uses your CLI default)" : "Model (empty uses your CLI default)", text: modelBinding(provider)).textFieldStyle(.roundedBorder)
                             if provider == .codex {
                                 Picker("Access", selection: $store.settings.codexSandbox) { Text("Workspace writes").tag("workspace-write"); Text("Read only").tag("read-only") }.frame(width: 215)
+                            } else if provider == .opencode {
+                                Picker("Permissions", selection: $store.settings.opencodePermission) { Text("Reject prompts").tag("reject"); Text("Auto-approve").tag("auto") }.frame(width: 230)
                             } else {
                                 Picker("Permissions", selection: $store.settings.claudePermissionMode) { Text("Automatic review").tag("auto"); Text("Accept edits").tag("acceptEdits"); Text("Plan only").tag("plan"); Text("Deny unapproved").tag("dontAsk") }.frame(width: 230)
                             }
                         }
                     }.padding(18).background(Color.gray.opacity(0.06), in: RoundedRectangle(cornerRadius: 14)).disabled(store.hasActiveRuns)
-                }
-                Text("Sign-in uses the official CLI and your browser. Credentials stay with Codex or Claude; this app does not copy or store them. Permission errors remain visible in chat.").font(.system(size: 12)).foregroundStyle(.secondary)
+                } } }
+                Text("Sign-in uses the official CLI and your browser. Credentials stay with each CLI; this app does not copy or store them. Permission errors remain visible in chat.").font(.system(size: 12)).foregroundStyle(.secondary)
                 Button("Refresh connection status") { Task { await store.refreshAuth() } }
                 if let provider = store.loginProvider {
                     Divider()
