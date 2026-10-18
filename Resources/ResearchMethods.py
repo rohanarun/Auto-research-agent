@@ -190,6 +190,11 @@ class Runner:
             number = score(value['score'])
             metrics = value.get('metrics', {})
             for spec in self.plan.get('metrics', []):
+                if spec.get('optional') is True and spec['name'] not in metrics:
+                    continue
+                score(metrics[spec['name']])
+            # A missing observation is not zero and cannot rank a candidate.
+            for spec in self.plan.get('selection_metrics', []):
                 score(metrics[spec['name']])
             evidence = value['evidence']
             if not evidence:
@@ -476,8 +481,10 @@ class Runner:
         rows = [r for r in self.rows if r['evaluation'].get('valid')]
         diagnostics = []
         for metric in self.plan.get('metrics', []):
-            values = [r['evaluation'].get('metrics', {}).get(metric['name']) for r in rows]
+            values = [r['evaluation']['metrics'][metric['name']] for r in rows
+                      if metric['name'] in r['evaluation'].get('metrics', {})]
             diagnostics.append({'name': metric['name'], 'observations': len(values),
+                                'missing_observations': len(rows) - len(values),
                                 'distinct_values': len({json.dumps(v, sort_keys=True) for v in values}),
                                 'constant_in_observed_checkpoints': len(values) > 1 and len({str(v) for v in values}) == 1})
         return {'metrics': self.plan.get('metrics', []), 'metric_diagnostics': diagnostics,
@@ -537,6 +544,9 @@ class Runner:
         leader = {'id': 'initial', 'parent': None, 'workspace': str(base), 'provider_session': None,
                   'evaluation': self.evaluate(base, initial), 'time': time.time()}
         self.rows.append(leader)
+        if leader['evaluation'].get('valid') is not True:
+            raise ValueError('Initial candidate failed frozen evaluation; no research workers started: '
+                             + leader['evaluation'].get('reason', 'unknown evaluation failure'))
         anchor = score(leader['evaluation']['score']) if leader['evaluation'].get('valid') else None
         self.best_time = time.monotonic()
         for round_number in range(1, options['rounds'] + 1):

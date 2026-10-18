@@ -70,6 +70,9 @@ objective gain. Without a research-value rubric, the coordinator reviews that
 evidence qualitatively; file counts and test counts do not become merit points.
 Constant-metric diagnostics and retained researched checkpoints expose progress
 that an unchanged incumbent score would otherwise hide.
+Declare metrics that may be absent with `"optional": true`; absence stays missing,
+not zero. Selection metrics are always required. Initial evaluation checks the
+complete frozen plan before starting any model workers.
 
 Daytona method conversations appear in the existing chat with worker, round and
 checkpoint labels. Monitoring incrementally reads bounded chunks of existing logs;

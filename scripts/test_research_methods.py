@@ -120,6 +120,29 @@ print(json.dumps({'valid':True,'score':s,'metrics':{'value':s,'novelty':s-1},'ev
         dashboard=json.loads((runner.output/'DASHBOARD.json').read_text())
         self.assertGreater(len(dashboard['metric_diagnostics']),0)
 
+    def test_absent_optional_observations_do_not_invalidate_or_become_zero(self):
+        self.plan['metrics'].append(dict(name='trial_gain', definition='Absent before a trial', optional=True))
+        runner,result=self.run_method('optional-metrics')
+        self.assertTrue(all(r['evaluation']['valid'] for r in runner.rows))
+        self.assertTrue(all('trial_gain' not in r['evaluation']['metrics'] for r in runner.rows))
+        diagnostic=next(d for d in runner.dashboard()['metric_diagnostics'] if d['name']=='trial_gain')
+        self.assertEqual(diagnostic['observations'],0)
+        self.assertEqual(diagnostic['missing_observations'],len(runner.rows))
+        self.assertFalse(diagnostic['constant_in_observed_checkpoints'])
+
+    def test_missing_required_metric_fails_preflight_before_worker_calls(self):
+        self.plan['metrics'].append(dict(name='required_measure', definition='Required observation'))
+        with self.assertRaisesRegex(ValueError,'Initial candidate failed frozen evaluation'):
+            self.run_method('required-metric')
+        self.assertFalse(list((self.folder/'required-metric').glob('round-*')))
+
+    def test_missing_selection_metric_cannot_rank_even_when_optional(self):
+        self.plan['metrics'].append(dict(name='trial_gain', definition='Optional diagnostic', optional=True))
+        self.plan['selection_metrics']=[dict(name='trial_gain',direction='maximize')]
+        with self.assertRaisesRegex(ValueError,'Initial candidate failed frozen evaluation'):
+            self.run_method('missing-selection')
+        self.assertFalse(list((self.folder/'missing-selection').glob('round-*')))
+
     def test_verified_progress_breaks_score_ties_without_overriding_primary_score(self):
         runner=m.Runner(self.config,self.plan,self.workspace,self.folder/'selection')
         self.plan['selection_metrics']=[{'name':'novelty','direction':'maximize'}]
