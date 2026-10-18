@@ -34,6 +34,13 @@ import ResearchCore
     var cloudDrains: [UUID:Bool] = [:]
     var cloudRuntime: [String:String]?
     var daytonaClient: DaytonaClient?
+    // Optional external execution coordinator. Normal app runs leave this nil.
+    // Runs after preparation, before any CLI invocation or sharing timer.
+    // The callback never changes prompts or model settings.
+    var cloudPrepared: ((String, UUID, [String]) async throws -> Void)?
+    // An external verifier may finish reading drained workers before recovery.
+    // Admission happens before creating any HTTP export request.
+    var cloudRecoveryReady: ((String) async throws -> Void)?
     var daytonaLoginCancelled = false
     var daytonaLoginRunner: ProcessRunner?
     var cloudOwnedIDs = Set<String>()
@@ -93,6 +100,8 @@ import ResearchCore
                 selectedProjectID = saved.selectedProjectID; selectedSessionID = saved.selectedSessionID; provider = saved.provider
                 selectedSharedGroupID = saved.selectedSharedGroupID
                 for i in sessions.indices where ["Running", "Preparing", "Stopping"].contains(sessions[i].state) {
+                    let attachment = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("cloud-method-attachments/" + sessions[i].id.uuidString + ".json")
+                    if FileManager.default.fileExists(atPath: attachment.path) { sessions[i].state = "Reconnecting"; continue }
                     sessions[i].state = "Interrupted"
                     sessions[i].messages.append(ChatMessage(role: "status", text: "The app closed during this run. Review its files before resuming; no work has been restarted automatically."))
                 }
@@ -126,6 +135,7 @@ import ResearchCore
             let resolved = await PortableSetup.resolve(settings)
             loadWorkspace(resolved); needsWorkspace = false
         }
+        restoreMethodMonitoring()
         await refreshCatalog(); await refreshAuth(); await refreshMCPServers()
     }
     func refreshCatalog() async {
@@ -231,7 +241,7 @@ import ResearchCore
             return
         }
         if let existing = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(existing); return }
-        if sharedConfiguration(project.id).parallelEnabled { startSharedResearch(project); return }
+        if sharedConfiguration(project.id).parallelEnabled || sharedConfiguration(project.id).usesMethods { startSharedResearch(project); return }
         select(project)
         let session = ResearchSession(projectID: project.id, title: "Research · \(project.name)", provider: provider)
         sessions.append(session); selectedSessionID = session.id
@@ -254,7 +264,7 @@ import ResearchCore
             return
         }
         if recipientID != nil { error = "Select the agent's group before sending a follow-up."; return }
-        if selectedSessionID == nil, sharedConfiguration(project.id).parallelEnabled { composer = ""; startSharedResearch(project, request: request); return }
+        if selectedSessionID == nil, sharedConfiguration(project.id).parallelEnabled || sharedConfiguration(project.id).usesMethods { composer = ""; startSharedResearch(project, request: request); return }
         if let other = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(other); error = "This project already has an active run. Stop it before starting another writer."; return }
         composer = ""
         let id: UUID
@@ -320,11 +330,15 @@ import ResearchCore
                     }
                 }
                 guard !stopped.contains(id) else { throw CancellationError() }
+                let methodOptions = sharedConfiguration(project.id).methods
+                if let methods = methodOptions, methods.enabled {
+                    prompt += "\nYou are the coordinator for \(methods.branches) method branches collaborating on the same objective. Previous group indices are historical evidence, not current team assignments. Write a common plan; only the owned method runner launches branches."
+                }
                 if let shared = current.sharedAgent {
                     let count = shared.agentCount ?? sharedConfiguration(project.id).agentCount
-                    prompt += shared.isIndependent
+                    if methodOptions?.enabled != true { prompt += shared.isIndependent
                         ? "\n\nIndependent parallel agent \(shared.index) of \(count). Solve the same user problem independently in your assigned checkout: \(directory.path). No peer context is supplied or exchanged."
-                        : "\n\nParallel research agent \(shared.index) of \(count), generation \(shared.generation). Your assigned checkout is \(directory.path)."
+                        : "\n\nParallel research agent \(shared.index) of \(count), generation \(shared.generation). Your assigned checkout is \(directory.path)." }
                     if !shared.isIndependent, let path = shared.contextFile {
                         prompt += "\nShared context copied into this fresh session from \(path):\n\n" + (try String(contentsOfFile: path, encoding: .utf8))
                     }
@@ -335,8 +349,8 @@ import ResearchCore
                 FileManager.default.createFile(atPath: logURL.path, contents: nil, attributes: [.posixPermissions: 0o600])
                 let log = try FileHandle(forWritingTo: logURL); let logLock = NSLock()
                 defer { try? log.close() }
-                let sharedPolicy = current.sharedAgent == nil ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent(current.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"), encoding: .utf8)
-                let fullPolicy = policy + "\n\n" + sharedPolicy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
+                let sharedPolicy = current.sharedAgent == nil || methodOptions?.enabled == true ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent(current.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"), encoding: .utf8)
+                var fullPolicy = policy + "\n\n" + sharedPolicy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
                 var disabledMCPServers: [String] = []
                 if current.provider == .codex {
                     let discovered = try await runner.run(CLI.mcpDiscovery(settings.codexPath), directory: directory, environment: env)
@@ -344,6 +358,20 @@ import ResearchCore
                     let names = try CLI.configuredMCPServers(Data(discovered.stdout.utf8))
                     availableMCPServers = names
                     disabledMCPServers = names.filter { !enabledMCPServers.contains($0) }
+                }
+                var methodFolder: URL?
+                var methodFiles: [String: Data] = [:]
+                if let methods = sharedConfiguration(project.id).methods, methods.enabled {
+                    let files = try ResearchMethods.files(options: methods, provider: current.provider, settings: settings,
+                        policy: fullPolicy, resources: resourceDirectory, disabledMCPServers: disabledMCPServers,
+                        enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) }, sharedContext: sharedConfiguration(project.id))
+                    let folder = directory.appendingPathComponent(".auto-research-methods/control/\(id.uuidString)/\(UUID().uuidString)")
+                    _ = try Workspace.validate(folder.path)
+                    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                    for (name, data) in files { try data.write(to: folder.appendingPathComponent(name), options: .atomic) }
+                    methodFolder = folder; methodFiles = files
+                    fullPolicy += "\n\n" + ResearchMethods.instruction(directory: folder.path)
+                    append(id, role: "status", text: "Optional research methods installed. Branches use the configured model; evidence and losing branches are retained in this checkout.")
                 }
                 let command = CLI.chat(provider: current.provider, settings: settings, sessionID: current.providerSessionID, prompt: prompt, policy: fullPolicy, disabledMCPServers: disabledMCPServers, enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) })
                 state(id, "Running")
@@ -364,6 +392,22 @@ import ResearchCore
                         default: break
                         }
                     }
+                }
+                if let folder = methodFolder, !stopped.contains(id), result.code == 0, !failed.contains(id), completed.contains(id) {
+                    guard ResearchMethods.ready(result.stdout, provider: current.provider) else {
+                        throw ResearchError("The model has not prepared a research-method plan. No branches were launched; review its response.")
+                    }
+                    // Restore trusted runtime/config bytes after the planning model wrote its plan.
+                    for (name, data) in methodFiles { try data.write(to: folder.appendingPathComponent(name), options: .atomic) }
+                    append(id, role: "status", text: "Plan ready. Running isolated research branches with the configured model.")
+                    let execution = try await runner.run(Command("/usr/bin/env", ["python3", "-B", folder.appendingPathComponent("ResearchMethods.py").path,
+                        "--config", folder.appendingPathComponent("config.json").path, "--plan", folder.appendingPathComponent("plan.json").path,
+                        "--workspace", directory.path]), directory: directory, environment: env, onLine: { line, _ in
+                            Task { @MainActor in self.append(id, role: "tool", text: line) }
+                        })
+                    guard execution.code == 0 else { throw ResearchError("Research-method execution stopped or failed. All branch work and logs are preserved. \(execution.stderr)") }
+                    append(id, role: "assistant", text: try ResearchMethods.summary(execution.stdout))
+                    nextDecision = "finished"
                 }
                 if stopped.contains(id) { state(id, "Stopped") }
                 else if result.code != 0 || failed.contains(id) {

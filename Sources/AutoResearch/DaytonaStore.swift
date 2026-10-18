@@ -126,6 +126,7 @@ extension AppStore {
     }
     func recoverCloudBox(_ id: String, client: DaytonaClient) async throws {
         cloudCleanup.insert(id);defer { cloudCleanup.remove(id) }
+        try await cloudRecoveryReady?(id)
         try await cloudRecoveryQueue.run(id:id) {
             try await self.exportCloudRecovery(id,client:client)
         }

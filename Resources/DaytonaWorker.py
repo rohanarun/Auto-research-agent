@@ -99,7 +99,12 @@ def run(identifier):
   import shutil
   previous=request.get('previous_state_id');source=R/'providers'/safe_id(previous)/'state/auth.json' if previous else R/'auth/auth.json'
   assert source.is_file(),'Cloud Codex sign-in is required';shutil.copy2(source,state/'auth.json');(state/'auth.json').chmod(0o600)
- args=[CLI,'--no-daemon']+request['arguments'];env=safe_env(state);started=time.time();write(folder/'status.json',{'phase':'running','started_unix':started,'state_id':request.get('state_id')})
+ args=[CLI,'--no-daemon']+request['arguments']
+ if request.get('research_methods'):
+  assert not request.get('login') and len(request['arguments'])==1
+  methods=Path(request['arguments'][0]).resolve();assert methods.is_relative_to((CO/'SHARED_CONTEXT').resolve()) and methods.name.startswith('methods-')
+  args=[sys.executable,'-B',str(methods/'ResearchMethods.py'),'--config',str(methods/'config.json'),'--plan',str(methods/'plan.json'),'--workspace',str(CO)]
+ env=safe_env(state);started=time.time();write(folder/'status.json',{'phase':'running','started_unix':started,'state_id':request.get('state_id')})
  try:
   with (folder/'stdout').open('wb') as out,(folder/'stderr').open('wb') as err:
    proc=subprocess.Popen(args,cwd=CO,env=env,stdin=subprocess.PIPE,stdout=out,stderr=err,start_new_session=True)
@@ -120,7 +125,18 @@ def poll(request):
   if path.exists():
    with path.open('rb') as f:f.seek(offset);raw=f.read(limit)
   out[name]=base64.b64encode(raw).decode();out[name+'_offset']=offset+len(raw);out[name+'_eof']=not path.exists() or offset+len(raw)==path.stat().st_size
- out['status']=read(folder/'status.json',{'phase':'requested'});return out
+ out['status']=read(folder/'status.json',{'phase':'requested'})
+ if 'method_cursor' in request:
+  # Load the optional observer without creating bytecode in the live runtime.
+  import importlib.util
+  spec=importlib.util.spec_from_file_location('MethodTelemetry',Path(__file__).with_name('MethodTelemetry.py'));module=importlib.util.module_from_spec(spec)
+  previous=sys.dont_write_bytecode;sys.dont_write_bytecode=True
+  try:
+   spec.loader.exec_module(module);out.update(module.collect(folder,CO,request['method_cursor'],limit))
+  except (OSError,ValueError,TypeError,KeyError):
+   out.update({'method_events':[],'method_cursor':request['method_cursor'],'method_eof':True,'method_error':'Worker telemetry is unavailable; research and raw output are unaffected.'})
+  finally:sys.dont_write_bytecode=previous
+ return out
 def stop(request):
  folder=R/'operations'/safe_id(request['id']);write(folder/'stop.json',{'unix':time.time()});pid=read(folder/'launch.json',{}).get('pid')
  while alive(pid):time.sleep(.1)

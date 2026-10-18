@@ -78,7 +78,7 @@ final class BenchmarkPromptParityTests: XCTestCase {
                     var session = ResearchSession(projectID:project.id,title:"Local parity fixture",provider:.codex)
                     let box = UUID().uuidString
                     session.cloud = CloudSession(sandboxID:box,stateID:session.id.uuidString,previousStateID:generation > 1 ? UUID().uuidString : nil)
-                    if count > 1 { session.sharedAgent = SharedAgent(groupID:UUID(),index:index,generation:generation,previousSessionID:nil,contextFile:generation > 1 ? context.path : nil,sharesContext:sharing,agentCount:count) }
+                    if count > 1 || sharing { session.sharedAgent = SharedAgent(groupID:UUID(),index:index,generation:generation,previousSessionID:nil,contextFile:generation > 1 ? context.path : nil,sharesContext:sharing,agentCount:count) }
                     store.sessions = [session]
                     let config = URLSessionConfiguration.ephemeral;config.protocolClasses = [ParityCaptureProtocol.self]
                     ParityCaptureProtocol.install = store.daytona.installID;ParityCaptureProtocol.box = box;ParityCaptureProtocol.launches = []
@@ -91,13 +91,15 @@ final class BenchmarkPromptParityTests: XCTestCase {
                     let args = try XCTUnwrap(captured["arguments"] as? [String])
                     XCTAssertFalse(args.contains("resume"));XCTAssertTrue(args.contains("features.memories=false"));XCTAssertTrue(args.contains("features.multi_agent=false"))
                     XCTAssertTrue(input.contains("Baseline" ) || input.contains("baseline"))
-                    XCTAssertTrue(input.contains("Partial milestones are progress, not primary success."))
+                    XCTAssertTrue(input.contains("ANY legal construction"))
+                    XCTAssertTrue(input.contains("strictly greater than the supplied baseline kappa"))
+                    XCTAssertFalse(input.contains("advance through ALL THREE"))
                     XCTAssertFalse(input.contains("endpoint remains first frozen-checker valid=true"))
                     records.append(["sharing":sharing,"agents":count,"interval_seconds":interval,"agent_index":index,"generation":generation,"arguments":args,"input":input,"input_sha256":SHA256.hash(data:Data(input.utf8)).map { String(format:"%02x",$0) }.joined(),"source":"actual production launchCloud -> CLI.chat -> DaytonaRunner captured locally","fixture_context":generation > 1])
                 }
             }
         }
-        XCTAssertEqual(records.count,64)
+        XCTAssertEqual(records.count,cells.reduce(0) { $0 + $1.1 * ($1.0 ? 2 : 1) })
         let result: [String:Any] = ["status":"local_capture_only_not_actual_provider_parity","model_calls":0,"requests":records,"request_count":records.count,"actual_provider_context_audit_required":true,"research_policy_sha256":SHA256.hash(data:policyBytes).map { String(format:"%02x",$0) }.joined()]
         try JSONSerialization.data(withJSONObject:result,options:[.prettyPrinted,.sortedKeys]).write(to:output.appendingPathComponent("native-request-contracts.json"),options:.atomic)
     }

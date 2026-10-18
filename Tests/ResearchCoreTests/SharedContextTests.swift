@@ -76,6 +76,32 @@ final class SharedContextTests: XCTestCase {
         XCTAssertTrue(Set(launched[0]).isDisjoint(with: launched[1])); XCTAssertFalse(cycle.active)
     }
 
+    @MainActor func testSingleAgentRefreshPreservesOwnCheckpointAndUsesFreshSession() async {
+        var launched: [UUID] = []; var order: [String] = []; var cycle: SharedContextCycle!
+        let context = URL(fileURLWithPath: "/saved/own-checkpoint.md")
+        let hooks = SharedContextCycle.Hooks(prepare: {}, launch: { generation, shared, previous in
+            if generation == 2 {
+                XCTAssertEqual(previous, [launched[0]])
+                XCTAssertEqual(shared, context)
+            }
+            let id = UUID(); launched.append(id); order.append("launch\(generation)"); return [id]
+        }, drain: { ids in XCTAssertEqual(ids.count, 1); order.append("drain") },
+        capture: { ids, _, _ in
+            XCTAssertEqual(ids, [launched[0]]); order.append("capture-own-checkpoint")
+            return URL(fileURLWithPath: "/saved/own-manifest.json")
+        }, merge: { _ in order.append("publish"); return context }, retire: { ids in
+            XCTAssertEqual(ids, [launched[0]]); order.append("retire")
+        }, cancelOperation: {}, update: { phase, generation, _, _ in
+            if phase == .researching {
+                Task { @MainActor in if generation == 1 { cycle.synchronize() } else { cycle.stop() } }
+            }
+        })
+        cycle = SharedContextCycle(options: .init(enabled: true, agentCount: 1, intervalMinutes: 1), hooks: hooks)
+        cycle.start(); await cycle.waitUntilStopped()
+        XCTAssertEqual(order, ["launch1", "drain", "capture-own-checkpoint", "publish", "retire", "launch2", "drain"])
+        XCTAssertEqual(Set(launched).count, 2)
+    }
+
     @MainActor func testFailedOrCancelledSynthesisCannotLaunchReplacements() async {
         for cancel in [false, true] {
             var launches = 0; var retires = 0; var last: SharedContextCycle.Phase?; var cycle: SharedContextCycle!
@@ -105,7 +131,8 @@ final class SharedContextTests: XCTestCase {
         let data = try JSONEncoder().encode(state)
         let decoded = try JSONDecoder().decode(SavedState.self, from: data)
         XCTAssertNil(decoded.sharedOptions); XCTAssertNil(decoded.sessions[0].sharedAgent)
-        XCTAssertThrowsError(try SharedContextOptions(enabled: true, agentCount: 1, intervalMinutes: 10).validate())
+        XCTAssertNoThrow(try SharedContextOptions(enabled: true, agentCount: 1, intervalMinutes: 10).validate())
+        XCTAssertThrowsError(try SharedContextOptions(enabled: true, agentCount: 0, intervalMinutes: 10).validate())
         XCTAssertThrowsError(try SharedContextOptions(enabled: true, agentCount: 2, intervalMinutes: .nan).validate())
         XCTAssertThrowsError(try SharedContextOptions(enabled: true, agentCount: 2, intervalMinutes: 0).validate())
         XCTAssertFalse(EventDecoder.sharedContextReady("I could not read agent two."))

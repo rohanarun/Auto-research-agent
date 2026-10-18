@@ -1,0 +1,8 @@
+{
+  "rsiTop": false,
+  "forkAndFlush": false,
+  "branches": 4,
+  "explorationMinutes": 5,
+  "exploitationMinutes": 15,
+  "rounds": 3
+}

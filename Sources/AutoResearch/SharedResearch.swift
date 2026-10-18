@@ -29,11 +29,16 @@ extension AppStore {
         return sessions.filter { $0.projectID == projectID && $0.sharedAgent != nil && $0.closedAt == nil }.max(by: { $0.createdAt < $1.createdAt })?.sharedAgent?.groupID
     }
     func sharedConfiguration(_ projectID: String) -> SharedContextOptions { sharedOptions[projectID] ?? sharedDefaults }
+    func methodConfiguration(_ projectID: String) throws -> ResearchMethodOptions {
+        if let methods = sharedConfiguration(projectID).methods { return methods }
+        return try JSONDecoder().decode(ResearchMethodOptions.self, from: Data(contentsOf: resourceDirectory.appendingPathComponent("ResearchMethodsDefaults.json")))
+    }
     func sharedActive(_ projectID: String) -> Bool { sharedCycles[projectID]?.active == true }
     func setSharedConfiguration(_ options: SharedContextOptions, for projectID: String) {
         if sharedActive(projectID) {
             if !options.parallelEnabled { stopSharedResearch(projectID) } else { return }
         }
+        if !sharedActive(projectID), sessions.contains(where: { $0.projectID == projectID && runners[$0.id] != nil }) { return }
         sharedOptions[projectID] = options; save()
     }
     func stopSharedResearch(_ projectID: String) {
@@ -46,6 +51,14 @@ extension AppStore {
     func synchronizeSharedResearch(_ projectID: String) { sharedCycles[projectID]?.synchronize() }
 
     func startSharedResearch(_ project: ResearchProject, request: String? = nil) {
+        if sharedConfiguration(project.id).usesMethods {
+            guard !running(project) else { error = "Stop the current run before starting research methods."; return }
+            select(project); selectedSharedGroupID = nil
+            let session = ResearchSession(projectID: project.id, title: "Research methods · \(project.name)", provider: provider)
+            sessions.append(session); selectedSessionID = session.id
+            launch(session.id, project: project, request: request)
+            return
+        }
         if daytona.enabled { startCloudResearch(project, request:request);return }
         guard !running(project) else { error = "Stop the existing run before starting parallel agents."; return }
         let options = sharedConfiguration(project.id)

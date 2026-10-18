@@ -7,14 +7,28 @@ struct SharedContextControls: View {
     let project: ResearchProject
     @State private var showingConfiguration = false
     private var options: SharedContextOptions { store.sharedConfiguration(project.id) }
-    private var active: Bool { store.sharedActive(project.id) }
+    private var active: Bool { store.sharedActive(project.id) || store.running(project) }
     private var group: UUID? { store.relevantSharedGroup(project.id) }
     private var agents: [ResearchSession] {
         guard let group else { return [] }
         return SharedTranscript.latestAgents(in: store.sessions, projectID: project.id, groupID: group)
     }
     private var mode: String {
-        options.parallelEnabled ? "\(options.agentCount) agents · \(options.enabled ? "Sharing" : "Independent")" : "Single agent"
+        if options.usesMethods {
+            let names = [options.methods?.rsiTop == true ? "RSI-top" : nil,
+                         options.methods?.forkAndFlush == true ? "Fork-and-flush" : nil].compactMap { $0 }.joined(separator: " + ")
+            return "\(options.methods?.branches ?? 0) branches · " + names
+        }
+        return options.parallelEnabled ? "\(options.agentCount) agents · \(options.enabled ? "Sharing" : "Independent")" : "Single agent"
+    }
+    private func methodBinding<T>(_ key: WritableKeyPath<ResearchMethodOptions, T>, value: T) -> Binding<T> {
+        Binding(get: { (try? store.methodConfiguration(project.id))?[keyPath: key] ?? value }, set: { newValue in
+            do {
+                var methods = try store.methodConfiguration(project.id); methods[keyPath: key] = newValue
+                var updated = options; updated.methods = methods
+                store.setSharedConfiguration(updated, for: project.id)
+            } catch { store.error = error.localizedDescription }
+        })
     }
     private func binding<T>(_ key: WritableKeyPath<SharedContextOptions, T>) -> Binding<T> {
         Binding(get: { options[keyPath: key] }, set: { value in
@@ -36,6 +50,14 @@ struct SharedContextControls: View {
             if let group {
                 Menu {
                     Button("All agents") { store.selectSharedGroup(group, projectID: project.id) }
+                    if agents.allSatisfy({ $0.cloud != nil }), !agents.isEmpty {
+                        Button("Resume saved group (\(agents.count) agents)") {
+                            store.resumeCloudResearch(project, groupID: group)
+                        }
+                        .disabled(active)
+                        .help("Resume the same sandboxes, conversations and shared context; no new group is created.")
+                        .accessibilityLabel("Resume saved group")
+                    }
                     Divider()
                     ForEach(agents) { session in
                         Button("Agent \(session.sharedAgent!.index) · \(session.state)") { store.selectSession(session) }
@@ -65,7 +87,8 @@ struct SharedContextControls: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Research settings").font(.system(size: 13, weight: .semibold))
             Toggle("Parallel agents", isOn: binding(\.parallelEnabled)).toggleStyle(.switch)
-            if options.parallelEnabled {
+                .disabled(options.usesMethods)
+            if options.parallelEnabled && !options.usesMethods {
                 HStack {
                     Text("Agents")
                     Spacer()
@@ -84,12 +107,50 @@ struct SharedContextControls: View {
                     }
                 }
             }
-            Text(active ? "Stop the current run to change its settings." : options.enabled && options.parallelEnabled
+            Divider()
+            Toggle("RSI-top exploration", isOn: methodBinding(\.rsiTop, value: false)).toggleStyle(.checkbox)
+                .accessibilityLabel("RSI-top exploration")
+                .help("Fixed task metrics and diverse experiments when verified progress stalls.")
+            Toggle("Fork-and-flush", isOn: methodBinding(\.forkAndFlush, value: false)).toggleStyle(.checkbox)
+                .accessibilityLabel("Fork-and-flush")
+                .help("Copy the leader workspace into fresh-context branches, evaluate them, and continue the strongest valid result.")
+            if options.usesMethods, let methods = try? store.methodConfiguration(project.id) {
+                HStack {
+                    Text("Branches")
+                    Spacer()
+                    TextField("Branches", value: methodBinding(\.branches, value: methods.branches), format: .number).frame(width: 52)
+                }
+                HStack {
+                    Text("Explore / continue (min)")
+                    Spacer()
+                    TextField("Explore", value: methodBinding(\.explorationMinutes, value: methods.explorationMinutes), format: .number).frame(width: 44)
+                    TextField("Continue", value: methodBinding(\.exploitationMinutes, value: methods.exploitationMinutes), format: .number).frame(width: 44)
+                }
+                HStack {
+                    Text("Rounds per run")
+                    Spacer()
+                    TextField("Rounds", value: methodBinding(\.rounds, value: methods.rounds), format: .number).frame(width: 52)
+                }
+                Toggle("Share branch evidence", isOn: binding(\.enabled)).toggleStyle(.switch)
+                if options.enabled {
+                    HStack {
+                        Text("Share every")
+                        Spacer()
+                        TextField("Minutes", value: binding(\.intervalMinutes), format: .number).frame(width: 52)
+                            .accessibilityLabel("Method context sharing interval in minutes")
+                        Text("min")
+                    }
+                }
+                Text("\(methods.branches) branches explore the same objective together, then one selected leader continues. With sharing on, completed turns exchange evidence at cooperative checkpoints; a long turn can delay sharing. Fresh contexts return at fork boundaries. Both methods share one budget; no nested group is launched.")
+                    .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            Text(active ? "Stop the current run to change its settings." : options.usesMethods ? "Time-budgeted adaptations. The model defines the task evaluator and metrics before experiments."
+                 : options.enabled && options.parallelEnabled
                  ? "Agents periodically share compact checkpoints in fresh sessions."
                  : "Each agent works independently on the same problem.")
                 .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
         .disabled(active).font(.system(size: 12)).controlSize(.small)
-        .textFieldStyle(.roundedBorder).padding(20).frame(width: 290)
+        .textFieldStyle(.roundedBorder).padding(20).frame(width: 340)
     }
 }

@@ -305,10 +305,11 @@ struct MessageView: View {
     let message: ChatMessage
     let provider: Provider
     var speaker: String? = nil
+    private var displayedSpeaker: String? { message.speaker ?? speaker }
     @State private var expanded = false
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let speaker, message.role == "tool" || message.role == "status" {
+            if let speaker = displayedSpeaker, message.role == "tool" || message.role == "status" {
                 Text(speaker).font(.system(size: 12, weight: .semibold)).foregroundStyle(ink)
             }
             content
@@ -326,7 +327,7 @@ struct MessageView: View {
         } else {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text(message.role == "user" ? speaker.map { "You → \($0)" } ?? "You" : message.role == "error" ? speaker.map { "\($0) · Needs attention" } ?? "Needs attention" : speaker ?? provider.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(message.role == "error" ? Color.red : ink)
+                    Text(message.role == "user" ? displayedSpeaker.map { "You → \($0)" } ?? "You" : message.role == "error" ? displayedSpeaker.map { "\($0) · Needs attention" } ?? "Needs attention" : displayedSpeaker ?? provider.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(message.role == "error" ? Color.red : ink)
                     Spacer()
                     Button { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(message.text, forType: .string) } label: { Image(systemName: "doc.on.doc").font(.system(size: 10)).foregroundStyle(muted) }.buttonStyle(.plain).help("Copy message")
                 }

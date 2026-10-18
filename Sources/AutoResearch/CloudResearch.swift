@@ -21,21 +21,42 @@ extension AppStore {
                     try await prepareCloudWorker(client:c,connection:connection,id:box,project:project,source:source)
                     cloud = CloudSession(sandboxID:box,stateID:id.uuidString)
                     if let i = sessions.firstIndex(where:{$0.id == id}) { sessions[i].cloud = cloud;persist() }
+                    try await cloudPrepared?(project.id,id,[box])
                 }
                 guard let cloud else { throw ResearchError("Missing cloud worker.") };boxID = cloud.sandboxID
                 try await c.start(cloud.sandboxID)
                 guard !stopped.contains(id) else { throw CancellationError() }
                 let runner = ProcessRunner(backend:DaytonaRunner(client:c,cloud:cloud,configuration:daytona));runners[id] = runner
                 var prompt = request ?? "Start an autonomous research run in your assigned /workspace/checkout. Read applicable AGENTS.md and auto-research.md. If that entry point is absent, locate the repository's actual research guide, explain the source you choose, and follow it. Ask for input if no actionable objective exists."
+                let methodOptions = sharedConfiguration(project.id).methods
+                if let methods = methodOptions, methods.enabled {
+                    prompt += "\nYou are the coordinator for \(methods.branches) method branches collaborating on this same objective. Previous group indices are historical evidence, not the current team assignment. Write the common plan; the owned method runner launches the branches. Do not start another group or nested fan-out."
+                }
                 if let shared = initial.sharedAgent {
-                    prompt += "\nAgent \(shared.index) of \(shared.agentCount ?? 1), generation \(shared.generation), in your own private checkout."
+                    if methodOptions?.enabled != true { prompt += "\nAgent \(shared.index) of \(shared.agentCount ?? 1), generation \(shared.generation), in your own private checkout." }
                     if !shared.isIndependent,let path = shared.contextFile {
                         prompt += "\n" + (try SharedContextFiles.cloudInjection(file:URL(fileURLWithPath:path),remoteRoot:"/workspace/checkout/SHARED_CONTEXT"))
                     }
                 }
-                let extra = initial.sharedAgent == nil ? "" : try String(contentsOf:resourceDirectory.appendingPathComponent(initial.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"),encoding:.utf8)
-                let cloudPolicy = policy + "\n\n" + extra + "\n\nExecution environment: your private Linux Daytona sandbox, assigned checkout /workspace/checkout. All commands and generated files stay in this checkout. The external-SSD rule applies to the native Mac controller, whose mount was validated there; do not look for /Volumes inside Linux. No host account files, prior conversations, peer checkouts or host MCP configuration are supplied."
+                let extra = initial.sharedAgent == nil || methodOptions?.enabled == true ? "" : try String(contentsOf:resourceDirectory.appendingPathComponent(initial.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"),encoding:.utf8)
+                var cloudPolicy = policy + "\n\n" + extra + "\n\nExecution environment: your private Linux Daytona sandbox, assigned checkout /workspace/checkout. All commands and generated files stay in this checkout. The external-SSD rule applies to the native Mac controller, whose mount was validated there; do not look for /Volumes inside Linux. No host account files, prior conversations, peer checkouts or host MCP configuration are supplied."
                 var cloudSettings = settings;cloudSettings.codexPath = "/opt/autoresearch/bin/codex"
+                var methodDirectory: String?
+                var methodFiles: [String: Data] = [:]
+                if let methods = sharedConfiguration(project.id).methods, methods.enabled {
+                    var files = try ResearchMethods.files(options: methods, provider: .codex, settings: cloudSettings,
+                                                         policy: cloudPolicy, resources: resourceDirectory, sharedContext: sharedConfiguration(project.id))
+                    var config = try JSONSerialization.jsonObject(with: files["config.json"]!) as! [String: Any]
+                    config["arguments"] = ["--no-daemon", "-c", "model_reasoning_effort=" + DaytonaClient.quote(daytona.reasoningEffort), "-c", "features.memories=false", "-c", "features.multi_agent=false"] + (config["arguments"] as! [String]).filter { $0 != "--no-daemon" }
+                    files["config.json"] = try JSONSerialization.data(withJSONObject: config, options: [.prettyPrinted, .sortedKeys])
+                    let name = "methods-" + UUID().uuidString
+                    // Existing sandboxes may still have the previous bridge version.
+                    try await c.upload(cloud.sandboxID, files: ["/opt/autoresearch/bridge.py": try Data(contentsOf: resourceDirectory.appendingPathComponent("DaytonaWorker.py")), "/opt/autoresearch/MethodTelemetry.py": try Data(contentsOf: resourceDirectory.appendingPathComponent("MethodTelemetry.py"))])
+                    _ = try await c.call(cloud.sandboxID, action: "put-context", payload: ["round": name, "files": files.mapValues { $0.base64EncodedString() }])
+                    methodDirectory = "/workspace/checkout/SHARED_CONTEXT/" + name; methodFiles = files
+                    cloudPolicy += "\n\n" + ResearchMethods.instruction(directory: "/workspace/checkout/SHARED_CONTEXT/" + name)
+                    append(id, role: "status", text: "Optional research methods installed in this Daytona sandbox. Branch workspaces and logs remain inside /workspace/checkout.")
+                }
                 let command = CLI.chat(provider:.codex,settings:cloudSettings,sessionID:initial.providerSessionID,prompt:prompt,policy:cloudPolicy)
                 append(id,role:"user",text:prompt)
                 let root = try Workspace.directory(settings.workspaceRoot,"sessions/" + id.uuidString)
@@ -53,6 +74,24 @@ extension AppStore {
                     for event in EventDecoder.decode(String(line),provider:.codex) {
                         if case .message(_,"assistant",let text) = event { nextDecision = EventDecoder.continuationDecision(text) }
                     }
+                }
+                if let folder = methodDirectory, !stopped.contains(id), result.code == 0, !failed.contains(id), completed.contains(id) {
+                    guard ResearchMethods.ready(result.stdout, provider: .codex) else { throw ResearchError("The model has not prepared a research-method plan. No branches were launched; review its response.") }
+                    _ = try await c.call(cloud.sandboxID, action: "put-context", payload: ["round": URL(fileURLWithPath: folder).lastPathComponent, "files": methodFiles.mapValues { $0.base64EncodedString() }])
+                    cloudDrains[id] = false
+                    append(id, role: "status", text: "Plan ready. Running isolated method branches in this Daytona sandbox.")
+                    let operation = UUID().uuidString
+                    let attachment = CloudMethodAttachment(sessionID: id, sandboxID: cloud.sandboxID, operationID: operation, controlDirectory: folder)
+                    try JSONEncoder().encode(attachment).write(to: methodAttachmentURL(id), options: .atomic)
+                    let methodRunner = ProcessRunner(backend: DaytonaRunner(client: c, cloud: cloud, configuration: daytona, operationID: operation))
+                    runners[id] = methodRunner
+                    let execution = try await methodRunner.run(Command("autoresearch-methods", [folder]), directory: root, onLine: { line, _ in
+                        Task { @MainActor in self.consumeMethodLine(line, sessionID: id, operation: operation) }
+                    })
+                    cloudDrains[id] = true
+                    try FileManager.default.removeItem(at: methodAttachmentURL(id))
+                    guard execution.code == 0 else { throw ResearchError("Research-method execution stopped or failed. All cloud branches and logs are preserved. \(execution.stderr)") }
+                    append(id, role: "assistant", text: try ResearchMethods.summary(execution.stdout)); nextDecision = "finished"
                 }
                 if stopped.contains(id) { state(id,"Stopped") }
                 else if result.code != 0 || failed.contains(id) || !completed.contains(id) { state(id,"Needs attention");append(id,role:"error",text:"Cloud CLI did not complete successfully (\(result.code)). Its files and logs are preserved.") }
@@ -91,13 +130,54 @@ extension AppStore {
         }
     }
 
+    func resumeCloudResearch(_ project: ResearchProject, groupID: UUID, request: String? = nil) {
+        guard !running(project) else { error = "Stop the current research before resuming the saved group."; return }
+        do {
+            let plan = try CloudGroupResume(sessions: sessions, projectID: project.id, groupID: groupID,
+                                            options: sharedConfiguration(project.id))
+            guard plan.sessions.allSatisfy({ !cloudCleanup.contains($0.cloud!.sandboxID) }) else {
+                throw ResearchError("Wait for cloud recovery export before resuming this group.")
+            }
+            _ = try Workspace.validate(settings.workspaceRoot)
+            let prompt = try request ?? String(contentsOf: resourceDirectory.appendingPathComponent("ContinuePolicy.md"), encoding: .utf8)
+            runCloudResearch(project, request: prompt, resume: plan)
+        } catch { self.error = error.localizedDescription }
+    }
+
     func startCloudResearch(_ project: ResearchProject,request: String?) {
         guard !running(project),provider == .codex else { error = "Stop existing research and select Codex before starting Daytona agents.";return }
-        let options = sharedConfiguration(project.id)
+        runCloudResearch(project, request: request, resume: nil)
+    }
+
+    private func runCloudResearch(_ project: ResearchProject, request: String?, resume: CloudGroupResume?) {
+        let options = resume?.options ?? sharedConfiguration(project.id)
         do { try options.validate() } catch { self.error = error.localizedDescription;return }
-        let group = UUID();var boxes: [String] = [];var client: DaytonaClient?
+        let group = resume?.groupID ?? UUID()
+        var boxes: [String] = resume?.sessions.compactMap { $0.cloud?.sandboxID } ?? []
+        var client: DaytonaClient?
+        var resumedInitial = false
+        var preparationSucceeded = false
         sharedRuns[project.id] = SharedRunStatus(groupID:group,sharesContext:options.enabled)
         let hooks = SharedContextCycle.Hooks(prepare: {
+            if let resume {
+                let c = try self.cloudClient(); client = c
+                let probe = try String(contentsOf: self.resourceDirectory.appendingPathComponent("CloudResumeProbe.py"), encoding: .utf8)
+                // A start preserves an existing stopped sandbox; no setup, clone, auth fork or creation.
+                // Validate every worker before any resumed model invocation is submitted.
+                for session in resume.sessions {
+                    try Task.checkCancellation()
+                    let cloud = session.cloud!
+                    try await c.start(cloud.sandboxID)
+                    let command = "sudo -n python3 -B -c " + DaytonaClient.quote(probe) + " " + DaytonaClient.quote(cloud.stateID) + " " + DaytonaClient.quote(session.providerSessionID!)
+                    let output = try await c.execute(cloud.sandboxID, command: command)
+                    let receipt = try JSONSerialization.jsonObject(with: Data(output.utf8)) as? [String: Any]
+                    guard receipt?["status"] as? String == "READY_TO_RESUME_EXISTING_STATE" else {
+                        throw ResearchError("Agent \(session.sharedAgent!.index) is active, has uncertain cleanup, or lacks its saved provider state. No group worker was launched. Inspect the preserved sandbox.")
+                    }
+                }
+                preparationSucceeded = true
+                return
+            }
             let (c,connection) = try await self.ensureCloudConnection();client = c
             let auth = try await c.call(connection,action:"auth-status")
             guard auth["authenticated"] as? Bool == true else { throw ResearchError("Sign in to cloud Codex in Connections & settings → Daytona first.") }
@@ -107,7 +187,29 @@ extension AppStore {
                 for box in boxes { tasks.addTask { try await self.prepareCloudWorker(client:c,connection:connection,id:box,project:project,source:source) } }
                 try await tasks.waitForAll()
             }
+            try await self.cloudPrepared?(project.id,group,boxes)
+            preparationSucceeded = true
         },launch: { generation,context,previous in
+            if let resume, !resumedInitial {
+                guard previous == resume.sessions.map(\.id), generation == resume.generation else {
+                    throw ResearchError("Saved cloud group lineage changed before resume.")
+                }
+                for saved in resume.sessions {
+                    guard let i = self.sessions.firstIndex(where: { $0.id == saved.id }),
+                          self.sessions[i].providerSessionID == saved.providerSessionID,
+                          self.sessions[i].cloud?.sandboxID == saved.cloud?.sandboxID,
+                          self.sessions[i].cloud?.stateID == saved.cloud?.stateID else {
+                        throw ResearchError("Saved cloud worker changed before resume; no replacement was created.")
+                    }
+                }
+                for saved in resume.sessions {
+                    if let i = self.sessions.firstIndex(where: { $0.id == saved.id }) { self.sessions[i].closedAt = nil }
+                }
+                guard self.persist() else { throw ResearchError("Could not persist resumed lineage; no workers were launched.") }
+                resumedInitial = true
+                for saved in resume.sessions { self.launchCloud(saved.id, project: project, request: request) }
+                return previous
+            }
             var ids: [UUID] = []
             for (offset,box) in boxes.enumerated() {
                 var session = ResearchSession(projectID:project.id,title:"Agent \(offset + 1) · \(options.enabled ? "round \(generation)" : "independent") · Daytona",provider:.codex)
@@ -126,7 +228,11 @@ extension AppStore {
             self.persist()
         },capture: { ids,generation,previous in
             guard let client else { throw ResearchError("Missing cloud connection.") }
-            let folder = try Workspace.directory(self.settings.workspaceRoot,"shared-context/\(group.uuidString)/round-\(generation)")
+            let roundPath = "shared-context/\(group.uuidString)/round-\(generation)"
+            let existingRound = URL(fileURLWithPath: self.settings.workspaceRoot).appendingPathComponent(roundPath)
+            let snapshotPath = FileManager.default.fileExists(atPath: existingRound.path)
+                ? roundPath + "-" + UUID().uuidString : roundPath
+            let folder = try Workspace.directory(self.settings.workspaceRoot, snapshotPath)
             var agents: [SharedContextManifest.Agent] = []
             for id in ids {
                 guard let s = self.sessions.first(where:{$0.id == id}),let a = s.sharedAgent,let cloud = s.cloud,s.state != "Needs attention",self.cloudDrains[id] == true else { throw ResearchError("A cloud worker did not drain cleanly. No replacement was started.") }
@@ -163,13 +269,14 @@ extension AppStore {
                     let sessions = self.sessions.filter { $0.cloud?.sandboxID == box }
                     return !sessions.isEmpty && sessions.allSatisfy { self.cloudDrains[$0.id] == true && $0.state != "Needs attention" }
                 }
-                if let client { self.cloudCleanup.formUnion(drained);Task { await self.cleanupCloudWorkers(drained,client:client) } };self.persist()
+                if let client, preparationSucceeded { self.cloudCleanup.formUnion(drained);Task { await self.cleanupCloudWorkers(drained,client:client) } };self.persist()
             }
         },waitForCompletion: { ids in
             for id in ids { await self.workerTasks[id]?.value }
             if self.sessions.contains(where:{ids.contains($0.id) && $0.state == "Needs attention"}) { throw ResearchError("A cloud agent needs attention. All completed research is preserved.") }
         })
         select(project);selectSharedGroup(group,projectID:project.id)
-        let cycle = SharedContextCycle(options:options,hooks:hooks);sharedCycles[project.id] = cycle;cycle.start()
+        let cycle = SharedContextCycle(options:options,hooks:hooks);sharedCycles[project.id] = cycle
+        cycle.start(resuming: resume.map { SharedContextCycle.ResumeState(generation: $0.generation, sessionIDs: $0.sessions.map(\.id), context: $0.context) })
     }
 }

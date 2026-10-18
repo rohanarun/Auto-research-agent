@@ -5,20 +5,24 @@ public struct SharedContextOptions: Codable, Equatable, Sendable {
     public var enabled: Bool
     public var agentCount: Int
     public var intervalMinutes: Double
+    public var methods: ResearchMethodOptions?
+    public var usesMethods: Bool { methods?.enabled == true }
     public init(enabled: Bool, agentCount: Int, intervalMinutes: Double, parallelEnabled: Bool? = nil) {
         self.parallelEnabled = parallelEnabled ?? enabled
         self.enabled = enabled; self.agentCount = agentCount; self.intervalMinutes = intervalMinutes
     }
-    private enum CodingKeys: String, CodingKey { case parallelEnabled, enabled, agentCount, intervalMinutes }
+    private enum CodingKeys: String, CodingKey { case parallelEnabled, enabled, agentCount, intervalMinutes, methods }
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         enabled = try values.decode(Bool.self, forKey: .enabled)
         parallelEnabled = try values.decodeIfPresent(Bool.self, forKey: .parallelEnabled) ?? enabled
         agentCount = try values.decode(Int.self, forKey: .agentCount)
         intervalMinutes = try values.decode(Double.self, forKey: .intervalMinutes)
+        methods = try values.decodeIfPresent(ResearchMethodOptions.self, forKey: .methods)
     }
     public func validate() throws {
-        guard agentCount >= 2 else { throw ResearchError("Parallel research needs at least two agents.") }
+        try methods?.validate()
+        guard agentCount >= 1 else { throw ResearchError("Research needs at least one agent.") }
         guard enabled else { return }
         guard intervalMinutes.isFinite, intervalMinutes > 0, intervalMinutes * 60 < Double(Int64.max) / 1_000_000_000 else {
             throw ResearchError("Enter a positive synchronization interval in minutes.")
@@ -62,6 +66,15 @@ public struct SharedAgent: Codable, Sendable {
             self.waitForCompletion = waitForCompletion
         }
     }
+    public struct ResumeState {
+        public let generation: Int
+        public let sessionIDs: [UUID]
+        public let context: URL?
+        public init(generation: Int, sessionIDs: [UUID], context: URL?) {
+            self.generation = generation; self.sessionIDs = sessionIDs; self.context = context
+        }
+    }
+    private var resumeState: ResumeState?
     private let hooks: Hooks
     private let options: SharedContextOptions
     private var task: Task<Void, Never>?
@@ -69,8 +82,8 @@ public struct SharedAgent: Codable, Sendable {
     private var failure: String?
     public private(set) var active = false
     public init(options: SharedContextOptions, hooks: Hooks) { self.options = options; self.hooks = hooks }
-    public func start() {
-        guard !active else { return }; active = true
+    public func start(resuming: ResumeState? = nil) {
+        guard !active else { return }; resumeState = resuming; active = true
         task = Task { await execute() }
     }
     public func synchronize() { intervalTask?.cancel() }
@@ -79,12 +92,15 @@ public struct SharedAgent: Codable, Sendable {
     }
     public func waitUntilStopped() async { await task?.value }
     private func execute() async {
-        var ids: [UUID] = []; var generation = 1; var context: URL?
+        var ids: [UUID] = []; var generation = resumeState?.generation ?? 1; var context = resumeState?.context
         do {
             try options.validate()
+            if let resumeState {
+                guard resumeState.generation > 0, resumeState.sessionIDs.count == options.agentCount, Set(resumeState.sessionIDs).count == options.agentCount else { throw ResearchError("Invalid saved cycle membership; no workers resumed.") }
+            }
             hooks.update(.preparing, generation, ids, nil)
             try await hooks.prepare(); try Task.checkCancellation()
-            ids = try hooks.launch(generation, nil, [])
+            ids = try hooks.launch(generation, context, resumeState?.sessionIDs ?? [])
             if !options.enabled {
                 hooks.update(.researching, generation, ids, nil)
                 try await hooks.waitForCompletion(ids)

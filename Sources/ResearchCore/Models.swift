@@ -31,6 +31,8 @@ public struct ChatMessage: Codable, Identifiable, Sendable {
     public var role: String
     public var text: String
     public var date: Date
+    public var sourceKey: String?
+    public var speaker: String?
     public init(role: String, text: String) { id = UUID(); self.role = role; self.text = text; date = Date() }
 }
 
