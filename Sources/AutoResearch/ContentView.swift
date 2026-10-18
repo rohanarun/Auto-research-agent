@@ -241,7 +241,7 @@ struct ContentView: View {
                 HStack {
                     Toggle("Follow output", isOn: $followOutput).toggleStyle(.checkbox)
                     Spacer()
-                    if session.sharedAgent == nil {
+                    if session.sharedAgent == nil || store.sharedConfiguration(session.projectID).usesMethods {
                         Toggle("Keep researching", isOn: Binding(get: { store.keepResearching.contains(session.id) }, set: { if $0 { store.keepResearching.insert(session.id) } else { store.keepResearching.remove(session.id) } })).toggleStyle(.checkbox).help("Send the editable continuation prompt after each successful turn until you stop. Uses your CLI account and configured resources.")
                     }
                 }.font(.system(size: 10)).foregroundStyle(muted).padding(.horizontal, 34).padding(.vertical, 8)

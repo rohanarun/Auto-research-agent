@@ -3,6 +3,56 @@ import ResearchCore
 @testable import AutoResearch
 
 final class ResearchMethodsLaunchTests: XCTestCase {
+    @MainActor func testKeepResearchingReturnsCompletedBatchToCoordinator() async throws {
+        let fixture = IndependentParallelTests()
+        let (store, project, directory) = try await fixture.fixture(count: 2)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = URL(fileURLWithPath: try XCTUnwrap(project.localPath))
+        try "0".write(to: source.appendingPathComponent("value"), atomically: true, encoding: .utf8)
+        let cli = directory.appendingPathComponent("method-cli")
+        try #"""
+        #!/usr/bin/python3
+        import sys,json,re,uuid
+        from pathlib import Path
+        if 'mcp' in sys.argv:print('[]');sys.exit(0)
+        prompt=sys.stdin.read()
+        print(json.dumps({'type':'error','message':'Reconnecting after temporary high demand'}))
+        print(json.dumps({'type':'thread.started','thread_id':str(uuid.uuid4())}))
+        match=re.search(r'Read (.+)/ResearchMethodsPolicy.md',prompt)
+        if match:
+         count=Path('coordinator-count');n=int(count.read_text())+1 if count.exists() else 1;count.write_text(str(n))
+         if n==1:
+          control=Path(match.group(1));ev=control/'evaluator.py'
+          ev.write_text("import sys,json\nfrom pathlib import Path\np=Path(sys.argv[-1]);d=p/'.method-evaluation';d.mkdir(exist_ok=True);(d/'receipt').write_text('verified')\nprint(json.dumps({'valid':True,'score':0,'metrics':{},'evidence':['.method-evaluation/receipt']}))\n")
+          (control/'plan.json').write_text(json.dumps(dict(objective='fixture',worker_prompt='Increment value and return',evaluator=str(ev),evaluation_seconds=1,direction='maximize')))
+          answer='RESEARCH_METHOD_PLAN: ready'
+         else:answer='Batch evidence reviewed; fixture has reached its test boundary.\nRESEARCH_STATUS: needs_input'
+        else:
+         p=Path('value');p.write_text(str(int(p.read_text())+1));answer='Research checkpoint saved'
+        print(json.dumps({'type':'item.completed','item':{'id':'answer','type':'agent_message','text':answer}}))
+        print(json.dumps({'type':'turn.completed'}))
+        """#.write(to: cli, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: cli.path)
+        store.settings.codexPath = cli.path
+        var options = store.sharedConfiguration(project.id)
+        var methods = try store.methodConfiguration(project.id)
+        methods.forkAndFlush = true; methods.rsiTop = false
+        methods.branches = 2; methods.rounds = 1
+        methods.explorationMinutes = 0.05; methods.exploitationMinutes = 0.05
+        options.methods = methods; store.setSharedConfiguration(options, for: project.id)
+        store.startSharedResearch(project, request: "Run the bounded fixture with methods")
+        let id = try XCTUnwrap(store.sessions.first?.id)
+        store.keepResearching.insert(id)
+        try await fixture.waitUntil {
+            (try? String(contentsOf: source.appendingPathComponent("coordinator-count"), encoding: .utf8)) == "2"
+                && store.sessions.first?.state == "Needs attention"
+        }
+        XCTAssertTrue(store.sessions[0].messages.contains { $0.text.contains("completed this batch") })
+        XCTAssertFalse(store.sessions[0].messages.contains { $0.text.contains("has not prepared") }, "A coordinator input/completion decision is not a missing-plan failure")
+        XCTAssertEqual(try String(contentsOf: source.appendingPathComponent("value"), encoding: .utf8), "0")
+        XCTAssertEqual(store.sessions.count, 1)
+        XCTAssertFalse(store.hasActiveRuns)
+    }
     @MainActor func testCheckboxRoutesToOneCoordinatorAndInstallsTools() async throws {
         let fixture = IndependentParallelTests()
         let (store, project, _) = try await fixture.fixture(count: 5)
@@ -56,7 +106,7 @@ final class ResearchMethodsLaunchTests: XCTestCase {
         let session = try XCTUnwrap(store.sessions.first)
         try Workspace.write(session, to: directory.appendingPathComponent("LIVE-METHOD-SESSION.json"))
         XCTAssertEqual(session.state, "Completed", session.messages.suffix(3).map(\.text).joined(separator: "\n"))
-        XCTAssertTrue(session.messages.contains { $0.text.contains("Research methods completed. Evaluator score: 2") })
+        XCTAssertTrue(session.messages.contains { $0.text.contains("Research methods completed this batch. Evaluator score: 2") })
         XCTAssertEqual(try String(contentsOf: source.appendingPathComponent("value.txt"), encoding: .utf8), "0")
         print("LIVE_METHOD_EVIDENCE: \(directory.path)")
     }

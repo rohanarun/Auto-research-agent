@@ -197,7 +197,12 @@ public enum EventDecoder {
         if provider == .codex {
             if type == "thread.started", let id = object["thread_id"] as? String { return [.session(id)] }
             if type == "turn.completed" { return [.completed] }
-            if type == "error" || type == "turn.failed" {
+            if type == "error" {
+                let error = object["error"] as? [String: Any]
+                return [.message(id: "provider-diagnostic", role: "tool",
+                                 text: error?["message"] as? String ?? object["message"] as? String ?? "Codex diagnostic")]
+            }
+            if type == "turn.failed" {
                 let error = object["error"] as? [String: Any]
                 return [.failure(error?["message"] as? String ?? object["message"] as? String ?? "Codex reported a failed turn.")]
             }

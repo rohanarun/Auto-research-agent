@@ -127,7 +127,7 @@ struct SharedContextControls: View {
                     TextField("Continue", value: methodBinding(\.exploitationMinutes, value: methods.exploitationMinutes), format: .number).frame(width: 44)
                 }
                 HStack {
-                    Text("Rounds per run")
+                    Text("Rounds per batch")
                     Spacer()
                     TextField("Rounds", value: methodBinding(\.rounds, value: methods.rounds), format: .number).frame(width: 52)
                 }
@@ -141,7 +141,7 @@ struct SharedContextControls: View {
                         Text("min")
                     }
                 }
-                Text("\(methods.branches) branches explore the same objective together, then one selected leader continues. With sharing on, completed turns exchange evidence at cooperative checkpoints; a long turn can delay sharing. Fresh contexts return at fork boundaries. Both methods share one budget; no nested group is launched.")
+                Text("\(methods.branches) branches explore the same objective together, then one selected leader continues. Fresh contexts return at fork boundaries. Rounds limit each batch. Enable Keep researching to have the coordinator review results and plan a further batch. Stop ends the run.")
                     .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Text(active ? "Stop the current run to change its settings." : options.usesMethods ? "Time-budgeted adaptations. The model defines the task evaluator and metrics before experiments."

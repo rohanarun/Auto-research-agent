@@ -81,7 +81,8 @@ extension AppStore {
                         if case .message(_,"assistant",let text) = event { nextDecision = EventDecoder.continuationDecision(text) }
                     }
                 }
-                if let folder = methodDirectory, !stopped.contains(id), result.code == 0, !failed.contains(id), completed.contains(id) {
+                if let folder = methodDirectory, !stopped.contains(id), result.code == 0, !failed.contains(id), completed.contains(id),
+                   (ResearchMethods.ready(result.stdout, provider: .codex) || !["finished", "needs_input"].contains(nextDecision ?? "")) {
                     guard ResearchMethods.ready(result.stdout, provider: .codex) else { throw ResearchError("The model has not prepared a research-method plan. No branches were launched; review its response.") }
                     _ = try await c.call(cloud.sandboxID, action: "put-context", payload: ["round": URL(fileURLWithPath: folder).lastPathComponent, "files": methodFiles.mapValues { $0.base64EncodedString() }])
                     cloudDrains[id] = false
@@ -97,10 +98,12 @@ extension AppStore {
                     cloudDrains[id] = true
                     try FileManager.default.removeItem(at: methodAttachmentURL(id))
                     guard execution.code == 0 else { throw ResearchError("Research-method execution stopped or failed. All cloud branches and logs are preserved. \(execution.stderr)") }
-                    append(id, role: "assistant", text: try ResearchMethods.summary(execution.stdout)); nextDecision = "finished"
+                    append(id, role: "assistant", text: try ResearchMethods.summary(execution.stdout))
+                    nextDecision = keepResearching.contains(id) ? "continue" : nil
                 }
                 if stopped.contains(id) { state(id,"Stopped") }
                 else if result.code != 0 || failed.contains(id) || !completed.contains(id) { state(id,"Needs attention");append(id,role:"error",text:"Cloud CLI did not complete successfully (\(result.code)). Its files and logs are preserved.") }
+                else if nextDecision == "needs_input" { state(id,"Needs attention") }
                 else { state(id,"Completed") }
             } catch {
                 state(id,error is CancellationError ? "Stopped" : "Needs attention")
@@ -108,7 +111,7 @@ extension AppStore {
             }
             runners.removeValue(forKey:id);persist()
             let finished = sessions.first(where:{$0.id == id})
-            if finished?.sharedAgent != nil {
+            if finished?.sharedAgent != nil && !sharedConfiguration(project.id).usesMethods {
                 if finished?.state == "Needs attention",finished?.sharedAgent?.isIndependent != true { sharedCycles[project.id]?.stop(failure:"A cloud agent needs attention. Its sandbox was preserved.") }
             } else if keepResearching.contains(id),finished?.state == "Completed",nextDecision == "continue" {
                 let next = (try? String(contentsOf:resourceDirectory.appendingPathComponent("ContinuePolicy.md"),encoding:.utf8)) ?? ""

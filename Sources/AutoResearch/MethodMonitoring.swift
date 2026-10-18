@@ -84,6 +84,11 @@ extension AppStore {
                 append(id, role: "error", text: "Research monitoring needs attention. The saved remote operation was not restarted or cancelled. " + error.localizedDescription)
             }
             runners.removeValue(forKey: id); persist()
+            if keepResearching.contains(id), sessions.first(where: { $0.id == id })?.state == "Completed",
+               let project = projects.first(where: { $0.id == session.projectID }) {
+                let next = (try? String(contentsOf: resourceDirectory.appendingPathComponent("ContinuePolicy.md"), encoding: .utf8)) ?? ""
+                if !next.isEmpty { launchCloud(id, project: project, request: next) }
+            }
         }
     }
 }

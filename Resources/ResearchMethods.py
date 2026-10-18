@@ -83,6 +83,30 @@ def score(value):
     return number
 
 
+def provider_outcome(events, rc, timed_out):
+    """Transport diagnostics are not terminal turn failures after recovery."""
+    terminal = None
+    session = None
+    diagnostics = []
+    for event in events:
+        kind = event.get('type')
+        if kind == 'thread.started':
+            session = event.get('thread_id')
+        if event.get('session_id'):
+            session = event['session_id']
+        if kind == 'turn.completed':
+            terminal = 'completed'
+        elif kind == 'turn.failed':
+            terminal = 'failed'
+        elif kind == 'result':
+            terminal = 'completed' if event.get('subtype') == 'success' and not event.get('is_error') else 'failed'
+        elif kind == 'error' or event.get('is_error'):
+            diagnostics.append(event)
+    return {'completed': terminal == 'completed' and rc == 0 and not timed_out,
+            'provider_session': session, 'terminal': terminal,
+            'diagnostic_count': len(diagnostics)}
+
+
 class Runner:
     def __init__(self, config, plan, workspace, output):
         self.config, self.plan = config, plan
@@ -97,6 +121,7 @@ class Runner:
         self.evaluator = output / 'evaluator.py'
         self.peer_bundle = None
         self.peer_slots = {}
+        self.selections = []
 
     def stop(self, *_):
         self.cancelled.set()
@@ -206,7 +231,8 @@ class Runner:
             seconds = max(0, cooperation['deadline'] - time.monotonic())
             if seconds <= 0:
                 raise TimeoutError('Cohort budget exhausted before invocation; no extra turn started')
-            target = min(seconds, max(0, cooperation['share_at'] - time.monotonic()))
+            target = min(max(0, seconds - self.plan['evaluation_seconds']),
+                         max(0, cooperation['share_at'] - time.monotonic()))
             prompt += '\nCollaborator ' + str(index + 1) + ' of ' + str(cooperation['count']) + '. Use the model-written common plan to select complementary work, not a different objective.'
             prompt += '\nThis is a cooperative epoch of the same research objective. Do not redefine the goal or split into unrelated tasks. Coordinate complementary experiments through the peer evidence; scientific decisions belong to your shared model-written plan.'
             prompt += '\nReturn with a completed checkpoint within ' + str(target) + ' seconds so the cohort can share. Never start a command likely to overrun this checkpoint. A share boundary alone will not kill a process; the existing total phase deadline remains hard.'
@@ -231,24 +257,28 @@ class Runner:
                                       'cooperative_resume': bool(cooperation and cooperation['resume']),
                                       'peer_manifest_sha256': peer_digest,
                                       'share_target_unix': time.time() + max(0, cooperation['share_at'] - time.monotonic()) if cooperation else None})
-        rc, timed_out = self.process(argv, checkout, prompt, folder / 'provider.jsonl', seconds)
-        completed, failed, provider_session = False, False, session
+        # Evaluation is part of the phase budget, so do not allocate its time to
+        # the provider and then reject a completed turn for lack of checking time.
+        provider_seconds = seconds - self.plan['evaluation_seconds'] if cooperation else seconds
+        write(folder / 'BUDGET.json', {'provider_seconds': provider_seconds,
+                                     'evaluation_reserve_seconds': self.plan['evaluation_seconds'] if cooperation else 0})
+        if provider_seconds <= 0:
+            raise TimeoutError('No provider window remains after reserving evaluation')
+        rc, timed_out = self.process(argv, checkout, prompt, folder / 'provider.jsonl', provider_seconds)
+        events = []
         with (folder / 'provider.jsonl').open() as provider_log:
             for line in provider_log:
                 try:
                     event = json.loads(line)
                 except ValueError:
                     continue
-                kind = event.get('type')
-                if kind == 'thread.started':
-                    provider_session = event.get('thread_id')
-                if self.config['provider'] == 'claude' and event.get('session_id'):
-                    provider_session = event['session_id']
-                completed |= kind == 'turn.completed' or (kind == 'result' and event.get('subtype') == 'success' and not event.get('is_error'))
-                failed |= kind in ('turn.failed', 'error') or bool(event.get('is_error'))
+                if event.get('type') in ('thread.started', 'turn.completed', 'turn.failed', 'error', 'result') or event.get('session_id') or event.get('is_error'):
+                    events.append(event)
+        outcome = provider_outcome(events, rc, timed_out)
+        provider_session = outcome['provider_session'] or session
         row = {'id': folder.name, 'parent': parent['id'], 'phase': phase, 'collaborator': index + 1, 'workspace': str(checkout),
                'provider_session': provider_session, 'exit_code': rc, 'timed_out': timed_out,
-               'completed': completed and not failed and rc == 0 and not timed_out, 'time': time.time()}
+               'completed': outcome['completed'], 'provider_outcome': outcome, 'time': time.time()}
         row['evaluation'] = self.evaluate(checkout, folder, cooperation['deadline'] if cooperation else None) if row['completed'] else {'valid': False, 'reason': 'Provider did not complete successfully'}
         if row['completed'] and self.options['rsiTop'] and phase == 'explore':
             try:
@@ -378,7 +408,8 @@ class Runner:
         if hashlib.sha256(json.dumps(actual, sort_keys=True).encode()).hexdigest() != row['evaluation']['workspace_manifest_sha256']:
             raise ValueError('Restored completed state differs from evaluated state')
         row.update(id=folder.name, workspace=str(workspace), retained_completed_id=saved['row']['id'],
-                   incomplete_successor=failed_row['id'], completed_state_sha256=digest(checkpoint))
+                   incomplete_successor=failed_row['id'], pending_workspace=failed_row['workspace'],
+                   completed_state_sha256=digest(checkpoint))
         write(folder / 'RESULT.json', row)
         return row
 
@@ -392,7 +423,7 @@ class Runner:
             if self.cancelled.is_set():
                 raise InterruptedError('Research stopped; checkpoints retained')
             remaining = deadline - time.monotonic()
-            if remaining <= 0:
+            if remaining <= self.plan['evaluation_seconds']:
                 break
             share_at = min(deadline, start + (epoch + 1) * interval)
             prefix = 'round-%d-%s-epoch-%d' % (round_number, phase, epoch + 1)
@@ -428,16 +459,58 @@ class Runner:
         eligible = [r for r in [incumbent] + candidates if r['evaluation'].get('valid') is True]
         if not eligible:
             raise ValueError('No valid evaluated branch; all work retained')
-        ordered = sorted(eligible, key=lambda r: score(r['evaluation']['score']),
-                         reverse=self.plan['direction'] == 'maximize')
+        def key(row):
+            primary = score(row['evaluation']['score'])
+            if self.plan['direction'] == 'minimize': primary = -primary
+            progress = []
+            for spec in self.plan.get('selection_metrics', []):
+                value = score(row['evaluation']['metrics'][spec['name']])
+                progress.append(value if spec['direction'] == 'maximize' else -value)
+            # A tied, independently valid research checkpoint carries the same
+            # best candidate plus accumulated research. Preserve that context.
+            return (primary, tuple(progress), row['id'] != 'initial', row.get('time', 0))
+        ordered = sorted(eligible, key=key, reverse=True)
         return ordered[0]
+
+    def dashboard(self):
+        rows = [r for r in self.rows if r['evaluation'].get('valid')]
+        diagnostics = []
+        for metric in self.plan.get('metrics', []):
+            values = [r['evaluation'].get('metrics', {}).get(metric['name']) for r in rows]
+            diagnostics.append({'name': metric['name'], 'observations': len(values),
+                                'distinct_values': len({json.dumps(v, sort_keys=True) for v in values}),
+                                'constant_in_observed_checkpoints': len(values) > 1 and len({str(v) for v in values}) == 1})
+        return {'metrics': self.plan.get('metrics', []), 'metric_diagnostics': diagnostics,
+                'trajectories': self.rows}
+
+    def finish(self, leader, reason='configured_batch_complete', pending=None):
+        unfinished = {r['workspace']: {'id': r['id'], 'workspace': r['workspace'],
+                      'status': 'requires_independent_review', 'timed_out': r.get('timed_out', False)}
+                      for r in (pending or [])}
+        for row in self.rows:
+            if row.get('pending_workspace'):
+                unfinished[row['pending_workspace']] = {'id': row['incomplete_successor'],
+                    'workspace': row['pending_workspace'], 'status': 'requires_independent_review'}
+        result = {'status': 'COMPLETED', 'leader': leader, 'workspace_modified': False,
+                  'stop_reason': reason, 'pending_workspaces': list(unfinished.values()),
+                  'result_file': str(self.output / 'RESULT.json'),
+                  'scope': 'Batch boundary only. Unfinished artifacts remain unverified; no research completion or benchmark gain claimed.',
+                  'evaluator_sha256': self.evaluator_hash, 'trajectories': len(self.rows)}
+        write(self.output / 'DASHBOARD.json', self.dashboard())
+        write(self.output / 'LEADER.json', leader)
+        if self.selection_file:
+            write(self.selection_file, {'leader_workspace': leader['workspace'],
+                                       'original_manifest': self.original_manifest})
+        write(self.output / 'RESULT.json', result)
+        return result
 
     def run(self):
         options, plan = self.options, self.plan
         if self.config.get('shareContext') and (not math.isfinite(self.config.get('sharingIntervalMinutes', 0)) or self.config.get('sharingIntervalMinutes', 0) <= 0):
             raise ValueError('Invalid context sharing interval')
-        if not (options['rsiTop'] or options['forkAndFlush']):
-            raise ValueError('Neither method enabled')
+        for spec in plan.get('selection_metrics', []):
+            if spec['name'] not in {m['name'] for m in plan.get('metrics', [])} or spec['direction'] not in ('maximize', 'minimize'):
+                raise ValueError('Selection metrics must be declared and independently evaluated')
         if options['branches'] < 2 or options['rounds'] < 1:
             raise ValueError('Invalid branch/round budget')
         for key in ['explorationMinutes', 'exploitationMinutes']:
@@ -465,13 +538,14 @@ class Runner:
                   'evaluation': self.evaluate(base, initial), 'time': time.time()}
         self.rows.append(leader)
         anchor = score(leader['evaluation']['score']) if leader['evaluation'].get('valid') else None
+        self.best_time = time.monotonic()
         for round_number in range(1, options['rounds'] + 1):
             # Fork-and-flush uses fixed boundaries; RSI-only intervenes on the frozen task's stall rule.
             stalled = time.monotonic() - self.best_time >= plan.get('stall_seconds', float('inf'))
             explore = options['forkAndFlush'] or (options['rsiTop'] and stalled)
             phases = ['explore', 'continue'] if explore else ['continue']
             for phase in phases:
-                write(self.output / 'DASHBOARD.json', {'metrics': plan.get('metrics', []), 'trajectories': self.rows})
+                write(self.output / 'DASHBOARD.json', self.dashboard())
                 count = options['branches'] if phase == 'explore' else 1
                 required = sum((Path(leader['workspace']) / name).stat().st_size for name in inventory(Path(leader['workspace']))) * count
                 if required >= shutil.disk_usage(self.output).free:
@@ -485,7 +559,9 @@ class Runner:
                             selected = random.SystemRandom().sample(plan['metrics'], plan['metric_subset'])
                         seen_views.add(tuple(sorted(s['name'] for s in selected)))
                     keys = [s['name'] for s in selected]
-                    views.append({'definitions': selected, 'rows': [
+                    views.append({'definitions': selected,
+                                  'diagnostics': [d for d in self.dashboard()['metric_diagnostics'] if d['name'] in keys],
+                                  'rows': [
                         {'id': r['id'], 'parent': r['parent'], 'workspace': r['workspace'],
                          'metrics': {k: r['evaluation'].get('metrics', {}).get(k) for k in keys}}
                         for r in self.rows]})
@@ -499,10 +575,21 @@ class Runner:
                 self.rows.extend(candidates)
                 if any(c.get('collaboration_failed') for c in candidates):
                     raise RuntimeError('Peer checkpoint/review protocol failed; all evidence preserved and no candidate promoted')
-                write(self.output / 'DASHBOARD.json', {'metrics': plan.get('metrics', []), 'trajectories': self.rows})
+                write(self.output / 'DASHBOARD.json', self.dashboard())
                 if not any(c['completed'] for c in candidates):
+                    if leader['evaluation'].get('valid') and (not candidates or all(c.get('timed_out') for c in candidates)):
+                        # A hard resource boundary is not a scientific rejection.
+                        # Keep the last verified incumbent and explicitly hand
+                        # partial artifacts to the next coordinator for review.
+                        return self.finish(leader, 'phase_budget_reached', candidates)
                     raise RuntimeError('No provider branch completed; inspect preserved logs before retrying')
+                previous = leader
                 leader = self.choose(leader, candidates)
+                self.selections.append({'round': round_number, 'phase': phase, 'previous': previous['id'],
+                                        'selected': leader['id'], 'score': leader['evaluation']['score'],
+                                        'selection_metrics': plan.get('selection_metrics', []),
+                                        'candidate_scores': {c['id']: c['evaluation'].get('score') for c in candidates}})
+                write(self.output / 'SELECTIONS.json', self.selections)
                 current = score(leader['evaluation']['score'])
                 gain = current - anchor if anchor is not None else None
                 if gain is not None and plan['direction'] == 'minimize':
@@ -515,11 +602,7 @@ class Runner:
                                                'original_manifest': self.original_manifest})
                 print(json.dumps({'round': round_number, 'phase': phase, 'leader': leader['id'],
                                   'score': str(current)}), flush=True)
-        result = {'status': 'COMPLETED', 'leader': leader, 'workspace_modified': False,
-                  'scope': 'Time-budgeted adaptation; task evaluator determines validity. No benchmark gain claimed.',
-                  'evaluator_sha256': self.evaluator_hash, 'trajectories': len(self.rows)}
-        write(self.output / 'RESULT.json', result)
-        return result
+        return self.finish(leader)
 
 
 def selected_workspace(root, plan):

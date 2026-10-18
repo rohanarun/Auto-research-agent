@@ -395,7 +395,8 @@ import ResearchCore
                         }
                     }
                 }
-                if let folder = methodFolder, !stopped.contains(id), result.code == 0, !failed.contains(id), completed.contains(id) {
+                if let folder = methodFolder, !stopped.contains(id), result.code == 0, !failed.contains(id), completed.contains(id),
+                   (ResearchMethods.ready(result.stdout, provider: current.provider) || !["finished", "needs_input"].contains(nextDecision ?? "")) {
                     guard ResearchMethods.ready(result.stdout, provider: current.provider) else {
                         throw ResearchError("The model has not prepared a research-method plan. No branches were launched; review its response.")
                     }
@@ -409,13 +410,16 @@ import ResearchCore
                         })
                     guard execution.code == 0 else { throw ResearchError("Research-method execution stopped or failed. All branch work and logs are preserved. \(execution.stderr)") }
                     append(id, role: "assistant", text: try ResearchMethods.summary(execution.stdout))
-                    nextDecision = "finished"
+                    // A batch boundary is not completion of the user's objective.
+                    // The next coordinator turn reviews the evidence and decides.
+                    nextDecision = keepResearching.contains(id) ? "continue" : nil
                 }
                 if stopped.contains(id) { state(id, "Stopped") }
                 else if result.code != 0 || failed.contains(id) {
                     state(id, "Needs attention")
                     if result.code != 0 { append(id, role: "error", text: "\(current.provider.title) exited with status \(result.code). \(result.stderr)") }
                 } else if !completed.contains(id) { state(id, "Needs attention"); append(id, role: "error", text: "The CLI exited without a completed-turn event. Review the run log before resuming.") }
+                else if nextDecision == "needs_input" { state(id, "Needs attention") }
                 else { state(id, "Completed") }
             } catch {
                 if stopped.contains(id) || error is CancellationError { state(id, "Stopped") }
@@ -449,8 +453,8 @@ import ResearchCore
         for event in EventDecoder.decode(line, provider: provider) {
             switch event {
             case .session(let value): sessions[i].providerSessionID = value
-            case .completed: completed.insert(id)
-            case .failure(let text): failed.insert(id); append(id, role: "error", text: text)
+            case .completed: completed.insert(id); failed.remove(id)
+            case .failure(let text): failed.insert(id); completed.remove(id); append(id, role: "error", text: text)
             case let .message(key, role, text):
                 if let messageID = eventMessages[id]?[key], let index = sessions[i].messages.firstIndex(where: { $0.id == messageID }) { sessions[i].messages[index].text = text }
                 else { let message = ChatMessage(role: role, text: text); sessions[i].messages.append(message); eventMessages[id, default: [:]][key] = message.id }

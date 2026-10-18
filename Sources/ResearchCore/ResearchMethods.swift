@@ -69,6 +69,9 @@ public enum ResearchMethods {
               evaluation["valid"] as? Bool == true, let score = evaluation["score"] as? String else {
             throw ResearchError("Method execution did not return a verified leader. All branch artifacts are preserved.")
         }
-        return "Research methods completed. Evaluator score: \(score). Selected workspace: \(workspace). Original checkout and other branches preserved."
+        let pending = (result["pending_workspaces"] as? [[String: Any]])?.count ?? 0
+        let reason = result["stop_reason"] as? String ?? "configured_batch_complete"
+        let receipt = (result["result_file"] as? String).map { " Batch receipt: \($0)." } ?? ""
+        return "Research methods completed this batch. Evaluator score: \(score). Selected workspace: \(workspace). Original checkout and other branches preserved. Batch completion does not establish that the research objective is finished. Boundary: \(reason); \(pending) unfinished workspaces need review.\(receipt)"
     }
 }

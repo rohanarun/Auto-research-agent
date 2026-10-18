@@ -45,7 +45,7 @@ print(json.dumps({'valid':True,'score':s,'metrics':{'value':s,'novelty':s-1},'ev
         self.config = dict(provider='codex', executable=sys.executable, arguments=[str(self.cli), '--json', '-'], policy='Policy, not old conversation',
                            options=dict(rsiTop=False, forkAndFlush=True, branches=2, explorationMinutes=.1, exploitationMinutes=.1, rounds=2))
         self.plan = dict(objective='fixture', worker_prompt='Improve value', evaluator=str(self.evaluator), direction='maximize',
-                         evaluation_seconds=10, metrics=[dict(name='value', definition='value'),dict(name='novelty',definition='novelty')],
+                         evaluation_seconds=.5, metrics=[dict(name='value', definition='value'),dict(name='novelty',definition='novelty')],
                          metric_subset=1, portfolio_size=2, stall_seconds=.00001, meaningful_gain=0)
 
     def run_method(self, suffix='run'):
@@ -78,6 +78,17 @@ print(json.dumps({'valid':True,'score':s,'metrics':{'value':s,'novelty':s-1},'ev
                     self.assertIn('verbalized_probability', (Path(row['workspace'])/'INPUT.txt').read_text())
             self.assertEqual(json.loads((runner.output/'PLAN.json').read_text()),self.plan)
 
+    def test_rsi_alone_actually_intervenes_after_a_flat_completed_turn(self):
+        self.config['options'].update(rsiTop=True,forkAndFlush=False)
+        self.evaluator.write_text(self.evaluator.read_text().replace("'score':s", "'score':1"))
+        runner,result=self.run_method('rsi-stall')
+        probes=[r for r in runner.rows[1:] if r['phase']=='explore']
+        self.assertEqual(len(probes),2)
+        self.assertTrue(all(r['portfolio_sha256'] for r in probes))
+        views=[json.loads((runner.output/r['id']/'LAUNCH.json').read_text())['metric_view'] for r in probes]
+        self.assertNotEqual(views[0]['definitions'],views[1]['definitions'])
+        self.assertTrue(all(any(d['distinct_values']>=2 for d in v['diagnostics']) for v in views))
+
     def test_provider_failure_is_not_scored_or_promoted(self):
         self.cli.write_text("import json;print(json.dumps({'type':'error','message':'capacity'}));raise SystemExit(1)")
         runner=m.Runner(self.config,self.plan,self.workspace,self.folder/'failed')
@@ -85,6 +96,52 @@ print(json.dumps({'valid':True,'score':s,'metrics':{'value':s,'novelty':s-1},'ev
             runner.run()
         self.assertTrue(all(not r['evaluation']['valid'] for r in runner.rows[1:]))
         self.assertEqual((self.workspace/'value').read_text(),'1')
+
+    def test_recovered_transport_errors_are_scored_but_terminal_failure_is_not(self):
+        self.cli.write_text(self.cli.read_text().replace("print(json.dumps({'type':'turn.completed'}))", "print(json.dumps({'type':'error','message':'Reconnecting after high demand'}))\nprint(json.dumps({'type':'turn.completed'}))"))
+        runner,result=self.run_method('recovered')
+        self.assertGreater(int(result['leader']['evaluation']['score']),1)
+        self.assertTrue(all(r['completed'] for r in runner.rows[1:]))
+        self.assertTrue(all(r['provider_outcome']['diagnostic_count']==1 for r in runner.rows[1:]))
+        events=[{'type':'turn.completed'},{'type':'turn.failed'}]
+        self.assertFalse(m.provider_outcome(events,0,False)['completed'])
+        self.assertFalse(m.provider_outcome([{'type':'turn.completed'}],1,False)['completed'])
+        self.assertFalse(m.provider_outcome([{'type':'turn.completed'}],0,True)['completed'])
+
+    def test_flat_objective_preserves_research_branch_and_resumes_its_session(self):
+        self.evaluator.write_text(self.evaluator.read_text().replace("'score':s", "'score':1"))
+        runner,result=self.run_method('flat')
+        self.assertNotEqual(result['leader']['id'],'initial')
+        self.assertEqual(result['leader']['evaluation']['score'],'1')
+        continuations=[x for x in runner.rows[1:] if x['phase']=='continue']
+        self.assertTrue(all(x['parent']!='initial' for x in continuations))
+        self.assertTrue(all('resume' in json.loads((Path(x['workspace'])/'ARGS.json').read_text()) for x in continuations))
+        self.assertEqual((self.workspace/'value').read_text(),'1')
+        dashboard=json.loads((runner.output/'DASHBOARD.json').read_text())
+        self.assertGreater(len(dashboard['metric_diagnostics']),0)
+
+    def test_verified_progress_breaks_score_ties_without_overriding_primary_score(self):
+        runner=m.Runner(self.config,self.plan,self.workspace,self.folder/'selection')
+        self.plan['selection_metrics']=[{'name':'novelty','direction':'maximize'}]
+        def row(name,primary,progress,valid=True):
+            return {'id':name,'evaluation':{'valid':valid,'score':primary,'metrics':{'novelty':progress}},'time':1}
+        incumbent=row('initial',1,0)
+        self.assertEqual(runner.choose(incumbent,[row('research',1,3)])['id'],'research')
+        self.assertEqual(runner.choose(incumbent,[row('worse',0,999)])['id'],'initial')
+        self.assertEqual(runner.choose(incumbent,[row('invalid',999,999,False)])['id'],'initial')
+        self.plan['direction']='minimize'
+        self.assertEqual(runner.choose(incumbent,[row('worse',2,999)])['id'],'initial')
+
+    def test_evaluation_time_is_reserved_before_last_cooperative_launch(self):
+        self.collaborative_cli()
+        self.config.update(shareContext=True,sharingIntervalMinutes=.01)
+        self.config['options'].update(rounds=1,explorationMinutes=.02,exploitationMinutes=.01)
+        runner,result=self.run_method('reserved')
+        self.assertEqual(result['status'],'COMPLETED')
+        budgets=[json.loads(p.read_text()) for p in runner.output.glob('*/BUDGET.json')]
+        self.assertTrue(budgets)
+        self.assertTrue(all(x['provider_seconds']>0 and x['evaluation_reserve_seconds']==.5 for x in budgets))
+        self.assertTrue(all(not x['timed_out'] for x in runner.rows[1:]))
 
     def test_invalid_higher_score_cannot_replace_incumbent(self):
         self.evaluator.write_text(self.evaluator.read_text().replace("'valid':True", "'valid':s==1"))
@@ -102,10 +159,15 @@ print(json.dumps({'valid':True,'score':s,'metrics':{'value':s,'novelty':s-1},'ev
         with self.assertRaisesRegex(ValueError,'symlinks'):self.run_method()
 
     def test_cancellation_and_timeout_preserve_logs(self):
-        self.cli.write_text('import time;time.sleep(30)')
-        self.config['options']['explorationMinutes']=.001
-        with self.assertRaisesRegex(RuntimeError,'No provider branch completed'):
-            self.run_method()
+        self.cli.write_text("import time\nfrom pathlib import Path\nPath('value').write_text('999')\ntime.sleep(30)")
+        self.config['options']['explorationMinutes']=.005
+        _,result=self.run_method()
+        self.assertEqual(result['stop_reason'],'phase_budget_reached')
+        self.assertEqual(result['leader']['id'],'initial')
+        self.assertEqual(result['leader']['evaluation']['score'],'1')
+        self.assertEqual(len(result['pending_workspaces']),2)
+        self.assertTrue(all((Path(p['workspace'])/'value').read_text()=='999' for p in result['pending_workspaces']))
+        self.assertEqual((self.workspace/'value').read_text(),'1')
         logs=list((self.folder/'run').glob('round-*/RESULT.json'))
         self.assertEqual(len(logs),2)
         self.assertTrue(all(json.loads(p.read_text())['timed_out'] for p in logs))

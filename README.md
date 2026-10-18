@@ -55,6 +55,22 @@ Exploration uses the configured branch count; continuation follows one selected
 leader. When context sharing is enabled, workers exchange explicit evidence and
 peer reviews at checkpoint boundaries.
 
+**Rounds per batch** limits one methods batch. With **Keep researching** enabled,
+the coordinator reviews its results and pending work before deciding whether to
+prepare another plan. This control is also available when a saved shared agent
+acts as the methods coordinator. Completing a batch does not complete the user's
+research objective. A phase deadline preserves the verified incumbent and lists
+unfinished workspaces for independent review; it does not validate their contents.
+Recovered transport diagnostics do not override a later successful terminal turn.
+
+The editable method policy asks for pinned repository, maintainer or user scoring
+criteria. Primary correctness and objective score take precedence over optional,
+independently checked tie metrics. Negative research can remain useful with zero
+objective gain. Without a research-value rubric, the coordinator reviews that
+evidence qualitatively; file counts and test counts do not become merit points.
+Constant-metric diagnostics and retained researched checkpoints expose progress
+that an unchanged incumbent score would otherwise hide.
+
 Daytona method conversations appear in the existing chat with worker, round and
 checkpoint labels. Monitoring incrementally reads bounded chunks of existing logs;
 it does not invoke a model, pause workers, run evaluators or modify checkpoints.
@@ -67,6 +83,28 @@ the saved operation. Explicit Stop still cancels owned work.
 
 These workflows and their mechanical tests do not establish a research-quality
 or speedup advantage. The downloadable release above predates these source changes.
+
+The opt-in `scripts/benchmark_methods.py` compares ordinary continuation,
+fork-and-flush, RSI and their combination on two paired finite graph-cut instances
+using the configured Codex model and an independent exhaustive oracle. It saves
+the protocol before launch and preserves every arm's results. The aggregate
+provider-time ceiling is common, but per-invocation windows differ; interrupted
+turns may omit usage totals. This small pilot cannot establish general superiority
+or measure the semantic value of negative mathematical research.
+
+```sh
+# Mechanical checks: no model calls.
+python3 -B -m unittest discover -s scripts -p 'test_*.py'
+
+# Optional live model calls using your account. Choose a new output directory.
+python3 -B scripts/benchmark_methods.py --settings Runtime/settings.json --output tmp/method-pilot
+python3 -B scripts/analyze_methods_benchmark.py tmp/method-pilot
+```
+
+The supplementary review independently scores saved artifacts, including those
+from interrupted turns, without rewriting the registered outcomes. Its command
+flags require manual inspection and are not a filesystem-isolation audit. Keep
+raw provider logs and account data private.
 
 ## Experiment charts
 
