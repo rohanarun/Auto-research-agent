@@ -31,6 +31,7 @@ public final class DaytonaRunner: ProcessBackend, @unchecked Sendable {
         }
         var offsets = [0,0];var raw = [Data(),Data()];var pending = [Data(),Data()];var stopSent = false
         var methodCursor: [String: Any] = [:]
+        var telemetryError: String?
         while true {
             if (stopping() || Task.isCancelled) && !stopSent {
                 let receipt = try await client.call(cloud.sandboxID,action:"stop",payload:["id":operation])
@@ -41,6 +42,9 @@ public final class DaytonaRunner: ProcessBackend, @unchecked Sendable {
             if methods { payload["method_cursor"] = methodCursor }
             let result = try await client.call(cloud.sandboxID, action:"poll",payload:payload)
             if methods {
+                let warning = result["method_error"] as? String
+                if let warning, warning != telemetryError { onLine(warning, true) }
+                telemetryError = warning
                 for event in result["method_events"] as? [[String: Any]] ?? [] {
                     let bytes = try JSONSerialization.data(withJSONObject: event)
                     onLine(String(decoding: bytes, as: UTF8.self), false)

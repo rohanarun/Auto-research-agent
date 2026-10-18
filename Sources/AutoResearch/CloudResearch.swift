@@ -4,6 +4,12 @@ import ResearchCore
 extension AppStore {
     func launchCloud(_ id: UUID, project: ResearchProject, request: String?) {
         guard runners[id] == nil,let initial = sessions.first(where:{$0.id == id}) else { return }
+        let savedMonitor = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("cloud-method-attachments/" + id.uuidString + ".json")
+        if FileManager.default.fileExists(atPath: savedMonitor.path) {
+            restoreMethodMonitoring()
+            if runners[id] == nil { error = "The saved cloud operation needs inspection before a replacement can be launched." }
+            return
+        }
         guard initial.cloud.map({ !cloudCleanup.contains($0.sandboxID) }) ?? true else { error = "Wait for cloud recovery export to finish before resuming this chat.";return }
         guard initial.provider == .codex else { error = "Daytona currently runs Codex. Select Codex or switch execution back to This Mac.";return }
         cloudDrains[id] = false;runners[id] = ProcessRunner();stopped.remove(id);failed.remove(id);completed.remove(id);eventMessages[id] = [:];state(id,"Preparing")

@@ -44,6 +44,30 @@ it never deletes them or touches another installation's workers. Idle stopping i
 configured in `Resources/DaytonaDefaults.json` (60 minutes by default). The app
 must remain open for scheduled checkpoint handoffs.
 
+## Optional research methods and worker chat
+
+The **RSI-top** and **Fork and flush** checkboxes enable a model-prepared research
+plan with a fixed evaluator, retained branch artifacts and fresh exploration
+contexts. These methods currently support Codex and Claude locally, and Codex in
+Daytona. Normal OpenCode runs remain supported. Method branches share one Daytona
+sandbox; the method runner owns parallelism instead of starting another group.
+Exploration uses the configured branch count; continuation follows one selected
+leader. When context sharing is enabled, workers exchange explicit evidence and
+peer reviews at checkpoint boundaries.
+
+Daytona method conversations appear in the existing chat with worker, round and
+checkpoint labels. Monitoring incrementally reads bounded chunks of existing logs;
+it does not invoke a model, pause workers, run evaluators or modify checkpoints.
+Polling uses the configured interval and log byte budget. Reasoning and private
+account payloads are excluded from the chat projection. Saved operation identities
+allow a controller that was interrupted to reconnect without launching duplicate
+research. Replayed worker messages update their existing transcript entries.
+An observation failure preserves the remote operation; pressing Play reconnects
+the saved operation. Explicit Stop still cancels owned work.
+
+These workflows and their mechanical tests do not establish a research-quality
+or speedup advantage. The downloadable release above predates these source changes.
+
 ## Experiment charts
 
 [Report, charts and machine-readable data](docs/benchmarks/2026-10-15/README.md)
