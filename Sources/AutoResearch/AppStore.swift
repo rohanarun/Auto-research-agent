@@ -85,6 +85,8 @@ import ResearchCore
     private func loadWorkspace(_ defaults: ResearchCore.Settings) {
         settingsFile = URL(fileURLWithPath: defaults.workspaceRoot).appendingPathComponent("settings.json")
         settings = (try? Data(contentsOf: settingsFile)).flatMap { try? JSONDecoder().decode(ResearchCore.Settings.self, from: $0) } ?? defaults
+        // Workspaces saved before OpenCode support pick up the detected CLI instead of an empty path.
+        if settings.opencodePath.isEmpty { settings.opencodePath = defaults.opencodePath }
         if let saved = try? Data(contentsOf:URL(fileURLWithPath:settings.workspaceRoot).appendingPathComponent("daytona.json")),let config = try? JSONDecoder().decode(DaytonaConfiguration.self,from:saved) { daytona = config }
         if let ids = try? Data(contentsOf:URL(fileURLWithPath:settings.workspaceRoot).appendingPathComponent("daytona-owned.json")),let decoded = try? JSONDecoder().decode(Set<String>.self,from:ids) { cloudOwnedIDs = decoded }
         policy = (try? String(contentsOf: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("research-policy.md"), encoding: .utf8))
@@ -279,7 +281,7 @@ import ResearchCore
         let cache = try Workspace.directory(settings.workspaceRoot, "cache")
         let tmp = try Workspace.directory(settings.workspaceRoot, "tmp")
         let inherited = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/bin"
-        let paths = [URL(fileURLWithPath: settings.codexPath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.claudePath).deletingLastPathComponent().path, "/opt/homebrew/bin", "/usr/local/bin", inherited]
+        let paths = [URL(fileURLWithPath: settings.codexPath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.claudePath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.opencodePath).deletingLastPathComponent().path, "/opt/homebrew/bin", "/usr/local/bin", inherited]
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
@@ -481,6 +483,8 @@ import ResearchCore
                 let result = try await ProcessRunner().run(CLI.auth(provider, settings: settings, login: false), directory: directory, environment: try environment())
                 if provider == .claude, let data = result.stdout.data(using: .utf8), let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] {
                     auth[provider] = object["loggedIn"] as? Bool == true ? "Connected" : "Sign in required"
+                } else if provider == .opencode {
+                    auth[provider] = result.code == 0 && CLI.opencodeSignedIn(result.stdout) ? "Connected" : "Sign in required"
                 } else { auth[provider] = result.code == 0 ? "Connected" : "Sign in required" }
             } catch { auth[provider] = "Unavailable" }
         }
@@ -521,7 +525,7 @@ import ResearchCore
             let folder = try Workspace.directory(settings.workspaceRoot, "terminal")
             let file = folder.appendingPathComponent("\(session.id.uuidString).command")
             func quote(_ text: String) -> String { "'" + text.replacingOccurrences(of: "'", with: "'\\''") + "'" }
-            let args = session.provider == .codex ? ["resume", providerID] : ["--resume", providerID]
+            let args = CLI.resumeArguments(session.provider, sessionID: providerID)
             let env = try environment().map { "export \($0.key)=\(quote($0.value))" }.joined(separator: "\n")
             let script = "#!/bin/zsh\n\(env)\ncd -- \(quote(directory)) || exit\nexec \(quote(settings.executable(session.provider))) \(args.map(quote).joined(separator: " "))\n"
             try script.write(to: file, atomically: true, encoding: .utf8)

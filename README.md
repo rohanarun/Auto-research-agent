@@ -1,10 +1,10 @@
 # Auto-research agent
 
-The idea is to make it dead simple to point your Codex or Claude at open problems, put unused tokens to work, and help push the frontier.
+The idea is to make it dead simple to point your Codex, Claude or OpenCode at open problems, put unused tokens to work, and help push the frontier.
 
 Auto-research agent is a native macOS app with a Codex-style project sidebar and chat. It helps you find GitHub projects with `auto-research.md` agent guides and makes starting a contribution a one-button click: pick an open problem and press Play.
 
-It runs the Codex or Claude Code CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
+It runs the Codex, Claude Code or OpenCode CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
 
 ![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
@@ -12,7 +12,7 @@ It runs the Codex or Claude Code CLI under the hood, using your own account. If 
 
 [Download for macOS — Apple Silicon (.dmg)](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg) · [SHA-256 checksum](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg.sha256)
 
-Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex or Claude Code CLI in **Connections & settings**. The download contains no account credentials or local chats.
+Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code or OpenCode CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
 ## Daytona execution
 
@@ -58,7 +58,7 @@ prevent causal speedup claims.
 
 ## Build from source
 
-Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and, for local execution, at least one installed CLI: [Codex](https://developers.openai.com/codex/cli) or [Claude Code](https://code.claude.com/docs/en/overview). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
+Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and, for local execution, at least one installed CLI: [Codex](https://developers.openai.com/codex/cli), [Claude Code](https://code.claude.com/docs/en/overview) or [OpenCode](https://opencode.ai/docs). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
 
 From a terminal in your external-volume development workspace:
 
@@ -94,7 +94,7 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 
 ## Parallel agents on the same problem
 
-Parallel mode is optional and off by default. The initial count is two agents; optional sharing defaults to a ten-minute interval. Both are editable before starting. Each agent uses the selected Codex or Claude CLI and its configured model and account. Existing saved sharing groups retain their settings.
+Parallel mode is optional and off by default. The initial count is two agents; optional sharing defaults to a ten-minute interval. Both are editable before starting. Each agent uses the selected Codex, Claude or OpenCode CLI and its configured model and account. Existing saved sharing groups retain their settings.
 
 Enable **Parallel agents**, choose the count, and send one problem or start research. Every agent receives that problem in its own checkout. Leave **Share context** off for independent work: each agent runs its own session without peer notes, coordinated roles, timed interruptions, or replacement sessions. Everyone's output appears together in **All agents**, with agent labels and links to individual chats. This combined display does not feed one agent's output into another's context. Independent checkouts live under `Runtime/parallel-agents/`.
 
@@ -110,7 +110,7 @@ Agent count multiplies concurrent CLI usage. Each agent periodically updates a m
 
 ## Permissions and evidence
 
-Codex defaults to the workspace-write sandbox; read-only is available. The headless bridge sets approval policy to never, so operations needing additional approval fail visibly instead of hanging. Claude defaults to its automatic permission review, with accept-edits, plan and deny-unapproved modes available. No bypass-permissions option is enabled by the app. Configured CLI permissions can limit network or tool operations; use the Terminal handoff for interactive approvals.
+Codex defaults to the workspace-write sandbox; read-only is available. The headless bridge sets approval policy to never, so operations needing additional approval fail visibly instead of hanging. Claude defaults to its automatic permission review, with accept-edits, plan and deny-unapproved modes available. OpenCode defaults to rejecting permission prompts it cannot ask about, so those tool calls fail visibly; an opt-in **Auto-approve** setting passes `--auto`, which approves anything your OpenCode configuration does not explicitly deny. Set the OpenCode model as `provider/model`. No bypass-permissions option is enabled by default. Configured CLI permissions can limit network or tool operations; use the Terminal handoff for interactive approvals.
 
 The UI distinguishes preparing, running, stopped, interrupted, completed and needs-attention states. Exit status alone is insufficient for success: the provider must emit a completed-turn event. A completed turn is not a verified research result; the editable research policy requires the agent to describe its evidence accurately.
 
@@ -136,7 +136,7 @@ Set `RESEARCH_LIVE_DASHBOARD_TEST=1` to verify the public backend chart feeds; t
 
 Set `RESEARCH_LIVE_SHARED_TEST=1` to verify a shared handoff using two real Codex workers, a shared file index, and two fresh successor sessions. This uses your logged-in CLI account. The ordinary test suite checks replacement ordering, cancellation, failed context publication, legacy history loading, and independent checkout preservation without provider requests.
 
-Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
+Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless), [OpenCode CLI](https://opencode.ai/docs/cli/). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
 
 ## Package a release
 
@@ -146,4 +146,4 @@ Set `RESEARCH_SIGNING_IDENTITY` to your Developer ID Application identity and `R
 
 Contributions are welcome. Include the problem, the expected behavior, and relevant test results. For protocol or process changes, add a regression test using synthetic events; real provider tests are opt-in and use the contributor's account. Do not include credentials, local account configuration, chat transcripts, research checkouts, or raw provider logs in issues or pull requests.
 
-Licensed under the [MIT License](LICENSE). Codex, Claude Code, the fetched catalog, and the research repositories are separate projects with their own terms and licenses; their contents are not relicensed by this repository.
+Licensed under the [MIT License](LICENSE). Codex, Claude Code, OpenCode, the fetched catalog, and the research repositories are separate projects with their own terms and licenses; their contents are not relicensed by this repository.
