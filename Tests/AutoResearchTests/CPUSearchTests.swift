@@ -45,11 +45,12 @@ final class CPUSearchTests: XCTestCase {
         let setup = source.appendingPathComponent(".auto-research")
         try FileManager.default.createDirectory(at: setup, withIntermediateDirectories: true)
         try #"""
-        import argparse,json,time
+        import argparse,json,os,time
         from pathlib import Path
         p=argparse.ArgumentParser()
         for name in ('plan','output','overview'):p.add_argument('--'+name,required=True)
         a=p.parse_args()
+        Path('script-connection.json').write_text(json.dumps(os.environ.get('LEAN_VERIFIER_CONNECTION')))
         Path('script-started').write_text('started')
         while not Path('script-release').exists():time.sleep(.01)
         out=Path(a.output);out.mkdir()
@@ -106,6 +107,23 @@ final class CPUSearchTests: XCTestCase {
         XCTAssertEqual(store.session?.state, "Stopped")
         XCTAssertEqual(store.sessions.count, 1)
         XCTAssertTrue(store.error?.contains("not configured") == true)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: source.appendingPathComponent("MODEL_CALLED").path))
+    }
+
+    @MainActor func testCPUReceivesTheRunningVerifierConnectionWithoutAModel() async throws {
+        let (store, project, source) = try await fixture()
+        try store.leanServer.configure(workspace: store.settings.workspaceRoot, resources: store.resourceDirectory)
+        store.leanServer.running = true
+        defer { store.leanServer.running = false }
+        let connection = try XCTUnwrap(store.leanServer.connectionPath)
+        let task = try XCTUnwrap(store.researchSubtasks.first { $0.execution == "script" })
+        store.playSubtask(task, project: project)
+        try await IndependentParallelTests().waitUntil { FileManager.default.fileExists(atPath: source.appendingPathComponent("script-started").path) }
+        let delivered = try JSONDecoder().decode(String.self, from: Data(contentsOf: source.appendingPathComponent("script-connection.json")))
+        XCTAssertEqual(delivered, connection)
+        try "done".write(to: source.appendingPathComponent("script-release"), atomically: true, encoding: .utf8)
+        try await IndependentParallelTests().waitUntil { !store.hasActiveRuns }
+        XCTAssertEqual(store.session?.state, "Completed")
         XCTAssertFalse(FileManager.default.fileExists(atPath: source.appendingPathComponent("MODEL_CALLED").path))
     }
 }

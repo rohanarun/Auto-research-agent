@@ -17,17 +17,17 @@ import fcntl
 from core import digest, inside, read_json, save_json, verify
 
 
-def mac_sandbox(project, compiler_root, destination):
+def mac_sandbox(project, compiler_root, destination, toolchain_roots=()):
     if sys.platform != 'darwin':
         raise ValueError('macOS sandbox requested on another platform')
     def literal(p):
         return json.dumps(str(Path(p).resolve()))
-    reads = ['/System', '/usr', '/bin', '/sbin', '/Library', '/dev', compiler_root, project]
+    reads = ['/System', '/usr', '/bin', '/sbin', '/Library', '/dev', compiler_root, project, *toolchain_roots]
     profile = '(version 1)\n(deny default)\n(allow process*)\n(allow sysctl-read)\n'
     profile += '(allow mach-lookup)\n(allow file-read-metadata)\n(allow file-read* (literal "/"))\n'
     profile += '(allow file-read* ' + ' '.join('(subpath ' + literal(p) + ')' for p in reads) + ')\n'
+    profile += '(allow file-write* (require-all (subpath ' + literal(Path(project) / '.lake') + ') (require-not (subpath ' + literal(Path(project) / '.lake/packages') + '))) (subpath ' + literal(Path(project) / '.lean-search') + ') (literal "/dev/null"))\n'
     profile += '(deny file-write* (subpath ' + literal(Path(project) / '.lake/packages') + '))\n'
-    profile += '(allow file-write* (subpath ' + literal(Path(project) / '.lake') + ') (subpath ' + literal(Path(project) / '.lean-search') + ') (literal "/dev/null"))\n'
     Path(destination).write_text(profile)
     return ['/usr/bin/sandbox-exec', '-f', str(destination)]
 
@@ -149,7 +149,8 @@ class Service:
                     path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_text(value)
                 if profile['isolation']['kind'] == 'macos':
-                    prefix = mac_sandbox(project, profile['isolation']['compiler_root'], folder / 'sandbox.sb')
+                    prefix = mac_sandbox(project, profile['isolation']['compiler_root'], folder / 'sandbox.sb',
+                                         profile['isolation'].get('toolchain_roots', []))
                 else:
                     raise ValueError('This host requires an implemented isolation backend')
                 result = verify(profile['plan'], project, folder / 'verification', prefix)

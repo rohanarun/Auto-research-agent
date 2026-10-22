@@ -99,6 +99,17 @@ class LeanServiceTests(unittest.TestCase):
         self.assertNotIn(self.token, log)
         self.assertTrue('denied' in log.lower() or 'not permitted' in log.lower(), log)
 
+    def test_sandbox_cannot_modify_or_delete_prepared_dependencies(self):
+        dependency = self.root / 'profiles/kernel-check/.lake/packages/prepared'
+        dependency.mkdir(parents=True, exist_ok=True)
+        marker = dependency / 'preserve.txt'
+        marker.write_text('original dependency')
+        for operation in ['IO.FS.writeFile ' + json.dumps(str(marker)) + ' "changed"',
+                          'IO.FS.removeFile ' + json.dumps(str(marker))]:
+            job = self.submit('theorem candidate : 1 + 1 = 2 := by decide\n#eval ' + operation + '\n')
+            self.assertEqual(job['status'], 'REJECTED')
+            self.assertEqual(marker.read_text(), 'original dependency')
+
     def test_duplicate_audit_is_not_accepted(self):
         with self.assertRaises(ValueError):
             audit_axioms("'x' does not depend on any axioms\n'x' depends on axioms: [sorryAx]", ['x'], [])

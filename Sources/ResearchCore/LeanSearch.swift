@@ -78,7 +78,7 @@ public enum LeanSearch {
 
     public static func files(resources: URL) throws -> [String: Data] {
         let root = resources.appendingPathComponent("LeanSearch")
-        let names = ["cli.py", "core.py", "qrh.py", "server.py", "remote.py", "SKILL.md", "qrh-track-a.json", "generic-plan.json", "subtasks.json", "cpu_search.py", "qrh-cpu-plan.json"]
+        let names = ["cli.py", "core.py", "qrh.py", "server.py", "remote.py", "SKILL.md", "qrh-track-a.json", "generic-plan.json", "subtasks.json", "cpu_search.py", "qrh-cpu-plan.json", "qrh_tau_search.py"]
         return try Dictionary(uniqueKeysWithValues: names.map { ($0, try Data(contentsOf: root.appendingPathComponent($0))) })
     }
 

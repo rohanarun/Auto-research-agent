@@ -72,7 +72,9 @@ extension AppStore {
                 try Workspace.write(["executable": command.executable, "arguments": command.arguments.joined(separator: "\n"), "config": configURL.path], to: logs.appendingPathComponent("command.json"))
                 append(id, role: "status", text: "Running generated CPU script. No model is used.\nScript: \(script.path)\nPlan: \(plan.path)\nResults: \(output.path)")
                 state(id, "Running")
-                let result = try await runner.run(command, directory: directory, environment: environment(), onLine: { line, stderr in
+                var scriptEnvironment = try environment()
+                if let connection = leanServer.connectionPath { scriptEnvironment["LEAN_VERIFIER_CONNECTION"] = connection }
+                let result = try await runner.run(command, directory: directory, environment: scriptEnvironment, onLine: { line, stderr in
                     lock.lock(); try? log.write(contentsOf: Data((line + "\n").utf8)); lock.unlock()
                     Task { @MainActor in self.append(id, role: stderr ? "error" : "tool", text: line) }
                 })
