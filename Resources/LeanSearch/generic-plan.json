@@ -1,0 +1,11 @@
+{
+  "scope": "Replace with the exact theorem statement and assumptions from the project",
+  "targets": ["Candidate.result"],
+  "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"],
+  "pins": {},
+  "stages": [
+    {"kind": "build", "argv": ["lake", "build", "+Candidate"]},
+    {"kind": "axioms", "argv": ["lake", "env", "lean", "Audit.lean"]},
+    {"kind": "comparator", "argv": ["lake", "env", "comparator", "challenge.json"], "success_markers": ["Lean default kernel accepts the solution", "Your solution is okay!"]}
+  ]
+}

@@ -19,6 +19,8 @@ cp "$PROJECT_ROOT/Resources/SharedContextDefaults.json" "$PROJECT_ROOT/Resources
 cp "$PROJECT_ROOT/Resources/DaytonaDefaults.json" "$PROJECT_ROOT/Resources/DaytonaWorker.py" "$PROJECT_ROOT/Resources/MethodTelemetry.py" "$PROJECT_ROOT/Resources/CloudResumeProbe.py" "$APP/Contents/Resources/"
 cp "$PROJECT_ROOT/Resources/IndependentAgentPolicy.md" "$APP/Contents/Resources/"
 cp "$PROJECT_ROOT/Resources/ResearchMethodsDefaults.json" "$PROJECT_ROOT/Resources/ResearchMethodsPolicy.md" "$PROJECT_ROOT/Resources/ResearchMethods.py" "$APP/Contents/Resources/"
+mkdir -p "$APP/Contents/Resources/LeanSearch"
+cp "$PROJECT_ROOT/Resources/LeanSearch/"* "$APP/Contents/Resources/LeanSearch/"
 cp "$PROJECT_ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 if [[ -f "$PROJECT_ROOT/Resources/AppIcon.icns" ]]; then cp "$PROJECT_ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/"; fi
 codesign --force --sign - "$APP"

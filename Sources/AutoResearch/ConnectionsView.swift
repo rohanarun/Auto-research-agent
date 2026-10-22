@@ -33,7 +33,7 @@ struct ConnectionsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Your research workspace").font(.system(size: 23, weight: .semibold)); Spacer(); Button("Done") { store.saveSettings() }.keyboardShortcut(.defaultAction).disabled(store.hasActiveRuns) }
-            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
+            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("Lean server").tag("Lean"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
             if tab == "Connections" {
                 // Three CLIs no longer fit the fixed sheet height, so the cards scroll.
                 ScrollView { VStack(alignment: .leading, spacing: 14) { ForEach(Provider.allCases) { provider in
@@ -95,6 +95,11 @@ struct ConnectionsView: View {
                     }
                     if !store.cloudCleanup.isEmpty { Text("Verifying and archiving \(store.cloudCleanup.count) worker(s)…").font(.caption).foregroundStyle(.secondary) }
                     Spacer()
+                }
+            } else if tab == "Lean" {
+                LeanServerView(server: store.leanServer).onAppear {
+                    do { try store.leanServer.configure(workspace: store.settings.workspaceRoot, resources: store.resourceDirectory) }
+                    catch { store.error = error.localizedDescription }
                 }
             } else if tab == "MCP" {
                 Text("Choose which direct Codex MCP connections this app may start. None are enabled by default. CLI plugins are not loaded in research runs. Your global configuration is preserved.").font(.system(size: 13)).foregroundStyle(.secondary)

@@ -3,6 +3,7 @@ import SwiftUI
 import ResearchCore
 
 @MainActor final class AppStore: ObservableObject {
+    let leanServer = LeanServerController()
     @Published var settings: ResearchCore.Settings
     @Published var projects: [ResearchProject] = []
     @Published var sessions: [ResearchSession] = []
@@ -353,6 +354,9 @@ import ResearchCore
                 defer { try? log.close() }
                 let sharedPolicy = current.sharedAgent == nil || methodOptions?.enabled == true ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent(current.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"), encoding: .utf8)
                 var fullPolicy = policy + "\n\n" + sharedPolicy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
+                let leanTools = directory.appendingPathComponent(".auto-research-tools/lean-search")
+                try LeanSearch.install(resources: resourceDirectory, directory: leanTools)
+                fullPolicy += "\n\n" + LeanSearch.instruction(directory: leanTools.path, connection: leanServer.connectionPath)
                 var disabledMCPServers: [String] = []
                 if current.provider == .codex {
                     let discovered = try await runner.run(CLI.mcpDiscovery(settings.codexPath), directory: directory, environment: env)
@@ -467,7 +471,7 @@ import ResearchCore
         if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
         else { stopWorker(id) }
     }
-    func shutdown() { for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
+    func shutdown() { leanServer.stop(); for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
         if let client = daytonaClient,let connection = daytona.connectionSandboxID {
             cloudCleanup.insert(connection)
             Task {
