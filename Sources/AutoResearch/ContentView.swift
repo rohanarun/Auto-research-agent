@@ -23,7 +23,8 @@ struct ContentView: View {
                     composer
                 } else if let session = store.session {
                     if let task = store.researchSubtasks.first(where: { $0.id == session.researchSubtaskID }) {
-                        ResearchSubtaskOverviewView(task: task, session: session).id(session.id)
+                        ResearchSubtaskOverviewView(task: task, session: session,
+                            configuredSummary: task.execution == "script" ? store.project.flatMap { store.cpuSearchConfiguration($0)?.summary } : nil).id(session.id)
                     }
                     transcript(session)
                     if store.isCPUSubtask { cpuScriptControls } else { composer }
@@ -124,7 +125,7 @@ struct ContentView: View {
                 if let url = project.githubURL { Link("View on GitHub", destination: url) }
             }
           if store.selectedProjectID == project.id {
-              ForEach(store.researchSubtasks) { task in
+              ForEach(store.availableSubtasks(project)) { task in
                   subtaskRow(task, project: project)
               }
               .transition(.opacity.combined(with: .move(edge: .top)))
@@ -144,6 +145,9 @@ struct ContentView: View {
                     Image(systemName: task.symbol).font(.system(size: 12)).foregroundStyle(active ? accent : muted)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(task.title).font(.system(size: 11, weight: .medium))
+                        Text(task.execution == "script" ? store.cpuSearchConfiguration(project)?.summary ?? task.summary : task.summary)
+                            .font(.system(size: 10)).foregroundStyle(muted)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text(session.map { $0.state == "Completed" ? "Run finished · view findings" : $0.state } ?? (task.execution == "script" ? "Script · No model" : "Not run · \(store.provider.title)"))
                             .font(.system(size: 10)).foregroundStyle(muted).lineLimit(1)
                     }
@@ -151,6 +155,7 @@ struct ContentView: View {
                 }.padding(.leading, 7).padding(.vertical, 7).contentShape(Rectangle())
             }.buttonStyle(.plain).disabled(session == nil && store.running(project))
                 .help(task.summary).accessibilityLabel("\(task.title) for \(project.name)")
+                .accessibilityValue(task.execution == "script" ? store.cpuSearchConfiguration(project)?.summary ?? task.summary : task.summary)
             Button {
                 if active, let session { store.stop(session.id) }
                 else { store.playSubtask(task, project: project) }
@@ -307,7 +312,8 @@ struct ContentView: View {
             if store.isRunning, let id = store.selectedSessionID {
                 Button("Stop script") { store.stop(id) }
             } else if let project = store.project, let task = store.researchSubtasks.first(where: { $0.id == store.session?.researchSubtaskID }) {
-                Button("Run script") { store.playSubtask(task, project: project) }.disabled(store.running(project))
+                Button("Run script") { store.playSubtask(task, project: project) }
+                    .disabled(store.running(project) || store.cpuSearchConfiguration(project) == nil)
             }
         }.controlSize(.small).padding(24)
     }

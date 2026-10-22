@@ -260,6 +260,10 @@ import ResearchCore
     }
 
     func playSubtask(_ task: ResearchSubtask, project: ResearchProject) {
+        guard task.execution != "script" || cpuSearchConfiguration(project) != nil else {
+            error = "CPU search is not configured for this repository. Install its script and plan, and describe the search in .auto-research/cpu-search.json before running."
+            return
+        }
         guard !running(project) else {
             error = "This repository has active research. Stop it before starting a subtask in the same checkout."
             return

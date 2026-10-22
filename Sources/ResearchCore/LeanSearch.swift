@@ -15,6 +15,7 @@ public struct CPUSearchConfiguration: Codable {
     public var python: String
     public var script: String
     public var plan: String
+    public var summary: String?
 }
 
 public struct CPUSearchResult: Codable {
@@ -29,6 +30,20 @@ public struct ResearchSubtaskOverview: Codable, Equatable, Sendable {
 }
 
 public enum LeanSearch {
+    public static func cpuConfiguration(directory: URL) -> CPUSearchConfiguration? {
+        let url = directory.appendingPathComponent(".auto-research/cpu-search.json")
+        guard let data = try? Data(contentsOf: url),
+              let config = try? JSONDecoder().decode(CPUSearchConfiguration.self, from: data),
+              let summary = config.summary,
+              [config.python, config.script, config.plan, summary].allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
+              [config.script, config.plan].allSatisfy({ path in
+                  let file = directory.appendingPathComponent(path)
+                  return (try? file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+                      && FileManager.default.isReadableFile(atPath: file.path)
+              }) else { return nil }
+        return config
+    }
+
     public static func overviewURL(directory: URL, sessionID: UUID) -> URL {
         directory.appendingPathComponent(".auto-research-tools/lean-search/runs/\(sessionID.uuidString)/overview.json")
     }

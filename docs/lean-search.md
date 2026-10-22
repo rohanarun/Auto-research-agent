@@ -2,7 +2,7 @@
 
 Auto Research bundles `Resources/LeanSearch`. Local agents and Daytona workers receive its skill and CLI when a run starts. Research choices belong to the current model and editable policy; the tools retain evidence and run the configured checks.
 
-Select a repository in the sidebar to reveal **CPU search** and **Lean verification** beneath its main Play control. CPU search launches a generated Python script directly: no Codex/Claude/OpenCode call, model prompt, model interpretation or automatic model fallback. It stays local regardless of the general cloud/parallel preferences. Play/Stop, per-candidate progress, immutable result directories and saved run history remain available. An active repository writer blocks a competing launch. Lean verification remains a separate focused workflow using the selected provider and shared verifier.
+Select a repository in the sidebar to reveal its subtasks beneath the main Play control. **CPU search** appears only when that checkout has a valid `.auto-research/cpu-search.json`, readable script and plan files, and a nonempty search summary. Its subheading explains the objects or parameters searched and the target improvement before you start. **Lean verification** remains a separate workflow. CPU search launches a generated Python script directly: no Codex/Claude/OpenCode call, model prompt, model interpretation or automatic model fallback. It stays local regardless of the general cloud/parallel preferences. Play/Stop, per-candidate progress, immutable result directories and saved run history remain available. An active repository writer blocks a competing launch. Lean verification remains a separate focused workflow using the selected provider and shared verifier.
 
 The CPU panel explains its configured parameter sweep and checks. The script updates that text and its final result without a model. Its header reads **CPU script · No model**, and its controls are **Run script**, **Stop script** and **Edit search plan**. Previous model-driven sessions retain their original history and labels.
 
@@ -14,11 +14,12 @@ Create `.auto-research/cpu-search.json` in the repository:
 {
   "python": "/absolute/path/to/python3",
   "script": ".auto-research-tools/lean-search/cpu_search.py",
-  "plan": ".auto-research/qrh-cpu-plan.json"
+  "plan": ".auto-research/qrh-cpu-plan.json",
+  "summary": "Search rational ℓ and h for a lower conditional QRH exponent bound."
 }
 ```
 
-Use a Python interpreter with SymPy installed. Copy the bundled `qrh-cpu-plan.json` into `.auto-research/`, review the certifier hash and edit the finite N/h candidate grid and subdivision depth. The shipped example reproduces the tested Track A sweep; it is not a current record target. Its exact certifier pin is required, and its domain must be the full QRH parameter rectangle. The harness never silently rewrites the source pin or installs dependencies during a search. A missing script, plan, interpreter or dependency produces a visible error without launching a model.
+Use a Python interpreter with SymPy installed. Install the bundled `LeanSearch` files into `.auto-research-tools/lean-search` first; availability checks never create a script. Copy the bundled `qrh-cpu-plan.json` into `.auto-research/`, review the certifier hash and edit the finite N/h candidate grid and subdivision depth. The shipped example reproduces the tested Track A sweep; it is not a current record target. Its exact certifier pin is required, and its domain must be the full QRH parameter rectangle. The harness never silently rewrites the source pin or installs dependencies during a search. A missing script, plan, interpreter or dependency produces a visible error without launching a model.
 
 Other projects can point to a generated repository-specific script using the same protocol: `--plan PATH --output NEW_DIRECTORY --overview PATH`. The script must write `cpu-result.json` containing `status` (`COMPLETED` or `INCOMPLETE`) and a readable `summary`; exit nonzero on execution failure. It can atomically write `objective`, `method` and `meaning` strings into the supplied overview file. Keep all candidate data and failures in the new output directory, and print progress on stdout. A zero exit without the result receipt is not completion. The CPU task does not accept chat prompts or keep-researching model loops; generating or changing a script is a separate requested development step.
 

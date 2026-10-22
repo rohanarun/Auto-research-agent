@@ -2,6 +2,14 @@ import AppKit
 import ResearchCore
 
 extension AppStore {
+    func cpuSearchConfiguration(_ project: ResearchProject) -> CPUSearchConfiguration? {
+        LeanSearch.cpuConfiguration(directory: cpuSearchDirectory(project))
+    }
+
+    func availableSubtasks(_ project: ResearchProject) -> [ResearchSubtask] {
+        researchSubtasks.filter { $0.execution != "script" || cpuSearchConfiguration(project) != nil }
+    }
+
     var isCPUSubtask: Bool {
         session?.scripted == true || researchSubtasks.contains { $0.id == session?.researchSubtaskID && $0.execution == "script" }
     }
@@ -36,10 +44,9 @@ extension AppStore {
             do {
                 let directory = try Workspace.validate(target.path)
                 let configURL = directory.appendingPathComponent(".auto-research/cpu-search.json")
-                guard FileManager.default.fileExists(atPath: configURL.path) else {
-                    throw ResearchError("CPU search needs a generated script and plan at \(configURL.path). No model was launched. Configure this repository before running.")
+                guard let config = LeanSearch.cpuConfiguration(directory: directory) else {
+                    throw ResearchError("CPU search needs an installed script, plan and search summary in \(configURL.path). No model was launched. Configure this repository before running.")
                 }
-                let config = try JSONDecoder().decode(CPUSearchConfiguration.self, from: Data(contentsOf: configURL))
                 if let index = sessions.firstIndex(where: { $0.id == id }) {
                     sessions[index].workingDirectory = directory.path; sessions[index].scripted = true
                 }

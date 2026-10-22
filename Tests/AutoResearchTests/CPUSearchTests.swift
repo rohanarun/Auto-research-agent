@@ -3,6 +3,38 @@ import ResearchCore
 @testable import AutoResearch
 
 final class CPUSearchTests: XCTestCase {
+    @MainActor func testCPUAvailabilityRequiresInstalledFilesAndDescriptionInThisProject() async throws {
+        let (store, project, source) = try await fixture()
+        let task = try XCTUnwrap(store.researchSubtasks.first { $0.execution == "script" })
+        XCTAssertTrue(store.availableSubtasks(project).contains { $0.id == task.id })
+        XCTAssertEqual(store.cpuSearchConfiguration(project)?.summary, "Search finite candidate parameters with exact checks.")
+        var other = project
+        other.localPath = source.appendingPathComponent("unconfigured-project").path
+        XCTAssertFalse(store.availableSubtasks(other).contains { $0.id == task.id })
+        XCTAssertTrue(store.availableSubtasks(other).contains { $0.execution != "script" })
+        let configURL = source.appendingPathComponent(".auto-research/cpu-search.json")
+        let original = try Data(contentsOf: configURL)
+        for summary in [nil, "", " \n"] as [String?] {
+            var config = try JSONDecoder().decode(CPUSearchConfiguration.self, from: original)
+            config.summary = summary
+            try JSONEncoder().encode(config).write(to: configURL)
+            XCTAssertFalse(store.availableSubtasks(project).contains { $0.id == task.id })
+        }
+        try original.write(to: configURL)
+        for relative in ["search.py", ".auto-research/plan.json"] {
+            let file = source.appendingPathComponent(relative)
+            let data = try Data(contentsOf: file)
+            try FileManager.default.removeItem(at: file)
+            XCTAssertFalse(store.availableSubtasks(project).contains { $0.id == task.id })
+            store.playSubtask(task, project: project)
+            XCTAssertTrue(store.sessions.isEmpty)
+            XCTAssertFalse(store.hasActiveRuns)
+            try data.write(to: file)
+        }
+        XCTAssertTrue(store.availableSubtasks(project).contains { $0.id == task.id })
+        XCTAssertFalse(FileManager.default.fileExists(atPath: source.appendingPathComponent("MODEL_CALLED").path))
+    }
+
     @MainActor func fixture() async throws -> (AppStore, ResearchProject, URL) {
         let (store, project, directory) = try await IndependentParallelTests().fixture(count: 5)
         let source = URL(fileURLWithPath: try XCTUnwrap(project.localPath))
@@ -21,7 +53,7 @@ final class CPUSearchTests: XCTestCase {
         print('Exact candidate checks finished',flush=True)
         """#.write(to: source.appendingPathComponent("search.py"), atomically: true, encoding: .utf8)
         try "{}".write(to: setup.appendingPathComponent("plan.json"), atomically: true, encoding: .utf8)
-        try #"{"python":"/usr/bin/python3","script":"search.py","plan":".auto-research/plan.json"}"#.write(to: setup.appendingPathComponent("cpu-search.json"), atomically: true, encoding: .utf8)
+        try #"{"python":"/usr/bin/python3","script":"search.py","plan":".auto-research/plan.json","summary":"Search finite candidate parameters with exact checks."}"#.write(to: setup.appendingPathComponent("cpu-search.json"), atomically: true, encoding: .utf8)
         let trap = directory.appendingPathComponent("model-trap")
         try "#!/bin/sh\ntouch '\(source.appendingPathComponent("MODEL_CALLED").path)'\nexit 99\n".write(to: trap, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: trap.path)
@@ -67,7 +99,9 @@ final class CPUSearchTests: XCTestCase {
         try FileManager.default.removeItem(at: source.appendingPathComponent(".auto-research/cpu-search.json"))
         store.playSubtask(task, project: project)
         try await IndependentParallelTests().waitUntil { !store.hasActiveRuns }
-        XCTAssertEqual(store.session?.state, "Needs attention")
+        XCTAssertEqual(store.session?.state, "Stopped")
+        XCTAssertEqual(store.sessions.count, 1)
+        XCTAssertTrue(store.error?.contains("not configured") == true)
         XCTAssertFalse(FileManager.default.fileExists(atPath: source.appendingPathComponent("MODEL_CALLED").path))
     }
 }

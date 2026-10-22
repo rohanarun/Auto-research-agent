@@ -4,6 +4,7 @@ import ResearchCore
 struct ResearchSubtaskOverviewView: View {
     let task: ResearchSubtask
     let session: ResearchSession
+    var configuredSummary: String? = nil
     @State private var overview: ResearchSubtaskOverview?
     @State private var expanded = true
 
@@ -22,7 +23,7 @@ struct ResearchSubtaskOverviewView: View {
                 }.font(.system(size: 11)).contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityLabel(task.overviewTitle)
                 .accessibilityValue(expanded ? "Expanded" : "Collapsed")
-            Text(description.objective).font(.system(size: 13, weight: .medium))
+            Text(overview?.objective ?? configuredSummary ?? description.objective).font(.system(size: 13, weight: .medium))
                 .fixedSize(horizontal: false, vertical: true)
             if expanded {
                 Text(description.method).font(.system(size: 12)).foregroundStyle(.secondary)
