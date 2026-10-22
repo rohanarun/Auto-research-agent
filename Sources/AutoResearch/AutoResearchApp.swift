@@ -12,9 +12,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if alert.runModal() != .alertFirstButtonReturn { return .terminateCancel }
         }
         store?.shutdown()
-        guard store?.hasActiveRuns == true else { return .terminateNow }
+        guard store?.hasActiveRuns == true || store?.leanServer.isActive == true else { return .terminateNow }
         Task { @MainActor in
-            while store?.hasActiveRuns == true { try? await Task.sleep(for: .milliseconds(100)) }
+            while store?.hasActiveRuns == true || store?.leanServer.isActive == true { try? await Task.sleep(for: .milliseconds(100)) }
             store?.persist()
             sender.reply(toApplicationShouldTerminate: true)
         }

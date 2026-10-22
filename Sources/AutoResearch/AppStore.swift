@@ -3,9 +3,11 @@ import SwiftUI
 import ResearchCore
 
 @MainActor final class AppStore: ObservableObject {
+    let leanServer = LeanServerController()
     @Published var settings: ResearchCore.Settings
     @Published var projects: [ResearchProject] = []
     @Published var sessions: [ResearchSession] = []
+    @Published var researchSubtasks: [ResearchSubtask] = []
     @Published var selectedProjectID: String?
     @Published var selectedSessionID: UUID?
     @Published var selectedSharedGroupID: UUID?
@@ -80,6 +82,8 @@ import ResearchCore
         settingsFile = URL(fileURLWithPath: bundledDefaults.workspaceRoot).appendingPathComponent("settings.json")
         needsWorkspace = bundledDefaults.workspaceRoot.isEmpty
         if !needsWorkspace { loadWorkspace(bundledDefaults) }
+        do { researchSubtasks = try LeanSearch.subtasks(resources: resourceDirectory) }
+        catch { self.error = "Could not load research subtasks: \(error.localizedDescription)" }
     }
 
     private func loadWorkspace(_ defaults: ResearchCore.Settings) {
@@ -249,7 +253,30 @@ import ResearchCore
         sessions.append(session); selectedSessionID = session.id
         launch(session.id, project: project, request: nil)
     }
+
+    func subtaskSession(_ task: ResearchSubtask, project: ResearchProject) -> ResearchSession? {
+        sessions.filter { $0.projectID == project.id && $0.researchSubtaskID == task.id }
+            .max { $0.createdAt < $1.createdAt }
+    }
+
+    func playSubtask(_ task: ResearchSubtask, project: ResearchProject) {
+        guard subtaskAvailable(task, project: project) else {
+            error = "\(task.title) is unavailable because CPU search is not configured for this repository. Install its script and plan, and describe the search in .auto-research/cpu-search.json before running."
+            return
+        }
+        guard !running(project) else {
+            error = "This repository has active research. Stop it before starting a subtask in the same checkout."
+            return
+        }
+        select(project)
+        var session = ResearchSession(projectID: project.id, title: "\(task.title) · \(project.name)", provider: provider)
+        session.researchSubtaskID = task.id
+        session.scripted = task.execution == "script"
+        sessions.append(session); selectedSessionID = session.id
+        launch(session.id, project: project, request: task.request)
+    }
     func send(to recipientID: UUID? = nil) {
+        guard !isCPUSubtask else { error = "CPU search runs a script without a model. Edit its plan and use Run script to start a new run."; return }
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
         guard !sharedActive(project.id) else { error = "Stop the parallel group before sending a manual follow-up."; return }
@@ -285,7 +312,20 @@ import ResearchCore
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
-        if sessions.first(where: { $0.id == id })?.usesCloud(preferCloud:daytona.enabled) == true { launchCloud(id, project:project, request:request);return }
+        if let session = sessions.first(where: { $0.id == id }),
+           let task = researchSubtasks.first(where: { $0.id == session.researchSubtaskID }),
+           !subtaskAvailable(task, project: project) {
+            append(id, role: "error", text: "\(task.title) requires an installed CPU search for this repository. Existing history is preserved.")
+            state(id, "Needs attention")
+            return
+        }
+        if let session = sessions.first(where: { $0.id == id }),
+           session.scripted == true || researchSubtasks.contains(where: { $0.id == session.researchSubtaskID && $0.execution == "script" }) {
+            launchCPUSearch(id, project: project)
+            return
+        }
+        if let session = sessions.first(where: { $0.id == id }), session.researchSubtaskID == nil,
+           session.usesCloud(preferCloud:daytona.enabled) { launchCloud(id, project:project, request:request);return }
         guard runners[id] == nil else { return }
         let targetPath = sessions.first(where: { $0.id == id })?.workingDirectory ?? project.localPath ?? URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("projects/\(project.repository)").path
         let target = URL(fileURLWithPath: targetPath).resolvingSymlinksInPath().path
@@ -332,7 +372,7 @@ import ResearchCore
                     }
                 }
                 guard !stopped.contains(id) else { throw CancellationError() }
-                let methodOptions = sharedConfiguration(project.id).methods
+                let methodOptions = current.researchSubtaskID == nil ? sharedConfiguration(project.id).methods : nil
                 if let methods = methodOptions, methods.enabled {
                     prompt += "\nYou are the coordinator for \(methods.branches) method branches collaborating on the same objective. Previous group indices are historical evidence, not current team assignments. Write a common plan; only the owned method runner launches branches."
                 }
@@ -353,6 +393,14 @@ import ResearchCore
                 defer { try? log.close() }
                 let sharedPolicy = current.sharedAgent == nil || methodOptions?.enabled == true ? "" : try String(contentsOf: resourceDirectory.appendingPathComponent(current.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"), encoding: .utf8)
                 var fullPolicy = policy + "\n\n" + sharedPolicy + "\n\nConfigured workspace: \(settings.workspaceRoot). Current checkout: \(directory.path)."
+                let leanTools = directory.appendingPathComponent(".auto-research-tools/lean-search")
+                try LeanSearch.install(resources: resourceDirectory, directory: leanTools)
+                fullPolicy += "\n\n" + LeanSearch.instruction(directory: leanTools.path, connection: leanServer.connectionPath)
+                if current.researchSubtaskID != nil {
+                    let overview = LeanSearch.overviewURL(directory: directory, sessionID: id)
+                    try FileManager.default.createDirectory(at: overview.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    fullPolicy += "\n\n" + LeanSearch.overviewInstruction(at: overview)
+                }
                 var disabledMCPServers: [String] = []
                 if current.provider == .codex {
                     let discovered = try await runner.run(CLI.mcpDiscovery(settings.codexPath), directory: directory, environment: env)
@@ -363,7 +411,7 @@ import ResearchCore
                 }
                 var methodFolder: URL?
                 var methodFiles: [String: Data] = [:]
-                if let methods = sharedConfiguration(project.id).methods, methods.enabled {
+                if let methods = methodOptions, methods.enabled {
                     let files = try ResearchMethods.files(options: methods, provider: current.provider, settings: settings,
                         policy: fullPolicy, resources: resourceDirectory, disabledMCPServers: disabledMCPServers,
                         enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) }, sharedContext: sharedConfiguration(project.id))
@@ -467,7 +515,7 @@ import ResearchCore
         if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
         else { stopWorker(id) }
     }
-    func shutdown() { for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
+    func shutdown() { leanServer.stop(); for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
         if let client = daytonaClient,let connection = daytona.connectionSandboxID {
             cloudCleanup.insert(connection)
             Task {

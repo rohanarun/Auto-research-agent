@@ -9,11 +9,12 @@ private final class PreparationProtocol: URLProtocol, @unchecked Sendable {
     static var install = ""
     static var boxes: [String:[String:Any]] = [:]
     static var launches: [[String:Any]] = []
+    static var toolInstalls = 0
     static var checkpoints = 0
     static var packs = 0
     static func reset(_ id: String) {
         lock.lock();defer { lock.unlock() }
-        install = id;boxes = [:];launches = [];checkpoints = 0;packs = 0
+        install = id;boxes = [:];launches = [];checkpoints = 0;packs = 0;toolInstalls = 0
     }
     static func counts() -> (Int,Int) {
         lock.lock();defer { lock.unlock() };return (launches.count,checkpoints)
@@ -60,6 +61,10 @@ private final class PreparationProtocol: URLProtocol, @unchecked Sendable {
                     case "setup-status": response = ["phase":"ready","runtime":["release":"fixture-only"]]
                     case "auth-status": response = ["authenticated":true]
                     case "fork-auth": response = ["copied":true]
+                    case "put-context":
+                        let files = payload["files"] as! [String: String]
+                        guard files["cli.py"] != nil, files["SKILL.md"] != nil, files["server-token"] == nil else { throw ResearchError("Lean tool bundle must be complete and credential-free") }
+                        Self.toolInstalls += 1; response = ["written": Array(files.keys)]
                     case "launch": Self.launches.append(payload);response = ["phase":"requested"]
                     case "checkpoint": Self.checkpoints += 1;response = [:]
                     case "pack": Self.packs += 1;throw ResearchError("Fixture export deliberately ends before archive download")
