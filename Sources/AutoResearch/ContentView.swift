@@ -22,6 +22,9 @@ struct ContentView: View {
                     SharedChatView(store: store, projectID: project.id, groupID: groupID).id(groupID)
                     composer
                 } else if let session = store.session {
+                    if let task = store.researchSubtasks.first(where: { $0.id == session.researchSubtaskID }) {
+                        ResearchSubtaskOverviewView(task: task, session: session).id(session.id)
+                    }
                     transcript(session)
                     composer
                 } else if store.showingProjectDetails, let project = store.project {

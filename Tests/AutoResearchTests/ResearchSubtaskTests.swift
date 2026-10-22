@@ -20,6 +20,8 @@ final class ResearchSubtaskTests: XCTestCase {
         let input = try String(contentsOf: URL(fileURLWithPath: try XCTUnwrap(session.workingDirectory)).appendingPathComponent("fixture-input.txt"), encoding: .utf8)
         XCTAssertTrue(input.contains(task.request))
         XCTAssertTrue(input.contains("SKILL.md"))
+        XCTAssertTrue(input.contains("overview.json"))
+        XCTAssertTrue(input.contains("objective, method, meaning"))
         XCTAssertFalse(input.contains("Optional research methods are enabled"))
         store.playSubtask(task, project: project)
         XCTAssertEqual(store.sessions.count, 1, "Repeated Play cannot create a competing writer")
@@ -45,5 +47,18 @@ final class ResearchSubtaskTests: XCTestCase {
         let decoded = try JSONDecoder().decode(ResearchSession.self, from: JSONSerialization.data(withJSONObject: json))
         XCTAssertEqual(decoded.id, old.id)
         XCTAssertNil(decoded.researchSubtaskID)
+    }
+
+    func testOverviewLoadsModelDescriptionAndRejectsPartialWrites() throws {
+        let root = IndependentParallelTests().root
+        let directory = try Workspace.directory(root.path, "tmp/overview-test-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = LeanSearch.overviewURL(directory: directory, sessionID: UUID())
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        XCTAssertNil(LeanSearch.readOverview(at: url))
+        try #"{"objective":"Search rational parameters","method":"Exact arithmetic","meaning":"Conditional certificate"}"#.write(to: url, atomically: true, encoding: .utf8)
+        XCTAssertEqual(LeanSearch.readOverview(at: url)?.objective, "Search rational parameters")
+        try #"{"objective":"unfinished""#.write(to: url, atomically: true, encoding: .utf8)
+        XCTAssertNil(LeanSearch.readOverview(at: url))
     }
 }

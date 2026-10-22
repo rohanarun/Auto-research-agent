@@ -6,9 +6,44 @@ public struct ResearchSubtask: Codable, Identifiable, Sendable {
     public let symbol: String
     public let summary: String
     public let request: String
+    public let overviewTitle: String
+    public let overview: ResearchSubtaskOverview
+}
+
+public struct ResearchSubtaskOverview: Codable, Equatable, Sendable {
+    public let objective: String
+    public let method: String
+    public let meaning: String
 }
 
 public enum LeanSearch {
+    public static func overviewURL(directory: URL, sessionID: UUID) -> URL {
+        directory.appendingPathComponent(".auto-research-tools/lean-search/runs/\(sessionID.uuidString)/overview.json")
+    }
+
+    public static func readOverview(at url: URL) -> ResearchSubtaskOverview? {
+        guard let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize, size <= 16_384,
+              let data = try? Data(contentsOf: url),
+              let overview = try? JSONDecoder().decode(ResearchSubtaskOverview.self, from: data),
+              [overview.objective, overview.method, overview.meaning].allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { return nil }
+        return overview
+    }
+
+    public static func overviewInstruction(at url: URL) -> String {
+        """
+        The app shows a plain-language experiment overview above this subtask's chat.
+        After reading the repository and choosing the experiment, write \(url.path)
+        as JSON with three nonempty string fields: objective, method, meaning.
+        Explain the exact parameters or objects being searched and the target improvement
+        in objective; the candidate checks and bounded experiment in method; and what
+        success would establish, with unresolved proof obligations, in meaning.
+        Use brief accessible prose, define symbols, and avoid implementation paths or jargon.
+        Update it when the experiment changes and at completion, retaining failed results
+        and distinguishing conditional evidence from Lean or Comparator acceptance.
+        These fields describe the model's plan and findings; they do not control execution.
+        """
+    }
+
     public static func subtasks(resources: URL) throws -> [ResearchSubtask] {
         try JSONDecoder().decode([ResearchSubtask].self, from: Data(contentsOf: resources.appendingPathComponent("LeanSearch/subtasks.json")))
     }

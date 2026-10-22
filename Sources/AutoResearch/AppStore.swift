@@ -378,6 +378,11 @@ import ResearchCore
                 let leanTools = directory.appendingPathComponent(".auto-research-tools/lean-search")
                 try LeanSearch.install(resources: resourceDirectory, directory: leanTools)
                 fullPolicy += "\n\n" + LeanSearch.instruction(directory: leanTools.path, connection: leanServer.connectionPath)
+                if current.researchSubtaskID != nil {
+                    let overview = LeanSearch.overviewURL(directory: directory, sessionID: id)
+                    try FileManager.default.createDirectory(at: overview.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    fullPolicy += "\n\n" + LeanSearch.overviewInstruction(at: overview)
+                }
                 var disabledMCPServers: [String] = []
                 if current.provider == .codex {
                     let discovered = try await runner.run(CLI.mcpDiscovery(settings.codexPath), directory: directory, environment: env)
