@@ -11,7 +11,11 @@ final class CPUSearchTests: XCTestCase {
         var other = project
         other.localPath = source.appendingPathComponent("unconfigured-project").path
         XCTAssertFalse(store.availableSubtasks(other).contains { $0.id == task.id })
-        XCTAssertTrue(store.availableSubtasks(other).contains { $0.execution != "script" })
+        XCTAssertTrue(store.availableSubtasks(other).isEmpty)
+        let verification = try XCTUnwrap(store.researchSubtasks.first { $0.execution != "script" })
+        store.playSubtask(verification, project: other)
+        XCTAssertTrue(store.sessions.isEmpty)
+        XCTAssertFalse(store.hasActiveRuns)
         let configURL = source.appendingPathComponent(".auto-research/cpu-search.json")
         let original = try Data(contentsOf: configURL)
         for summary in [nil, "", " \n"] as [String?] {

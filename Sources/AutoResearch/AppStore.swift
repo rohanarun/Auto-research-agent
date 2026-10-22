@@ -260,8 +260,8 @@ import ResearchCore
     }
 
     func playSubtask(_ task: ResearchSubtask, project: ResearchProject) {
-        guard task.execution != "script" || cpuSearchConfiguration(project) != nil else {
-            error = "CPU search is not configured for this repository. Install its script and plan, and describe the search in .auto-research/cpu-search.json before running."
+        guard subtaskAvailable(task, project: project) else {
+            error = "\(task.title) is unavailable because CPU search is not configured for this repository. Install its script and plan, and describe the search in .auto-research/cpu-search.json before running."
             return
         }
         guard !running(project) else {
@@ -312,6 +312,13 @@ import ResearchCore
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
+        if let session = sessions.first(where: { $0.id == id }),
+           let task = researchSubtasks.first(where: { $0.id == session.researchSubtaskID }),
+           !subtaskAvailable(task, project: project) {
+            append(id, role: "error", text: "\(task.title) requires an installed CPU search for this repository. Existing history is preserved.")
+            state(id, "Needs attention")
+            return
+        }
         if let session = sessions.first(where: { $0.id == id }),
            session.scripted == true || researchSubtasks.contains(where: { $0.id == session.researchSubtaskID && $0.execution == "script" }) {
             launchCPUSearch(id, project: project)

@@ -11,7 +11,8 @@
       "method": "The saved Python script reads an editable parameter plan, enumerates candidates, and performs exact checks. No model chooses candidates or interprets results during execution.",
       "meaning": "A successful numerical or exact check is evidence at its stated scope. A mathematical theorem still needs the matching proof and verification."
     },
-    "execution": "script"
+    "execution": "script",
+    "requiresCPUSearch": true
   },
   {
     "id": "lean-verification",
@@ -24,6 +25,7 @@
       "objective": "Whether a saved candidate proves the exact theorem required by this repository.",
       "method": "The model checks available server profiles, submits to a matching challenge, and reviews the build, axiom audit and any required Comparator result.",
       "meaning": "Missing profiles and failed checks remain visible. A generic service test cannot establish this repository’s theorem."
-    }
+    },
+    "requiresCPUSearch": true
   }
 ]

@@ -6,6 +6,12 @@ final class ResearchSubtaskTests: XCTestCase {
     @MainActor func testFocusedRunStaysLocalWithoutMethodsAndRetainsHistory() async throws {
         let fixture = IndependentParallelTests()
         let (store, project, _) = try await fixture.fixture(count: 5)
+        let source = URL(fileURLWithPath: try XCTUnwrap(project.localPath))
+        let setup = source.appendingPathComponent(".auto-research")
+        try FileManager.default.createDirectory(at: setup, withIntermediateDirectories: true)
+        try "# Prepared search fixture".write(to: source.appendingPathComponent("search.py"), atomically: true, encoding: .utf8)
+        try "{}".write(to: setup.appendingPathComponent("plan.json"), atomically: true, encoding: .utf8)
+        try #"{"python":"/usr/bin/python3","script":"search.py","plan":".auto-research/plan.json","summary":"Search finite candidate parameters with exact checks."}"#.write(to: setup.appendingPathComponent("cpu-search.json"), atomically: true, encoding: .utf8)
         var options = store.sharedConfiguration(project.id)
         var methods = try store.methodConfiguration(project.id)
         methods.forkAndFlush = true; options.methods = methods
@@ -37,6 +43,11 @@ final class ResearchSubtaskTests: XCTestCase {
         XCTAssertEqual(restored.subtaskSession(task, project: project)?.id, session.id)
         restored.selectSession(try XCTUnwrap(restored.subtaskSession(task, project: project)))
         XCTAssertNil(restored.session?.closedAt)
+        XCTAssertEqual(restored.session?.providerSessionID, providerSessionID)
+        try FileManager.default.removeItem(at: setup.appendingPathComponent("cpu-search.json"))
+        restored.launch(session.id, project: project, request: "Verify again")
+        XCTAssertFalse(restored.hasActiveRuns)
+        XCTAssertEqual(restored.session?.state, "Needs attention")
         XCTAssertEqual(restored.session?.providerSessionID, providerSessionID)
     }
 

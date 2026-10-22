@@ -7,7 +7,11 @@ extension AppStore {
     }
 
     func availableSubtasks(_ project: ResearchProject) -> [ResearchSubtask] {
-        researchSubtasks.filter { $0.execution != "script" || cpuSearchConfiguration(project) != nil }
+        researchSubtasks.filter { subtaskAvailable($0, project: project) }
+    }
+
+    func subtaskAvailable(_ task: ResearchSubtask, project: ResearchProject) -> Bool {
+        !(task.execution == "script" || task.requiresCPUSearch == true) || cpuSearchConfiguration(project) != nil
     }
 
     var isCPUSubtask: Bool {

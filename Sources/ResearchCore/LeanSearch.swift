@@ -9,6 +9,7 @@ public struct ResearchSubtask: Codable, Identifiable, Sendable {
     public let overviewTitle: String
     public let overview: ResearchSubtaskOverview
     public let execution: String?
+    public let requiresCPUSearch: Bool?
 }
 
 public struct CPUSearchConfiguration: Codable {
