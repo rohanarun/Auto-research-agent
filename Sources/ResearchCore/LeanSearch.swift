@@ -1,9 +1,21 @@
 import Foundation
 
+public struct ResearchSubtask: Codable, Identifiable, Sendable {
+    public let id: String
+    public let title: String
+    public let symbol: String
+    public let summary: String
+    public let request: String
+}
+
 public enum LeanSearch {
+    public static func subtasks(resources: URL) throws -> [ResearchSubtask] {
+        try JSONDecoder().decode([ResearchSubtask].self, from: Data(contentsOf: resources.appendingPathComponent("LeanSearch/subtasks.json")))
+    }
+
     public static func files(resources: URL) throws -> [String: Data] {
         let root = resources.appendingPathComponent("LeanSearch")
-        let names = ["cli.py", "core.py", "qrh.py", "server.py", "remote.py", "SKILL.md", "qrh-track-a.json", "generic-plan.json"]
+        let names = ["cli.py", "core.py", "qrh.py", "server.py", "remote.py", "SKILL.md", "qrh-track-a.json", "generic-plan.json", "subtasks.json"]
         return try Dictionary(uniqueKeysWithValues: names.map { ($0, try Data(contentsOf: root.appendingPathComponent($0))) })
     }
 

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "cpu-search",
+    "title": "CPU search",
+    "symbol": "cpu",
+    "summary": "Model-directed candidate search on this Mac",
+    "request": "Run a bounded CPU search for this repository. Read AGENTS.md, the current research guide, RESEARCH_HANDOFF.md and the installed Lean-search skill. Use the model to choose a hypothesis, candidate generation method and a justified resource budget from current evidence. Execute the search, inspect mathematical results rather than exit codes, retain every candidate and failure, and save a source-bound receipt with exact parameters and scope. For QRH use the source-pinned qrh-search tool when applicable. Do not start parallel agents, cloud instances or a full Lean dependency build. Report conditional certificates separately from formal theorems. Finish after this bounded experiment, identifying the next verification obligation."
+  },
+  {
+    "id": "lean-verification",
+    "title": "Lean verification",
+    "symbol": "checkmark.shield",
+    "summary": "Check a candidate with the shared Lean server",
+    "request": "Verify the latest relevant saved candidate for this repository. Read AGENTS.md, the research guide, RESEARCH_HANDOFF.md and the installed Lean-search skill. Inspect the shared server health and profiles using the supplied connection; never print the token. Select only a profile whose pinned challenge and terminal theorem match the candidate's actual scope. Submit that candidate, retain the job handle, follow the same job to completion, and inspect its source-bound build, axiom and Comparator receipts. If the connection, candidate or matching profile is missing, report the exact missing prerequisite and finish with needs_input; do not replace a repository theorem with the kernel-check fixture, install large dependencies or start cloud instances. A completed model turn is not a passed proof. Preserve failed jobs and report the precise verification level."
+  }
+]

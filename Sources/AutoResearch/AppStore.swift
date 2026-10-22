@@ -7,6 +7,7 @@ import ResearchCore
     @Published var settings: ResearchCore.Settings
     @Published var projects: [ResearchProject] = []
     @Published var sessions: [ResearchSession] = []
+    @Published var researchSubtasks: [ResearchSubtask] = []
     @Published var selectedProjectID: String?
     @Published var selectedSessionID: UUID?
     @Published var selectedSharedGroupID: UUID?
@@ -81,6 +82,8 @@ import ResearchCore
         settingsFile = URL(fileURLWithPath: bundledDefaults.workspaceRoot).appendingPathComponent("settings.json")
         needsWorkspace = bundledDefaults.workspaceRoot.isEmpty
         if !needsWorkspace { loadWorkspace(bundledDefaults) }
+        do { researchSubtasks = try LeanSearch.subtasks(resources: resourceDirectory) }
+        catch { self.error = "Could not load research subtasks: \(error.localizedDescription)" }
     }
 
     private func loadWorkspace(_ defaults: ResearchCore.Settings) {
@@ -250,6 +253,23 @@ import ResearchCore
         sessions.append(session); selectedSessionID = session.id
         launch(session.id, project: project, request: nil)
     }
+
+    func subtaskSession(_ task: ResearchSubtask, project: ResearchProject) -> ResearchSession? {
+        sessions.filter { $0.projectID == project.id && $0.researchSubtaskID == task.id }
+            .max { $0.createdAt < $1.createdAt }
+    }
+
+    func playSubtask(_ task: ResearchSubtask, project: ResearchProject) {
+        guard !running(project) else {
+            error = "This repository has active research. Stop it before starting a subtask in the same checkout."
+            return
+        }
+        select(project)
+        var session = ResearchSession(projectID: project.id, title: "\(task.title) · \(project.name)", provider: provider)
+        session.researchSubtaskID = task.id
+        sessions.append(session); selectedSessionID = session.id
+        launch(session.id, project: project, request: task.request)
+    }
     func send(to recipientID: UUID? = nil) {
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
@@ -286,7 +306,8 @@ import ResearchCore
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
-        if sessions.first(where: { $0.id == id })?.usesCloud(preferCloud:daytona.enabled) == true { launchCloud(id, project:project, request:request);return }
+        if let session = sessions.first(where: { $0.id == id }), session.researchSubtaskID == nil,
+           session.usesCloud(preferCloud:daytona.enabled) { launchCloud(id, project:project, request:request);return }
         guard runners[id] == nil else { return }
         let targetPath = sessions.first(where: { $0.id == id })?.workingDirectory ?? project.localPath ?? URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("projects/\(project.repository)").path
         let target = URL(fileURLWithPath: targetPath).resolvingSymlinksInPath().path
@@ -333,7 +354,7 @@ import ResearchCore
                     }
                 }
                 guard !stopped.contains(id) else { throw CancellationError() }
-                let methodOptions = sharedConfiguration(project.id).methods
+                let methodOptions = current.researchSubtaskID == nil ? sharedConfiguration(project.id).methods : nil
                 if let methods = methodOptions, methods.enabled {
                     prompt += "\nYou are the coordinator for \(methods.branches) method branches collaborating on the same objective. Previous group indices are historical evidence, not current team assignments. Write a common plan; only the owned method runner launches branches."
                 }
@@ -367,7 +388,7 @@ import ResearchCore
                 }
                 var methodFolder: URL?
                 var methodFiles: [String: Data] = [:]
-                if let methods = sharedConfiguration(project.id).methods, methods.enabled {
+                if let methods = methodOptions, methods.enabled {
                     let files = try ResearchMethods.files(options: methods, provider: current.provider, settings: settings,
                         policy: fullPolicy, resources: resourceDirectory, disabledMCPServers: disabledMCPServers,
                         enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) }, sharedContext: sharedConfiguration(project.id))
