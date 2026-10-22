@@ -56,6 +56,7 @@ public struct ResearchSession: Codable, Identifiable, Sendable {
     public var cloud: CloudSession?
     /// Focused local tool workflow, with its model prompt loaded from resources.
     public var researchSubtaskID: String?
+    public var scripted: Bool?
     /// A saved chat stays on its original backend. The preference selects only
     /// chats that have not yet acquired a checkout or provider conversation.
     public func usesCloud(preferCloud: Bool) -> Bool {

@@ -1,9 +1,11 @@
 ---
 name: lean-search
-description: Run model-directed CPU mathematical searches and submit candidates to a shared Lean verification server, starting with QRH and extending through project-specific verification plans.
+description: Generate standalone CPU search scripts and submit candidates to a shared Lean verification server, starting with QRH and extending through project-specific verification plans.
 ---
 
-Use the adjacent `cli.py`; run `python3 -B cli.py --help` for commands. The harness installs this skill for local runs and Daytona workers. A standalone Claude session can read this file directly. Choose hypotheses and candidate generation with the current model and repository evidence; the tools execute and record checks without making scientific decisions.
+The native CPU Play button uses `.auto-research/cpu-search.json` (python, script and plan paths) and the generated script protocol documented in docs/lean-search.md. The bundled `cpu_search.py` and editable `qrh-cpu-plan.json` implement a finite exact QRH parameter grid, retaining every outcome and updating the UI overview. Do not automatically launch a model when setup is missing.
+
+Use the adjacent `cli.py`; run `python3 -B cli.py --help` for commands. The harness installs this skill for local runs and Daytona workers. A standalone Claude session can read this file directly. Use repository evidence when generating a search script or editing its plan. The CPU search subtask executes that saved script directly with no model calls, model prompts or model fallback. Candidate generation and result summaries during the run come only from the script and its explicit configuration. Generating or changing a script is a separate development step.
 
 For QRH, start with `qrh-track-a.json` and read its source, the current `auto-research.md`, `lean-tau/README.md`, and the actual certifier. Pin the certifier SHA-256, exact checkout revision, dependency lockfile and challenge. The example candidate is a historical baseline, not a target or record. Install SymPy only in the assigned workspace/runtime. Pass exact rational strings, the full theorem domain and a justified subdivision depth to `qrh-search --plan ... --output ...`. It checks F, J and every side constraint, preserves Bernstein boxes and failures, and emits EXACT_CONDITIONAL only. No found certificate is evidence of search failure, not an impossibility proof.
 

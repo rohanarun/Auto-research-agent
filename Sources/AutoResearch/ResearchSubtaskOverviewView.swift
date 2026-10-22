@@ -17,7 +17,7 @@ struct ResearchSubtaskOverviewView: View {
                     Image(systemName: task.symbol)
                     Text(task.overviewTitle).fontWeight(.semibold)
                     Spacer()
-                    Text(overview == nil ? "Workflow overview" : "Agent's experiment").foregroundStyle(.secondary)
+                    Text(overview == nil ? "Workflow overview" : session.scripted == true ? "Script experiment" : "Agent's experiment").foregroundStyle(.secondary)
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
                 }.font(.system(size: 11)).contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityLabel(task.overviewTitle)

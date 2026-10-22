@@ -11,7 +11,7 @@ final class ResearchSubtaskTests: XCTestCase {
         methods.forkAndFlush = true; options.methods = methods
         store.setSharedConfiguration(options, for: project.id)
         store.daytona.enabled = true
-        let task = try XCTUnwrap(store.researchSubtasks.first)
+        let task = try XCTUnwrap(store.researchSubtasks.first { $0.execution != "script" })
         store.playSubtask(task, project: project)
         try await fixture.waitUntil { fixture.started(store, count: 1) }
         let session = try XCTUnwrap(store.session)

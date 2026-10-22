@@ -267,10 +267,12 @@ import ResearchCore
         select(project)
         var session = ResearchSession(projectID: project.id, title: "\(task.title) · \(project.name)", provider: provider)
         session.researchSubtaskID = task.id
+        session.scripted = task.execution == "script"
         sessions.append(session); selectedSessionID = session.id
         launch(session.id, project: project, request: task.request)
     }
     func send(to recipientID: UUID? = nil) {
+        guard !isCPUSubtask else { error = "CPU search runs a script without a model. Edit its plan and use Run script to start a new run."; return }
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
         guard !sharedActive(project.id) else { error = "Stop the parallel group before sending a manual follow-up."; return }
@@ -306,6 +308,11 @@ import ResearchCore
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
+        if let session = sessions.first(where: { $0.id == id }),
+           session.scripted == true || researchSubtasks.contains(where: { $0.id == session.researchSubtaskID && $0.execution == "script" }) {
+            launchCPUSearch(id, project: project)
+            return
+        }
         if let session = sessions.first(where: { $0.id == id }), session.researchSubtaskID == nil,
            session.usesCloud(preferCloud:daytona.enabled) { launchCloud(id, project:project, request:request);return }
         guard runners[id] == nil else { return }

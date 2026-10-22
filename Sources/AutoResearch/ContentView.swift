@@ -26,7 +26,7 @@ struct ContentView: View {
                         ResearchSubtaskOverviewView(task: task, session: session).id(session.id)
                     }
                     transcript(session)
-                    composer
+                    if store.isCPUSubtask { cpuScriptControls } else { composer }
                 } else if store.showingProjectDetails, let project = store.project {
                     ProjectDashboardView(project: project, catalogURL: store.settings.catalogURL)
                 } else { welcome; composer }
@@ -144,7 +144,7 @@ struct ContentView: View {
                     Image(systemName: task.symbol).font(.system(size: 12)).foregroundStyle(active ? accent : muted)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(task.title).font(.system(size: 11, weight: .medium))
-                        Text(session.map { $0.state == "Completed" ? "Run finished · view findings" : $0.state } ?? "Not run · \(store.provider.title)")
+                        Text(session.map { $0.state == "Completed" ? "Run finished · view findings" : $0.state } ?? (task.execution == "script" ? "Script · No model" : "Not run · \(store.provider.title)"))
                             .font(.system(size: 10)).foregroundStyle(muted).lineLimit(1)
                     }
                     Spacer(minLength: 0)
@@ -159,7 +159,7 @@ struct ContentView: View {
                     .font(.system(size: 9, weight: .semibold)).foregroundStyle(active ? accent : ink)
                     .frame(width: 25, height: 30).contentShape(Rectangle())
             }.buttonStyle(.plain).disabled(!active && store.running(project))
-                .help(active ? "Stop this subtask" : store.running(project) ? "Stop active research before starting this subtask" : "Start \(task.title.lowercased()) with \(store.provider.title)")
+                .help(active ? "Stop this subtask" : store.running(project) ? "Stop active research before starting this subtask" : task.execution == "script" ? "Run the configured Python script; no model" : "Start \(task.title.lowercased()) with \(store.provider.title)")
                 .accessibilityLabel("\(active ? "Stop" : "Start") \(task.title.lowercased()) for \(project.name)")
         }.padding(.leading, 27).padding(.trailing, 3)
             .background(session != nil && store.selectedSessionID == session?.id ? accent.opacity(0.07) : .clear, in: RoundedRectangle(cornerRadius: 7))
@@ -198,7 +198,7 @@ struct ContentView: View {
                 .font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 .truncationMode(.tail).frame(maxWidth: .infinity, alignment: .leading)
             if let project = store.project {
-                SharedContextControls(store: store, project: project).fixedSize()
+                if store.session?.scripted != true { SharedContextControls(store: store, project: project).fixedSize() }
                 if store.showingProjectDetails && store.session == nil && store.selectedSharedGroupID == nil {
                     Button { store.play(project) } label: { Image(systemName: "play.fill") }
                         .help("Start research").accessibilityLabel("Start selected research project")
@@ -211,14 +211,16 @@ struct ContentView: View {
                     }
                 }
             }
-            Menu {
+            if store.session?.scripted == true {
+                Label("CPU script · No model", systemImage: "cpu").foregroundStyle(muted)
+            } else { Menu {
                 ForEach(Provider.allCases) { provider in Button(provider.title) { store.provider = provider; store.newChat() } }
             } label: {
                 HStack(spacing: 5) {
                     Circle().fill(store.auth[store.session?.provider ?? store.provider] == "Connected" ? Color.green : .orange).frame(width: 5, height: 5)
                     Text((store.session?.provider ?? store.provider).title)
                 }
-            }.menuStyle(.borderlessButton).fixedSize()
+            }.menuStyle(.borderlessButton).fixedSize() }
             Button { store.newChat() } label: { Image(systemName: "square.and.pencil") }
                 .help("New chat").accessibilityLabel("New chat")
             Menu {
@@ -275,8 +277,8 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 24) {
-                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider, speaker: session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · \($0.isIndependent ? "Independent" : "Round \($0.generation)")" }) }
-                        if store.isRunning { HStack(spacing: 9) { ProgressView().controlSize(.small); Text(session.state == "Preparing" ? "Preparing workspace…" : "Researching…").font(.system(size: 12)).foregroundStyle(muted) }.padding(.vertical, 12) }
+                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider, speaker: session.scripted == true ? "CPU script" : session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · \($0.isIndependent ? "Independent" : "Round \($0.generation)")" }) }
+                        if store.isRunning { HStack(spacing: 9) { ProgressView().controlSize(.small); Text(session.state == "Preparing" ? "Preparing workspace…" : session.scripted == true ? "Running script…" : "Researching…").font(.system(size: 12)).foregroundStyle(muted) }.padding(.vertical, 12) }
                         Color.clear.frame(height: 1).id("bottom")
                     }.frame(maxWidth: 760, alignment: .leading).padding(.horizontal, 34).padding(.vertical, 20).frame(maxWidth: .infinity)
                 }
@@ -285,7 +287,7 @@ struct ContentView: View {
                 HStack {
                     Toggle("Follow output", isOn: $followOutput).toggleStyle(.checkbox)
                     Spacer()
-                    if session.sharedAgent == nil || store.sharedConfiguration(session.projectID).usesMethods {
+                    if !store.isCPUSubtask && (session.sharedAgent == nil || store.sharedConfiguration(session.projectID).usesMethods) {
                         Toggle("Keep researching", isOn: Binding(get: { store.keepResearching.contains(session.id) }, set: { if $0 { store.keepResearching.insert(session.id) } else { store.keepResearching.remove(session.id) } })).toggleStyle(.checkbox).help("Send the editable continuation prompt after each successful turn until you stop. Uses your CLI account and configured resources.")
                     }
                 }.font(.system(size: 10)).foregroundStyle(muted).padding(.horizontal, 34).padding(.vertical, 8)
@@ -295,6 +297,19 @@ struct ContentView: View {
     var composerAgents: [ResearchSession] {
         guard let group = store.selectedSharedGroupID, let project = store.project else { return [] }
         return SharedTranscript.latestAgents(in: store.sessions, projectID: project.id, groupID: group)
+    }
+    var cpuScriptControls: some View {
+        HStack(spacing: 14) {
+            Text("Runs the saved Python script and parameter plan. No model calls.")
+                .font(.system(size: 11)).foregroundStyle(muted)
+            Spacer()
+            Button("Edit search plan") { store.revealCPUSearchPlan() }.disabled(store.isRunning)
+            if store.isRunning, let id = store.selectedSessionID {
+                Button("Stop script") { store.stop(id) }
+            } else if let project = store.project, let task = store.researchSubtasks.first(where: { $0.id == store.session?.researchSubtaskID }) {
+                Button("Run script") { store.playSubtask(task, project: project) }.disabled(store.running(project))
+            }
+        }.controlSize(.small).padding(24)
     }
     var composerRecipient: ResearchSession? {
         composerAgents.first { $0.sharedAgent?.index == recipientIndex } ?? composerAgents.first

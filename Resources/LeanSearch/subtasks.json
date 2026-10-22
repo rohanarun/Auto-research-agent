@@ -3,14 +3,15 @@
     "id": "cpu-search",
     "title": "CPU search",
     "symbol": "cpu",
-    "summary": "Model-directed candidate search on this Mac",
-    "request": "Run a bounded CPU search for this repository. Read AGENTS.md, the current research guide, RESEARCH_HANDOFF.md and the installed Lean-search skill. Use the model to choose a hypothesis, candidate generation method and a justified resource budget from current evidence. Execute the search, inspect mathematical results rather than exit codes, retain every candidate and failure, and save a source-bound receipt with exact parameters and scope. For QRH use the source-pinned qrh-search tool when applicable. Do not start parallel agents, cloud instances or a full Lean dependency build. Report conditional certificates separately from formal theorems. Finish after this bounded experiment, identifying the next verification obligation.",
+    "summary": "Run the generated CPU search script without a model",
+    "request": "",
     "overviewTitle": "What the CPU is searching",
     "overview": {
       "objective": "Candidate parameters or constructions that improve this repository’s stated research target.",
-      "method": "The model reads the research guide, chooses a bounded experiment, and uses the CPU to test candidates against the project’s constraints. Its specific experiment will appear here once chosen.",
+      "method": "The saved Python script reads an editable parameter plan, enumerates candidates, and performs exact checks. No model chooses candidates or interprets results during execution.",
       "meaning": "A successful numerical or exact check is evidence at its stated scope. A mathematical theorem still needs the matching proof and verification."
-    }
+    },
+    "execution": "script"
   },
   {
     "id": "lean-verification",

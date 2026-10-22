@@ -6,7 +6,7 @@ from fractions import Fraction
 from core import digest, save_json
 
 
-def search(plan, output):
+def search(plan, output, on_candidate=None):
     import sympy as sp
     source = Path(plan['certifier']).resolve()
     if digest(source.read_bytes()) != plan['certifier_sha256']:
@@ -41,6 +41,8 @@ def search(plan, output):
             row['error'] = str(error)
         save_json(output / ('candidate-' + str(index) + '.json'), row)
         results.append(row)
+        if on_candidate:
+            on_candidate(index, row)
     result = {'status': 'SCREENED', 'certifier_sha256': plan['certifier_sha256'],
               'sympy_version': sp.__version__, 'candidates': results,
               'claim': 'Exact finite certificate only, conditional on the source theorem. No Lean or global record claim.'}

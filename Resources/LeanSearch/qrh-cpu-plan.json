@@ -1,0 +1,16 @@
+{
+  "adapter": "qrh-rational-grid",
+  "scope": "Finite Track A certificate, conditional on the preprint theorem and analytic edits. Full QRH Lean verification remains required.",
+  "certifier": "../certify.py",
+  "certifier_sha256": "72ee084d5277500afab8718d14bf0a03776a1111a5b8d283afeec146aa3e56cf",
+  "source_revision": "fb86f0d7a31c912d87df05371c9218d49f0c5346",
+  "box": [["0", "5/6"], ["0", "1/2"]],
+  "maxdepth": 24,
+  "n_values": [5825, 5824, 5823],
+  "h_values": ["405967/500000", "162387/200000", "811933/1000000"],
+  "controls": [
+    {"ell": "2953/17700", "h": "405989/500000"},
+    {"ell": "162/971", "h": "405967/500000"}
+  ],
+  "rationale": "Reproduce the previously tested finite sweep around the source's N=5826 point. Depth 24 was required for N=5824; default depth 20 was inconclusive. All targets are editable here; no runtime model chooses them."
+}

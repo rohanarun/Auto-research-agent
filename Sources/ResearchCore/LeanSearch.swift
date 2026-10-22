@@ -8,6 +8,18 @@ public struct ResearchSubtask: Codable, Identifiable, Sendable {
     public let request: String
     public let overviewTitle: String
     public let overview: ResearchSubtaskOverview
+    public let execution: String?
+}
+
+public struct CPUSearchConfiguration: Codable {
+    public var python: String
+    public var script: String
+    public var plan: String
+}
+
+public struct CPUSearchResult: Codable {
+    public let status: String
+    public let summary: String
 }
 
 public struct ResearchSubtaskOverview: Codable, Equatable, Sendable {
@@ -50,7 +62,7 @@ public enum LeanSearch {
 
     public static func files(resources: URL) throws -> [String: Data] {
         let root = resources.appendingPathComponent("LeanSearch")
-        let names = ["cli.py", "core.py", "qrh.py", "server.py", "remote.py", "SKILL.md", "qrh-track-a.json", "generic-plan.json", "subtasks.json"]
+        let names = ["cli.py", "core.py", "qrh.py", "server.py", "remote.py", "SKILL.md", "qrh-track-a.json", "generic-plan.json", "subtasks.json", "cpu_search.py", "qrh-cpu-plan.json"]
         return try Dictionary(uniqueKeysWithValues: names.map { ($0, try Data(contentsOf: root.appendingPathComponent($0))) })
     }
 

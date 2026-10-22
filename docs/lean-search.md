@@ -2,9 +2,27 @@
 
 Auto Research bundles `Resources/LeanSearch`. Local agents and Daytona workers receive its skill and CLI when a run starts. Research choices belong to the current model and editable policy; the tools retain evidence and run the configured checks.
 
-Select a repository in the sidebar to reveal **CPU search** and **Lean verification** beneath its main Play control. Each has a separate Play/Stop button and opens its latest saved run when clicked. Earlier runs remain in the repository's chat history. These focused subtasks run on this Mac with the selected provider, independently of the general research parallel/cloud preferences. Another active run in the same repository blocks launching a subtask. Their instructions are editable in `Resources/LeanSearch/subtasks.json`; the model chooses the actual experiment and matching verification profile from repository evidence. “Run finished” describes the model session, not a proof result: inspect its findings and source-bound receipts. A missing QRH profile is a prerequisite to report, never a reason to use the kernel fixture.
+Select a repository in the sidebar to reveal **CPU search** and **Lean verification** beneath its main Play control. CPU search launches a generated Python script directly: no Codex/Claude/OpenCode call, model prompt, model interpretation or automatic model fallback. It stays local regardless of the general cloud/parallel preferences. Play/Stop, per-candidate progress, immutable result directories and saved run history remain available. An active repository writer blocks a competing launch. Lean verification remains a separate focused workflow using the selected provider and shared verifier.
 
-An expandable explanation stays above the subtask transcript. It describes what is searched, how candidates are checked, and what a result establishes. The initial workflow text comes from the editable subtask definitions. After choosing an experiment, the model writes `objective`, `method` and `meaning` strings to its session-specific `overview.json` under the installed toolkit's `runs` folder, and updates them as work progresses. The app reads that description while the run is active and retains it with the checkout for later viewing; it does not infer research goals from repository names or reinterpret model prose as a formal verdict.
+The CPU panel explains its configured parameter sweep and checks. The script updates that text and its final result without a model. Its header reads **CPU script · No model**, and its controls are **Run script**, **Stop script** and **Edit search plan**. Previous model-driven sessions retain their original history and labels.
+
+### Configure the generated script
+
+Create `.auto-research/cpu-search.json` in the repository:
+
+```json
+{
+  "python": "/absolute/path/to/python3",
+  "script": ".auto-research-tools/lean-search/cpu_search.py",
+  "plan": ".auto-research/qrh-cpu-plan.json"
+}
+```
+
+Use a Python interpreter with SymPy installed. Copy the bundled `qrh-cpu-plan.json` into `.auto-research/`, review the certifier hash and edit the finite N/h candidate grid and subdivision depth. The shipped example reproduces the tested Track A sweep; it is not a current record target. Its exact certifier pin is required, and its domain must be the full QRH parameter rectangle. The harness never silently rewrites the source pin or installs dependencies during a search. A missing script, plan, interpreter or dependency produces a visible error without launching a model.
+
+Other projects can point to a generated repository-specific script using the same protocol: `--plan PATH --output NEW_DIRECTORY --overview PATH`. The script must write `cpu-result.json` containing `status` (`COMPLETED` or `INCOMPLETE`) and a readable `summary`; exit nonzero on execution failure. It can atomically write `objective`, `method` and `meaning` strings into the supplied overview file. Keep all candidate data and failures in the new output directory, and print progress on stdout. A zero exit without the result receipt is not completion. The CPU task does not accept chat prompts or keep-researching model loops; generating or changing a script is a separate requested development step.
+
+A completed CPU search is not a passed Lean proof. The QRH script records exact conditional certificates, failed and incomplete candidates, source/plan hashes and the best tested bound. The shared server still needs a matching QRH profile before formal verification.
 
 In **Connections & settings → Lean server**, select an installed Lean binary and start the server. It listens on a dynamically selected loopback port, verifies its authenticated health endpoint, and supplies a private connection file to new local research runs. Choose a dedicated server folder on the external or internal disk, outside synced folders. Changing folders does not migrate or delete the previous server's data.
 
