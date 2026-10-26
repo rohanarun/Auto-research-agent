@@ -20,16 +20,21 @@ public struct ResearchProject: Codable, Identifiable, Hashable, Sendable {
     public var category: String
     public var localPath: String?
     public var isCustom: Bool
-    public init(repository: String, name: String? = nil, summary: String = "", category: String = "Research", localPath: String? = nil, isCustom: Bool = false) {
-        self.id = localPath ?? repository.lowercased()
+    public var builtinID: String?
+    public init(repository: String, name: String? = nil, summary: String = "", category: String = "Research", localPath: String? = nil, isCustom: Bool = false, builtinID: String? = nil) {
+        self.id = builtinID.map { "builtin:" + $0 } ?? localPath ?? repository.lowercased()
         self.repository = repository
         self.name = name ?? repository.components(separatedBy: "/").last ?? repository
         self.summary = summary
         self.category = category
         self.localPath = localPath
         self.isCustom = isCustom
+        self.builtinID = builtinID
     }
     public var githubURL: URL? { repository.isEmpty ? nil : URL(string: "https://github.com/\(repository)") }
+    public var managedWorkspaceComponent: String {
+        builtinID.map { "projects/builtins/" + $0 } ?? "projects/" + repository
+    }
 }
 
 public struct ChatMessage: Codable, Identifiable, Sendable {

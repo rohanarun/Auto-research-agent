@@ -3,6 +3,7 @@ import ResearchCore
 
 extension AppStore {
     func launchCloud(_ id: UUID, project: ResearchProject, request: String?) {
+        guard project.builtinID == nil else { error = "Built-in challenge starters run on this Mac and use the official remote judge. Start them from the project page."; return }
         guard runners[id] == nil,let initial = sessions.first(where:{$0.id == id}) else { return }
         let savedMonitor = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("cloud-method-attachments/" + id.uuidString + ".json")
         if FileManager.default.fileExists(atPath: savedMonitor.path) {
@@ -159,6 +160,7 @@ extension AppStore {
     }
 
     private func runCloudResearch(_ project: ResearchProject, request: String?, resume: CloudGroupResume?) {
+        guard project.builtinID == nil else { error = "Built-in challenge starters use a local coordinator. Start research from the project page."; return }
         let options = resume?.options ?? sharedConfiguration(project.id)
         do { try options.validate() } catch { self.error = error.localizedDescription;return }
         let group = resume?.groupID ?? UUID()

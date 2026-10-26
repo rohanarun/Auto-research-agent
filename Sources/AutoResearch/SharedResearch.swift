@@ -51,6 +51,10 @@ extension AppStore {
     func synchronizeSharedResearch(_ projectID: String) { sharedCycles[projectID]?.synchronize() }
 
     func startSharedResearch(_ project: ResearchProject, request: String? = nil) {
+        guard project.builtinID == nil else {
+            error = "Built-in challenge starters use one local coordinator. Start research from the project page; the official judge runs the GPU evaluation."
+            return
+        }
         if sharedConfiguration(project.id).usesMethods {
             guard !running(project) else { error = "Stop the current run before starting research methods."; return }
             select(project); selectedSharedGroupID = nil
