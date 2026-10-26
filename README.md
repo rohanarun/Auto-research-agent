@@ -14,6 +14,28 @@ It runs the Codex, Claude Code or OpenCode CLI under the hood, using your own ac
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code or OpenCode CLI in **Connections & settings**. The download contains no account credentials or local chats.
 
+## Built-in MUSE kernel projects
+
+The source build includes all five [MUSE kernel challenges](https://openkernelchallenge.dev/) alongside the GitHub catalog. They remain available when the catalog is offline:
+
+| Project | Starting point |
+| --- | --- |
+| [Dense projections](https://openkernelchallenge.dev/problems/muse_bf16_proj) | BF16 projections and the FP32 router |
+| [Attention decode](https://openkernelchallenge.dev/problems/muse_attention_decode) | Gated attention and paged FP8 cache updates |
+| [Routed experts](https://openkernelchallenge.dev/problems/muse_moe_w4a16) | NVFP4 experts, routing and intermediate tensors |
+| [Decoder layer](https://openkernelchallenge.dev/problems/muse_decode_layer) | End-to-end decode with attention, experts and residuals |
+| [Prefill layer](https://openkernelchallenge.dev/problems/muse_prefill_layer) | Longer query blocks on the separate prefill leaderboard |
+
+Press Play to create a local workspace with an editable `auto-research.md` starter guide. These projects use one local coordinator, even when Daytona or parallel research is selected globally. They use your installed coding CLI and your own Open Kernel Challenge account. The agent analyzes source and can perform CPU checks on your Mac; `okc check` and `okc submit` run the GPU evaluation on the official service. You do not need to own or rent a GPU. Remote evaluation is still GPU work and consumes the service's current quotas.
+
+Open a built-in project and enter your own GitHub/OKC username. **Refresh account** shows the account currently authenticated by the official CLI. **Choose account…** opens `okc login --force` in Terminal so you can sign in through the official browser flow and personally accept the rules; the app never collects your password or token. An existing CLI login may belong to a different account. Refresh the account after login; Play checks that it matches the username you entered. If the CLI is missing, install it using the [official setup guide](https://openkernelchallenge.dev/), then return to the account controls.
+
+Choose your kernel file (or leave it blank for the public starter), enter a check budget and research prompt, then press **Play**. Your configuration is saved separately for each project. Play opens the run in the app's chat, where progress and results are visible; opening the app or editing the form does not start research. The sidebar and header Play controls use the same saved configuration. **Review request** lets you inspect the generated instructions first. Scored submissions are off by default; enabling them requires a separate budget and criterion. The agent downloads the current public starter, baseline and specification with `okc init <problem> kernel`, preserving existing workspaces. For example:
+
+> Inspect the public starter and propose one basic improvement without spending checks. Then use the check budget I provide to test it. Submit the unchanged candidate only if its official check supports an improvement over my current scored best under my stated criterion and it fits my authorized scored budget.
+
+The guides suggest small changes to intermediates, layouts and pointwise work. They include no private tuned kernels, account data or saved competitive results, and make no score or rank guarantee. Official checks, uncertainty and actual scored outcomes remain separate. The prompts live in `Resources/StarterPrompts/`; project metadata lives in `Resources/BuiltinProjects.json`. The downloadable release above predates this source feature.
+
 ## Daytona execution
 
 In **Connections & settings → Daytona**, enter your Daytona API key and click

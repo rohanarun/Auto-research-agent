@@ -1,0 +1,72 @@
+[
+  {
+    "id": "muse_bf16_proj",
+    "name": "MUSE · Dense projections",
+    "summary": "Improve BF16 projections and the FP32 router using public starter code and the official remote judge. No local GPU required.",
+    "category": "Kernel challenges",
+    "website": "https://openkernelchallenge.dev/problems/muse_bf16_proj",
+    "leaderboard": "https://openkernelchallenge.dev/problems/muse_bf16_proj",
+    "promptFile": "StarterPrompts/muse_bf16_proj.md",
+    "suggestedPrompts": [
+      "Explain the public projection starter and router precision rules. Propose one basic change without spending official quota.",
+      "Find one simple projection improvement and evaluate it with official checks within my agreed budget. Ask for a budget if none is set; preserve failures and per-case results.",
+      "Check my candidate, then submit it if it passes and the official evidence supports improving my current score. Submit the same checked file and stay within my check and submission budgets; ask if I haven't set them."
+    ]
+  },
+  {
+    "id": "muse_attention_decode",
+    "name": "MUSE · Attention decode",
+    "summary": "Explore gated attention over a paged FP8 cache, with official correctness checks and timing on the remote judge.",
+    "category": "Kernel challenges",
+    "website": "https://openkernelchallenge.dev/problems/muse_attention_decode",
+    "leaderboard": "https://openkernelchallenge.dev/problems/muse_attention_decode",
+    "promptFile": "StarterPrompts/muse_attention_decode.md",
+    "suggestedPrompts": [
+      "Explain the public attention starter's causality, cache writes and page-size handling. Propose one basic change without spending official quota.",
+      "Reduce one attention intermediate while preserving every required key and cache update. Use official checks within my agreed budget; ask for a budget if none is set.",
+      "Check my candidate, then submit it if it passes and the official evidence supports improving my current score. Submit the same checked file and stay within my check and submission budgets; ask if I haven't set them."
+    ]
+  },
+  {
+    "id": "muse_moe_w4a16",
+    "name": "MUSE · Routed experts",
+    "summary": "Study NVFP4 routed experts, routing overhead and intermediate tensors. Use official remote checks without renting a GPU.",
+    "category": "Kernel challenges",
+    "website": "https://openkernelchallenge.dev/problems/muse_moe_w4a16",
+    "leaderboard": "https://openkernelchallenge.dev/problems/muse_moe_w4a16",
+    "promptFile": "StarterPrompts/muse_moe_w4a16.md",
+    "suggestedPrompts": [
+      "Map the public routed-expert starter's intermediates and NVFP4 storage rules. Propose one basic change without spending official quota.",
+      "Reduce one routed-expert intermediate without changing normalization or weight precision. Use official checks within my agreed budget; ask for a budget if none is set.",
+      "Check my candidate, then submit it if it passes and the official evidence supports improving my current score. Submit the same checked file and stay within my check and submission budgets; ask if I haven't set them."
+    ]
+  },
+  {
+    "id": "muse_decode_layer",
+    "name": "MUSE · Decoder layer",
+    "summary": "Optimize a complete decoder layer while preserving attention, routing, norms and residuals. Judge the full layer remotely.",
+    "category": "Kernel challenges",
+    "website": "https://openkernelchallenge.dev/problems/muse_decode_layer",
+    "leaderboard": "https://openkernelchallenge.dev/problems/muse_decode_layer",
+    "promptFile": "StarterPrompts/muse_decode_layer.md",
+    "suggestedPrompts": [
+      "Map the public decoder layer's dependencies, outputs and cache effects. Propose one conservative change without spending official quota.",
+      "Reduce one pointwise intermediate in the public decoder layer and evaluate the full layer with official checks within my agreed budget. Ask for a budget if none is set.",
+      "Check my candidate, then submit it if it passes and the official evidence supports improving my current score. Submit the same checked file and stay within my check and submission budgets; ask if I haven't set them."
+    ]
+  },
+  {
+    "id": "muse_prefill_layer",
+    "name": "MUSE · Prefill layer",
+    "summary": "Improve the full prefill path for long prompts and grouped experts on its separate leaderboard, using the official remote judge.",
+    "category": "Kernel challenges",
+    "website": "https://openkernelchallenge.dev/problems/muse_prefill_layer",
+    "leaderboard": "https://openkernelchallenge.dev/problems/muse_prefill_layer",
+    "promptFile": "StarterPrompts/muse_prefill_layer.md",
+    "suggestedPrompts": [
+      "Map the public prefill starter's largest intermediates and legal weight storage. Propose one basic change without spending official quota.",
+      "Reduce one prefill layout conversion or intermediate, then evaluate complete prefill cases with official checks within my agreed budget. Ask for a budget if none is set.",
+      "Check my candidate, then submit it if it passes and the official evidence supports improving my current score. Submit the same checked file and stay within my check and submission budgets; ask if I haven't set them."
+    ]
+  }
+]

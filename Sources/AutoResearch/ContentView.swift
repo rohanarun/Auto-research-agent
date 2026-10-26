@@ -25,7 +25,8 @@ struct ContentView: View {
                     transcript(session)
                     composer
                 } else if store.showingProjectDetails, let project = store.project {
-                    ProjectDashboardView(project: project, catalogURL: store.settings.catalogURL)
+                    if project.builtinID != nil { BuiltinProjectView(store: store, project: project) }
+                    else { ProjectDashboardView(project: project, catalogURL: store.settings.catalogURL) }
                 } else { welcome; composer }
             }.frame(maxWidth: .infinity, maxHeight: .infinity).background(.white)
         }
@@ -105,7 +106,7 @@ struct ContentView: View {
                     Image(systemName: project.isCustom ? "folder" : "circle.dotted").font(.system(size: 14)).foregroundStyle(store.selectedProjectID == project.id ? accent : muted)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(project.name.replacingOccurrences(of: "-", with: " ")).font(.system(size: 12, weight: store.selectedProjectID == project.id ? .semibold : .regular)).lineLimit(1)
-                        Text(project.repository.isEmpty ? "Local workspace" : project.repository.components(separatedBy: "/").first ?? "").font(.system(size: 10)).foregroundStyle(muted).lineLimit(1)
+                        Text(project.builtinID != nil ? project.category : project.repository.isEmpty ? "Local workspace" : project.repository.components(separatedBy: "/").first ?? "").font(.system(size: 10)).foregroundStyle(muted).lineLimit(1)
                     }
                     Spacer(minLength: 0)
                 }.contentShape(Rectangle())
@@ -154,7 +155,8 @@ struct ContentView: View {
                 .font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 .truncationMode(.tail).frame(maxWidth: .infinity, alignment: .leading)
             if let project = store.project {
-                SharedContextControls(store: store, project: project).fixedSize()
+                if project.builtinID == nil { SharedContextControls(store: store, project: project).fixedSize() }
+                else { Text("Local coordinator").foregroundStyle(muted).help("This starter uses one local agent. The official judge evaluates kernels remotely.") }
                 if store.showingProjectDetails && store.session == nil && store.selectedSharedGroupID == nil {
                     Button { store.play(project) } label: { Image(systemName: "play.fill") }
                         .help("Start research").accessibilityLabel("Start selected research project")
@@ -184,7 +186,7 @@ struct ContentView: View {
                     if let recent = store.projectSessions.first { Button("Open latest chat") { store.selectSession(recent) } }
                     Divider()
                 }
-                if let url = store.project?.githubURL { Link("View repository", destination: url) }
+                if let project = store.project, let url = store.projectURL(project) { Link(project.builtinID == nil ? "View repository" : "View challenge", destination: url) }
                 Button("Show project in Finder") { store.revealProject() }.disabled(store.session?.workingDirectory == nil && store.project?.localPath == nil)
                 Button("Show run logs") { store.revealLogs() }.disabled(store.session == nil)
                 Button("Continue in Terminal") { store.openTerminal() }.disabled(store.isRunning || store.sharedActive(store.project?.id ?? "") || store.session?.providerSessionID == nil)
@@ -209,7 +211,7 @@ struct ContentView: View {
                 .font(.system(size: 15)).foregroundStyle(muted).lineSpacing(5).frame(maxWidth: 540, alignment: .leading)
             HStack(spacing: 12) {
                 Button { if let project = store.project { store.play(project) } } label: { Label("Start research", systemImage: "play.fill").font(.system(size: 13, weight: .medium)).padding(.horizontal, 18).padding(.vertical, 12).background(ink, in: Capsule()).foregroundStyle(.white) }.buttonStyle(.plain).disabled(store.project == nil)
-                if let url = store.project?.githubURL { Link(destination: url) { Label("Explore repository", systemImage: "arrow.up.right").font(.system(size: 13, weight: .medium)).padding(.horizontal, 16).padding(.vertical, 12).background(sidebarColor, in: Capsule()).foregroundStyle(ink) } }
+                if let project = store.project, let url = store.projectURL(project) { Link(destination: url) { Label(project.builtinID == nil ? "Explore repository" : "Explore challenge", systemImage: "arrow.up.right").font(.system(size: 13, weight: .medium)).padding(.horizontal, 16).padding(.vertical, 12).background(sidebarColor, in: Capsule()).foregroundStyle(ink) } }
             }.padding(.top, 28)
             HStack(alignment: .top, spacing: 22) {
                 hint("doc.text", "Repository-led", "Starts from its research guide")
