@@ -47,6 +47,15 @@ extension AppStore {
                 }
                 let extra = initial.sharedAgent == nil || methodOptions?.enabled == true ? "" : try String(contentsOf:resourceDirectory.appendingPathComponent(initial.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"),encoding:.utf8)
                 var cloudPolicy = policy + "\n\n" + extra + "\n\nExecution environment: your private Linux Daytona sandbox, assigned checkout /workspace/checkout. All commands and generated files stay in this checkout. The external-SSD rule applies to the native Mac controller, whose mount was validated there; do not look for /Volumes inside Linux. No host account files, prior conversations, peer checkouts or host MCP configuration are supplied."
+                let leanRound = "lean-tools-" + UUID().uuidString
+                let leanFiles = try LeanSearch.files(resources: resourceDirectory)
+                let leanConnection = try leanServer.remoteConnectionFiles()
+                let privateLeanConnection = "/research-private/lean-server/" + leanRound
+                if !leanConnection.isEmpty {
+                    try await c.upload(cloud.sandboxID, files: Dictionary(uniqueKeysWithValues: leanConnection.map { (privateLeanConnection + "/" + $0.key, $0.value) }))
+                }
+                _ = try await c.call(cloud.sandboxID, action: "put-context", payload: ["round": leanRound, "files": leanFiles.mapValues { $0.base64EncodedString() }])
+                cloudPolicy += "\n\n" + LeanSearch.instruction(directory: "/workspace/checkout/SHARED_CONTEXT/" + leanRound, connection: leanConnection.isEmpty ? nil : privateLeanConnection + "/connection.json")
                 var cloudSettings = settings;cloudSettings.codexPath = "/opt/autoresearch/bin/codex"
                 var methodDirectory: String?
                 var methodFiles: [String: Data] = [:]

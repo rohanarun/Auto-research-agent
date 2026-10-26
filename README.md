@@ -234,3 +234,9 @@ Set `RESEARCH_SIGNING_IDENTITY` to your Developer ID Application identity and `R
 Contributions are welcome. Include the problem, the expected behavior, and relevant test results. For protocol or process changes, add a regression test using synthetic events; real provider tests are opt-in and use the contributor's account. Do not include credentials, local account configuration, chat transcripts, research checkouts, or raw provider logs in issues or pull requests.
 
 Licensed under the [MIT License](LICENSE). Codex, Claude Code, OpenCode, the fetched catalog, and the research repositories are separate projects with their own terms and licenses; their contents are not relicensed by this repository.
+
+## CPU search and shared Lean verification
+
+Connections & settings → Lean server can host an authenticated verifier on this Mac and optionally share it through ngrok. Search agents submit candidates and poll durable jobs while the host retains Lean dependencies, build caches and verification evidence. New local runs receive the local connection automatically; Daytona workers receive the remote connection when sharing is enabled. Agent37 nodes use the same HTTPS client.
+
+The bundled skill starts with source-pinned QRH CPU certificate screening and reusable Lean/axiom/Comparator plans. The initial server profile is a kernel smoke test; full QRH formalization and other theorem profiles require their prepared, pinned proof projects. See [setup, scope and verification details](docs/lean-search.md).

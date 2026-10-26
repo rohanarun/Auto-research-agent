@@ -1,0 +1,28 @@
+{
+  "source": "https://github.com/rohanarun/quasi-rh-hillclimb/pull/9",
+  "source_ref": "lean-tau-1-40000",
+  "status": "Reference recipe; inspect current source and pin exact revisions before running",
+  "search": {
+    "scope": "Track A Part II exponent budget, conditional on the preprint theorem; not a global zero-free theorem",
+    "certifier": "REPLACE_WITH_PINNED_CHECKOUT/certify.py",
+    "certifier_sha256": "REPLACE_WITH_REVIEWED_SHA256",
+    "box": [["0", "5/6"], ["0", "1/2"]],
+    "maxdepth": 20,
+    "candidates": [{"ell": "20003/120000", "h": "65003/80000"}]
+  },
+  "verification": {
+    "scope": "Three QRH terminal theorems at the exact candidate boundary, with original pole exceptions and family assumptions",
+    "targets": [
+      "OAI.DirichletCharacter.LFunction_ne_zero_of_perturbed_boundary_lt_re",
+      "OAI.riemannZeta_ne_zero_of_perturbed_boundary_lt_re",
+      "OAI.SevenEighths.HeckeFamily.LFunction_ne_zero_of_perturbed_boundary_lt_re"
+    ],
+    "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"],
+    "pins": {},
+    "stages": [
+      {"kind": "build", "argv": ["lake", "build", "+PerturbedBoundaryMain"]},
+      {"kind": "axioms", "argv": ["lake", "env", "lean", "Audit.lean"]},
+      {"kind": "comparator", "argv": ["lake", "env", "comparator", "three-roots.json"], "success_markers": ["Lean default kernel accepts the solution", "Your solution is okay!"]}
+    ]
+  }
+}
