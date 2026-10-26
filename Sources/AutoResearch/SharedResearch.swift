@@ -12,8 +12,9 @@ struct SharedRunStatus {
 
 extension AppStore {
     func selectSharedGroup(_ groupID: UUID, projectID: String) {
+        captureResponseDraft()
         selectedProjectID = projectID; selectedSessionID = nil; selectedSharedGroupID = groupID
-        showingProjectDetails = false; composer = ""; save()
+        showingProjectDetails = false; responseFocusRequest = nil; responseScrollTarget = nil; restoreResponseDraft(); save()
     }
     var projectSharedGroups: [ResearchSession] {
         var seen = Set<UUID>()
@@ -42,6 +43,7 @@ extension AppStore {
         sharedOptions[projectID] = options; save()
     }
     func stopSharedResearch(_ projectID: String) {
+        if let group = sharedRuns[projectID]?.groupID { suspendFleetGroup(group) }
         sharedCycles[projectID]?.stop()
         // Independent cycles await unstructured worker tasks. Cancelling the
         // cycle does not cancel those tasks, so signal their owned runners now
@@ -101,6 +103,7 @@ extension AppStore {
                     session.sharedAgent = SharedAgent(groupID: groupID, index: offset + 1, generation: generation, previousSessionID: previous.indices.contains(offset) ? previous[offset] : nil, contextFile: context?.path, sharesContext: options.enabled, agentCount: options.agentCount)
                     let mode = options.enabled ? "Context sharing" : "Independent research; no context sharing or session replacement"
                     session.messages.append(ChatMessage(role: "status", text: "\(mode) · agent \(offset + 1) of \(options.agentCount). Independent checkout: \(directory.path). New provider session; previous chats are preserved."))
+                    self.inheritFleetDraft(session)
                     self.sessions.append(session); ids.append(session.id)
                 }
                 // Persist every successor and its lineage before starting any provider.
@@ -113,6 +116,9 @@ extension AppStore {
                 return ids
             },
             drain: { ids in
+                let rotating = self.sharedRuns[project.id]?.phase == .capturing && self.sharedCycles[project.id]?.active == true
+                if rotating { self.fleetDrainingForRotation.formUnion(ids) }
+                defer { self.fleetDrainingForRotation.subtract(ids) }
                 let tasks = ids.compactMap { self.workerTasks[$0] }
                 for id in ids { self.stopWorker(id) }
                 for task in tasks { await task.value }
@@ -158,6 +164,7 @@ extension AppStore {
             update: { phase, generation, ids, message in
                 self.sharedRuns[project.id] = SharedRunStatus(groupID: groupID, sharesContext: options.enabled, generation: generation, phase: phase, sessionIDs: ids, message: message)
                 if phase == .failed || phase == .stopped || phase == .completed {
+                    if phase != .completed { self.suspendFleetGroup(groupID) }
                     self.activePaths.removeValue(forKey: groupID)
                     self.sharedOperations.removeValue(forKey: project.id)
                     if let message { self.error = message }
@@ -165,8 +172,7 @@ extension AppStore {
                 }
             },
             waitForCompletion: { ids in
-                let tasks = ids.compactMap { self.workerTasks[$0] }
-                for task in tasks { await task.value }
+                await self.waitForFleetTurns(ids)
                 for id in ids { self.workerTasks.removeValue(forKey: id) }
                 if self.sessions.contains(where: { ids.contains($0.id) && $0.state == "Needs attention" }) {
                     throw ResearchError("An independent agent needs attention. Other agents finished their own runs; all chats and files are preserved.")

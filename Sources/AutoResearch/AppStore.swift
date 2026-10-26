@@ -11,7 +11,13 @@ import ResearchCore
     @Published var selectedSharedGroupID: UUID?
     @Published var provider: Provider = .codex
     @Published var search = ""
-    @Published var composer = ""
+    @Published var composer = "" { didSet { responseComposerChanged() } }
+    @Published var responseNavigation = FleetResponseNavigation()
+    @Published var responseFocusRequest: UUID?
+    @Published var responseScrollTarget: String?
+    var restoringResponseDraft = false
+    @Published var authorizedFleetFollowups = Set<UUID>()
+    var fleetDrainingForRotation = Set<UUID>()
     @Published var showingProjectDetails = true
     @Published var error: String?
     @Published var catalogStatus = "Loading catalog"
@@ -25,6 +31,12 @@ import ResearchCore
     @Published var showSettings = false
     @Published var showAddProject = false
     @Published var auth: [Provider: String] = [:]
+    @Published var gateway = OpenRouterConfiguration()
+    @Published var gatewayKeyConfigured = false
+    @Published var gatewayStatus = "No OpenRouter key configured"
+    var gatewayConfigurationReadable = true
+    var savedGateway = OpenRouterConfiguration()
+    var gatewayCredentials: any OpenRouterCredentialStore = OpenRouterKeychain()
     @Published var loginProvider: Provider?
     @Published var loginOutput = ""
     @Published var policy: String = ""
@@ -73,7 +85,8 @@ import ResearchCore
     private var needsWorkspace = false
     private var starting = false
 
-    init(resourceDirectory overrideResourceDirectory: URL? = nil, defaults overrideDefaults: ResearchCore.Settings? = nil) {
+    init(resourceDirectory overrideResourceDirectory: URL? = nil, defaults overrideDefaults: ResearchCore.Settings? = nil, gatewayCredentials credentialStore: (any OpenRouterCredentialStore)? = nil) {
+        if let credentialStore { gatewayCredentials = credentialStore }
         let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
         let bundled = Bundle.main.resourceURL ?? executable.deletingLastPathComponent()
         resourceDirectory = overrideResourceDirectory ?? (FileManager.default.fileExists(atPath: bundled.appendingPathComponent("Defaults.json").path)
@@ -110,6 +123,8 @@ import ResearchCore
                 sharedOptions = saved.sharedOptions ?? [:]
                 selectedProjectID = saved.selectedProjectID; selectedSessionID = saved.selectedSessionID; provider = saved.provider
                 selectedSharedGroupID = saved.selectedSharedGroupID
+                responseNavigation = saved.fleetNavigation ?? FleetResponseNavigation()
+                responseNavigation.restore()
                 for i in sessions.indices where ["Running", "Preparing", "Stopping"].contains(sessions[i].state) {
                     let attachment = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("cloud-method-attachments/" + sessions[i].id.uuidString + ".json")
                     if FileManager.default.fileExists(atPath: attachment.path) { sessions[i].state = "Reconnecting"; continue }
@@ -125,7 +140,10 @@ import ResearchCore
             }
             projects = BuiltinProjects.merge(fetched: projects, existing: [], builtins: builtinProjects, sessionProjectIDs: [])
             loadBuiltinDrafts()
+            loadGatewayConfiguration()
             selectInitialProject()
+            restoreFleetHistory()
+            restoreResponseDraft()
         } catch { historyIsReadable = false; self.error = "Saved history could not be loaded. It will not be overwritten. \(error.localizedDescription)" }
     }
 
@@ -170,14 +188,18 @@ import ResearchCore
         } catch { catalogStatus = "Offline · saved catalog"; self.error = error.localizedDescription }
     }
     func select(_ project: ResearchProject) {
+        captureResponseDraft()
         selectedProjectID = project.id
         selectedSharedGroupID = nil
         selectedSessionID = nil; showingProjectDetails = true
-        composer = ""; save()
+        responseFocusRequest = nil; responseScrollTarget = nil; restoreResponseDraft(); save()
     }
     func selectSession(_ session: ResearchSession) {
+        captureResponseDraft()
         if let index = sessions.firstIndex(where: { $0.id == session.id }) { sessions[index].closedAt = nil }
-        selectedSharedGroupID = nil; selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider; composer = ""; save()
+        selectedSharedGroupID = nil; selectedProjectID = session.projectID; selectedSessionID = session.id; provider = session.provider
+        if let agent = session.sharedAgent { responseNavigation.recipientIndices[agent.groupID] = agent.index }
+        responseFocusRequest = nil; responseScrollTarget = nil; restoreResponseDraft(); save()
     }
     func canClose(_ session: ResearchSession) -> Bool {
         runners[session.id] == nil && !(session.sharedAgent?.groupID == sharedRuns[session.projectID]?.groupID && sharedActive(session.projectID))
@@ -199,8 +221,8 @@ import ResearchCore
         if selectedSharedGroupID == groupID { showProjectDetails() }
         save()
     }
-    func newChat() { selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = false; composer = ""; save() }
-    func showProjectDetails() { selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = true; save() }
+    func newChat() { captureResponseDraft(); selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = false; responseFocusRequest = nil; responseScrollTarget = nil; restoreResponseDraft(); save() }
+    func showProjectDetails() { captureResponseDraft(); selectedSharedGroupID = nil; selectedSessionID = nil; showingProjectDetails = true; responseFocusRequest = nil; responseScrollTarget = nil; restoreResponseDraft(); save() }
     func addRepository(_ text: String) {
         var repo = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if repo.hasPrefix("https://github.com/") { repo = String(repo.dropFirst("https://github.com/".count)) }
@@ -229,11 +251,13 @@ import ResearchCore
     }
     @discardableResult func persist() -> Bool {
         guard historyIsReadable, !needsWorkspace else { return false }
+        captureResponseDraft()
         do {
             let root = try Workspace.validate(settings.workspaceRoot)
             var state = SavedState(projects: projects, sessions: sessions, selectedProjectID: selectedProjectID, selectedSessionID: selectedSessionID, provider: provider)
             state.sharedOptions = sharedOptions
             state.selectedSharedGroupID = selectedSharedGroupID
+            state.fleetNavigation = responseNavigation
             try Workspace.write(state, to: root.appendingPathComponent("state.json"))
             return true
         } catch { self.error = "Could not save chat history: \(error.localizedDescription)"; return false }
@@ -269,6 +293,10 @@ import ResearchCore
         launch(session.id, project: project, request: nil)
     }
     func send(to recipientID: UUID? = nil) {
+        if responseGroupID != nil {
+            if let recipient = recipientID ?? responseRecipient?.id { acceptFleetFollowup(recipient) }
+            return
+        }
         let request = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty, let project, !isRunning else { return }
         guard !sharedActive(project.id) else { error = "Stop the parallel group before sending a manual follow-up."; return }
@@ -304,6 +332,11 @@ import ResearchCore
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
+        guard let launchSession = sessions.first(where: { $0.id == id }) else { return }
+        let cloud = project.builtinID == nil && launchSession.usesCloud(preferCloud: daytona.enabled)
+        do { try gatewayPreflight(launchSession, cloud: cloud) }
+        catch { append(id, role: "error", text: error.localizedDescription); state(id, "Needs attention"); return }
+        let runGateway = gateway
         if project.builtinID == nil, sessions.first(where: { $0.id == id })?.usesCloud(preferCloud:daytona.enabled) == true { launchCloud(id, project:project, request:request);return }
         guard runners[id] == nil else { return }
         let targetPath = sessions.first(where: { $0.id == id })?.workingDirectory ?? project.localPath ?? URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent(project.managedWorkspaceComponent).path
@@ -376,6 +409,7 @@ import ResearchCore
                         prompt += "\nShared context copied into this fresh session from \(path):\n\n" + (try String(contentsOfFile: path, encoding: .utf8))
                     }
                 }
+                prompt = try claimFleetFollowups(id, prompt: prompt)
                 append(id, role: "user", text: prompt)
                 let logDir = try Workspace.directory(settings.workspaceRoot, "sessions/\(id.uuidString)")
                 let logURL = logDir.appendingPathComponent("\(UUID().uuidString).jsonl")
@@ -397,7 +431,7 @@ import ResearchCore
                 if let methods = methodOptions, methods.enabled {
                     let files = try ResearchMethods.files(options: methods, provider: current.provider, settings: settings,
                         policy: fullPolicy, resources: resourceDirectory, disabledMCPServers: disabledMCPServers,
-                        enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) }, sharedContext: sharedConfiguration(project.id))
+                        enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) }, sharedContext: sharedConfiguration(project.id), gateway: runGateway)
                     let folder = directory.appendingPathComponent(".auto-research-methods/control/\(id.uuidString)/\(UUID().uuidString)")
                     _ = try Workspace.validate(folder.path)
                     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -406,9 +440,25 @@ import ResearchCore
                     fullPolicy += "\n\n" + ResearchMethods.instruction(directory: folder.path)
                     append(id, role: "status", text: "Optional research methods installed. Branches use the configured model; evidence and losing branches are retained in this checkout.")
                 }
-                let command = CLI.chat(provider: current.provider, settings: settings, sessionID: current.providerSessionID, prompt: prompt, policy: fullPolicy, disabledMCPServers: disabledMCPServers, enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) })
+                let command = CLI.chat(provider: current.provider, settings: settings, sessionID: current.providerSessionID, prompt: prompt, policy: fullPolicy, disabledMCPServers: disabledMCPServers, enabledMCPServers: availableMCPServers.filter { enabledMCPServers.contains($0) }, gateway: runGateway)
+                var modelEnvironment = env
+                var secrets: [String] = []
+                if runGateway.applies(to: current.provider) {
+                    let key = try gatewayCredentials.read()
+                    let profile = current.provider == .claude ? try Workspace.directory(settings.workspaceRoot, "gateway/claude-profile").path : ""
+                    modelEnvironment.merge(runGateway.environment(provider: current.provider, key: key, claudeConfigDirectory: profile)) { _, new in new }
+                    secrets = [key]
+                    append(id, role: "status", text: "OpenRouter · \(current.provider.title) · \(runGateway.model(for: current.provider)) · local process")
+                }
+                if let i = sessions.firstIndex(where: { $0.id == id }) {
+                    sessions[i].connectionRoute = runGateway.route(for: current.provider)
+                    let model = runGateway.applies(to: current.provider) ? runGateway.model(for: current.provider)
+                        : (current.provider == .codex ? settings.codexModel : current.provider == .claude ? settings.claudeModel : settings.opencodeModel)
+                    sessions[i].connectionModel = model.isEmpty ? nil : model
+                }
+                guard persist() else { throw ResearchError("Could not save this chat's connection route. No model request was started.") }
                 state(id, "Running")
-                let result = try await runner.run(command, directory: directory, environment: env, onLine: { line, stderr in
+                let result = try await runner.run(command, directory: directory, environment: modelEnvironment, redacting: secrets, onLine: { line, stderr in
                     logLock.lock(); try? log.write(contentsOf: Data((line + "\n").utf8)); logLock.unlock()
                     Task { @MainActor in self.consume(line, stderr: stderr, provider: current.provider, sessionID: id) }
                 })
@@ -436,7 +486,7 @@ import ResearchCore
                     append(id, role: "status", text: "Plan ready. Running isolated research branches with the configured model.")
                     let execution = try await runner.run(Command("/usr/bin/env", ["python3", "-B", folder.appendingPathComponent("ResearchMethods.py").path,
                         "--config", folder.appendingPathComponent("config.json").path, "--plan", folder.appendingPathComponent("plan.json").path,
-                        "--workspace", directory.path]), directory: directory, environment: env, onLine: { line, _ in
+                        "--workspace", directory.path]), directory: directory, environment: modelEnvironment, redacting: secrets, onLine: { line, _ in
                             Task { @MainActor in self.append(id, role: "tool", text: line) }
                         })
                     guard execution.code == 0 else { throw ResearchError("Research-method execution stopped or failed. All branch work and logs are preserved. \(execution.stderr)") }
@@ -457,6 +507,7 @@ import ResearchCore
                 else { state(id, "Needs attention"); append(id, role: "error", text: error.localizedDescription) }
             }
             runners.removeValue(forKey: id); activePaths.removeValue(forKey: id); persist()
+            if finishFleetTurn(id) { return }
             let finishedSession = sessions.first(where: { $0.id == id })
             if let agent = finishedSession?.sharedAgent, !agent.isIndependent, finishedSession?.state == "Needs attention" {
                 sharedCycles[project.id]?.stop(failure: "An agent needs attention. Review its chat before starting another group.")
@@ -481,24 +532,26 @@ import ResearchCore
             }
             save(); return
         }
+        var completedTurn = false
         for event in EventDecoder.decode(line, provider: provider) {
             switch event {
             case .session(let value): sessions[i].providerSessionID = value
-            case .completed: completed.insert(id); failed.remove(id)
+            case .completed: completed.insert(id); failed.remove(id); completedTurn = true
             case .failure(let text): failed.insert(id); completed.remove(id); append(id, role: "error", text: text)
             case let .message(key, role, text):
                 if let messageID = eventMessages[id]?[key], let index = sessions[i].messages.firstIndex(where: { $0.id == messageID }) { sessions[i].messages[index].text = text }
                 else { let message = ChatMessage(role: role, text: text); sessions[i].messages.append(message); eventMessages[id, default: [:]][key] = message.id }
             }
         }
+        if completedTurn && !failed.contains(id) { receiveCompletedResponse(id) }
         save()
     }
-    func stopWorker(_ id: UUID) { keepResearching.remove(id); guard let runner = runners[id] else { return }; stopped.insert(id); state(id, "Stopping"); runner.stop() }
+    func stopWorker(_ id: UUID) { keepResearching.remove(id); if let session = sessions.first(where: { $0.id == id }), !fleetDrainingForRotation.contains(id) { suspendFleetFollowups(session: session) }; guard let runner = runners[id] else { return }; stopped.insert(id); state(id, "Stopping"); runner.stop() }
     func stop(_ id: UUID) {
         if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
         else { stopWorker(id) }
     }
-    func shutdown() { for task in builtinPlayTasks.values { task.cancel() }; for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
+    func shutdown() { authorizedFleetFollowups.removeAll(); for task in builtinPlayTasks.values { task.cancel() }; for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
         if let client = daytonaClient,let connection = daytona.connectionSandboxID {
             cloudCleanup.insert(connection)
             Task {
@@ -553,6 +606,7 @@ import ResearchCore
         NSWorkspace.shared.open(URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("sessions/\(id.uuidString)"))
     }
     func openTerminal() {
+        guard session?.connectionRoute?.hasPrefix("openrouter:") != true else { error = "Continue this OpenRouter chat inside Auto Research. Terminal export does not transfer gateway credentials or change your global CLI connection."; return }
         guard session?.cloud == nil else { error = "This chat runs in Daytona. Open its sandbox from the project button; its CLI history stays in that private sandbox.";return }
         guard let session, let directory = session.workingDirectory, let providerID = session.providerSessionID else { error = "Start a chat first to open its CLI session in Terminal."; return }
         guard !sharedActive(session.projectID) else { error = "Stop the shared-context group before continuing one of its sessions in Terminal."; return }

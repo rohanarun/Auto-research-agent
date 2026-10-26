@@ -23,7 +23,7 @@ public struct ResearchMethodOptions: Codable, Equatable, Sendable {
 public enum ResearchMethods {
     public static func files(options: ResearchMethodOptions, provider: Provider, settings: Settings,
                              policy: String, resources: URL, disabledMCPServers: [String] = [],
-                             enabledMCPServers: [String] = [], sharedContext: SharedContextOptions? = nil) throws -> [String: Data] {
+                             enabledMCPServers: [String] = [], sharedContext: SharedContextOptions? = nil, gateway: OpenRouterConfiguration = .init()) throws -> [String: Data] {
         try options.validate()
         guard provider != .opencode else {
             throw ResearchError("Optional research methods currently support Codex and Claude. Use a normal OpenCode run or choose a supported provider for these methods.")
@@ -31,13 +31,13 @@ public enum ResearchMethods {
         if let sharedContext { try sharedContext.validate() }
         let command = CLI.chat(provider: provider, settings: settings, sessionID: nil,
                                prompt: "", policy: policy, disabledMCPServers: disabledMCPServers,
-                               enabledMCPServers: enabledMCPServers)
+                               enabledMCPServers: enabledMCPServers, gateway: gateway)
         let config: [String: Any] = [
             "options": try JSONSerialization.jsonObject(with: JSONEncoder().encode(options)),
             "shareContext": sharedContext?.enabled ?? false,
             "sharingIntervalMinutes": sharedContext?.intervalMinutes ?? 0,
             "provider": provider.rawValue, "executable": command.executable,
-            "arguments": (provider == .codex ? ["--no-daemon"] : []) + command.arguments, "policy": policy
+            "arguments": (provider == .codex && !command.arguments.contains("--no-daemon") ? ["--no-daemon"] : []) + command.arguments, "policy": policy
         ]
         return ["ResearchMethods.py": try Data(contentsOf: resources.appendingPathComponent("ResearchMethods.py")),
                 "ResearchMethodsPolicy.md": try Data(contentsOf: resources.appendingPathComponent("ResearchMethodsPolicy.md")),

@@ -11,9 +11,14 @@ public struct Command: Sendable {
 }
 
 public enum CLI {
-    public static func chat(provider: Provider, settings: Settings, sessionID: String?, prompt: String, policy: String, disabledMCPServers: [String] = [], enabledMCPServers: [String] = []) -> Command {
+    public static func chat(provider: Provider, settings: Settings, sessionID: String?, prompt: String, policy: String, disabledMCPServers: [String] = [], enabledMCPServers: [String] = [], gateway: OpenRouterConfiguration = .init()) -> Command {
         if provider == .codex {
             var args = ["exec", "--disable", "plugins", "-c", "approval_policy=\"never\"", "-c", "sandbox_mode=\"\(settings.codexSandbox)\""]
+            if gateway.applies(to: provider) {
+                // A new owned process must receive this run's credential environment.
+                args.insert("--no-daemon", at: 0)
+                for override in gateway.codexOverrides { args += ["-c", override] }
+            }
             for name in disabledMCPServers {
                 args += ["-c", "mcp_servers.\(name).enabled=false"]
             }
@@ -22,7 +27,8 @@ public enum CLI {
             }
             if let sessionID { args += ["resume", sessionID] }
             args += ["--json", "--skip-git-repo-check"]
-            if !settings.codexModel.isEmpty { args += ["--model", settings.codexModel] }
+            let model = gateway.applies(to: provider) ? gateway.model(for: provider) : settings.codexModel
+            if !model.isEmpty { args += ["--model", model] }
             args += ["-"]
             return Command(settings.codexPath, args, input: "Harness instructions:\n\(policy)\n\nUser request:\n\(prompt)")
         }
@@ -37,7 +43,8 @@ public enum CLI {
         }
         var args = ["--print", "--verbose", "--output-format", "stream-json", "--permission-mode", settings.claudePermissionMode, "--append-system-prompt", policy]
         if let sessionID { args += ["--resume", sessionID] }
-        if !settings.claudeModel.isEmpty { args += ["--model", settings.claudeModel] }
+        let model = gateway.applies(to: provider) ? gateway.model(for: provider) : settings.claudeModel
+        if !model.isEmpty { args += ["--model", model] }
         return Command(settings.claudePath, args, input: prompt)
     }
     public static func configuredMCPServers(_ data: Data) throws -> [String] {
@@ -120,8 +127,11 @@ public final class ProcessRunner: @unchecked Sendable {
         running.terminate()
     }
 
-    public func run(_ command: Command, directory: URL, environment: [String: String] = [:], interactive: Bool = false, onLine: @escaping (String, Bool) -> Void = { _, _ in }) async throws -> ProcessResult {
-        if let backend { return try await backend.run(command, onLine: onLine) }
+    public func run(_ command: Command, directory: URL, environment: [String: String] = [:], interactive: Bool = false, redacting secrets: [String] = [], onLine: @escaping (String, Bool) -> Void = { _, _ in }) async throws -> ProcessResult {
+        if let backend {
+            let result = try await backend.run(command, onLine: { line, error in onLine(SecretRedaction.redact(line, secrets: secrets), error) })
+            return ProcessResult(code: result.code, stdout: SecretRedaction.redact(result.stdout, secrets: secrets), stderr: SecretRedaction.redact(result.stderr, secrets: secrets))
+        }
         return try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 let task = Process(); let out = Pipe(); let err = Pipe(); let stdin = Pipe()
@@ -154,10 +164,10 @@ public final class ProcessRunner: @unchecked Sendable {
                             while let end = pending.firstIndex(of: 10) {
                                 let line = String(decoding: pending[..<end], as: UTF8.self)
                                 pending.removeSubrange(...end)
-                                onLine(line, isError)
+                                onLine(SecretRedaction.redact(line, secrets: secrets), isError)
                             }
                         }
-                        if !pending.isEmpty { onLine(String(decoding: pending, as: UTF8.self), isError) }
+                        if !pending.isEmpty { onLine(SecretRedaction.redact(String(decoding: pending, as: UTF8.self), secrets: secrets), isError) }
                         group.leave()
                     }
                 }
@@ -166,7 +176,7 @@ public final class ProcessRunner: @unchecked Sendable {
                 task.waitUntilExit(); group.wait()
                 try? stdin.fileHandleForWriting.close()
                 self.lock.lock(); self.process = nil; self.input = nil; self.lock.unlock()
-                continuation.resume(returning: ProcessResult(code: task.terminationStatus, stdout: String(decoding: output, as: UTF8.self), stderr: String(decoding: errors, as: UTF8.self)))
+                continuation.resume(returning: ProcessResult(code: task.terminationStatus, stdout: SecretRedaction.redact(String(decoding: output, as: UTF8.self), secrets: secrets), stderr: SecretRedaction.redact(String(decoding: errors, as: UTF8.self), secrets: secrets)))
             }
         }
     }

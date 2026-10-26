@@ -8,6 +8,8 @@ import sys
 import tempfile
 import shutil
 import unittest
+import time
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location('methods', ROOT / 'Resources/ResearchMethods.py')
@@ -51,6 +53,26 @@ print(json.dumps({'valid':True,'score':s,'metrics':{'value':s,'novelty':s-1},'ev
     def run_method(self, suffix='run'):
         runner = m.Runner(self.config, self.plan, self.workspace, self.folder / suffix)
         return runner, runner.run()
+
+    def test_gateway_secret_is_inherited_but_redacted_before_branch_log_write(self):
+        runner = m.Runner(self.config, self.plan, self.workspace, self.folder / 'redaction')
+        log = self.folder / 'gateway.log'
+        with mock.patch.dict(os.environ, {'OPENROUTER_API_KEY': 'fixture-method-secret'}):
+            code, timed_out = runner.process([sys.executable, '-c', "import os,sys;print(os.environ['OPENROUTER_API_KEY']);print(os.environ['OPENROUTER_API_KEY'],file=sys.stderr)"], self.workspace, '', log, 10)
+        self.assertEqual(code, 0)
+        self.assertFalse(timed_out)
+        self.assertNotIn('fixture-method-secret', log.read_text())
+        self.assertEqual(log.read_text().count('[REDACTED]'), 2)
+
+    def test_completed_parent_does_not_leave_pipe_holding_grandchild(self):
+        runner = m.Runner(self.config, self.plan, self.workspace, self.folder / 'drain')
+        script = "import subprocess,sys;subprocess.Popen([sys.executable,'-c','import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);time.sleep(60)']);print('parent finished',flush=True)"
+        started = time.monotonic()
+        code, timed_out = runner.process([sys.executable, '-c', script], self.workspace, '', self.folder / 'drain.log', 10)
+        self.assertEqual(code, 0)
+        self.assertFalse(timed_out)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertIn('parent finished', (self.folder / 'drain.log').read_text())
 
     def test_forks_are_fresh_leader_resumes_and_source_is_preserved(self):
         runner, result = self.run_method()

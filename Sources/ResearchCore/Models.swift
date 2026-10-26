@@ -53,6 +53,10 @@ public struct ResearchSession: Codable, Identifiable, Sendable {
     public var title: String
     public var provider: Provider
     public var providerSessionID: String?
+    /// Absent on legacy chats, which used the direct CLI connection.
+    public var connectionRoute: String?
+    /// Last explicitly selected model; nil means the CLI chose its default or the chat predates this field.
+    public var connectionModel: String?
     public var workingDirectory: String?
     public var messages: [ChatMessage]
     public var createdAt: Date
@@ -123,6 +127,7 @@ public struct SavedState: Codable {
     public var provider: Provider
     public var sharedOptions: [String: SharedContextOptions]?
     public var selectedSharedGroupID: UUID?
+    public var fleetNavigation: FleetResponseNavigation?
     public init(projects: [ResearchProject], sessions: [ResearchSession], selectedProjectID: String?, selectedSessionID: UUID?, provider: Provider) {
         self.projects = projects; self.sessions = sessions; self.selectedProjectID = selectedProjectID; self.selectedSessionID = selectedSessionID; self.provider = provider
     }

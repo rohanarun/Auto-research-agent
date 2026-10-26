@@ -36,6 +36,14 @@ Choose your kernel file (or leave it blank for the public starter), enter a chec
 
 The guides suggest small changes to intermediates, layouts and pointwise work. They include no private tuned kernels, account data or saved competitive results, and make no score or rank guarantee. Official checks, uncertainty and actual scored outcomes remain separate. The prompts live in `Resources/StarterPrompts/`; project metadata lives in `Resources/BuiltinProjects.json`. The downloadable release above predates this source feature.
 
+## OpenRouter gateway
+
+Open **Connections & settings → Gateway**, save your own OpenRouter API key, enter an OpenRouter model ID for each CLI you want to use, enable gateway mode, and save the settings. The key is stored in macOS Keychain. Model IDs remain editable; gateway choices are separate from direct-login defaults. Saving settings does not start research or make a paid request.
+
+Codex uses OpenRouter's Responses endpoint and Claude uses its Anthropic-compatible endpoint, following the official [Codex integration](https://openrouter.ai/docs/cookbook/coding-agents/codex-cli) and [Claude integration](https://openrouter.ai/docs/cookbook/coding-agents/claude-code-integration) guides. Authentication is supplied to the local process at launch. Global CLI login files are preserved; Claude gateway runs have a separate SSD configuration directory. Keys are excluded from saved configuration, command arguments, prompts and run logs.
+
+Gateway mode covers local Codex and Claude runs, including local parallel and research-method workers. It does not upload the key to Daytona or change OpenCode. Existing chats retain their connection identity; changing between direct login and gateway requires a new chat. Turn gateway mode off to return to your CLI account. OpenRouter bills model usage; supported tools and behavior depend on the chosen model and provider. Claude Code is optimized for compatible Anthropic models. A saved key is configuration, not proof of a successful live request.
+
 ## Daytona execution
 
 In **Connections & settings → Daytona**, enter your Daytona API key and click
@@ -73,6 +81,8 @@ plan with a fixed evaluator, retained branch artifacts and fresh exploration
 contexts. These methods currently support Codex and Claude locally, and Codex in
 Daytona. Normal OpenCode runs remain supported. Method branches share one Daytona
 sandbox; the method runner owns parallelism instead of starting another group.
+Kernel built-ins currently keep a single local coordinator for official judge
+attempts; they do not enable these branch methods or parallel judge attempts.
 Exploration uses the configured branch count; continuation follows one selected
 leader. When context sharing is enabled, workers exchange explicit evidence and
 peer reviews at checkpoint boundaries.
@@ -173,7 +183,7 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 - Press the play button next to a repository to create a chat, clone into the workspace if needed, load its `auto-research.md` verbatim, and run with the selected provider. If that file is absent, the agent is explicitly told to find the repository's actual guide and report which source it uses. It must ask if no actionable objective exists.
 - Type a follow-up and press **Enter** to send. **Shift+Enter** inserts a new line; Command+Enter also sends. Pasted multiline text stays intact. Follow-ups resume the exact provider session, including after relaunch. Changing providers starts a new chat.
 - Click **×** beside an old chat, or choose **Close chat** from the chat menu, to remove it from the open list. Reopen it from **Closed chats** in the sidebar. Closing preserves messages, CLI session IDs, logs and checkout files. The × beside **All agents** closes the whole group. Stop active research before closing its chats.
-- **Connections & settings** contains CLI paths, optional model overrides, permission settings, login and the editable research policy. Login runs the provider's official command and uses its browser flow. The app does not copy credential files. Claude requires its own sign-in.
+- **Connections & settings** contains CLI paths, optional model overrides, permission settings, login and the editable research policy. Direct login runs the provider's official command and uses its browser flow. The app does not copy credential files. The **Gateway** tab offers OpenRouter for local Codex and Claude runs using your own API key.
 - **MCP tools** is an explicit allowlist for direct Codex MCP connections. The app discovers configured server names and disables unselected servers for each invocation. CLI plugins are not loaded in research runs. Nothing is enabled by default, so unrelated global integrations do not start with a research session. Global Codex configuration and credentials remain unchanged.
 - **Keep researching** opts into another model turn after successful completion, only when the agent explicitly decides another experiment is justified. Missing decisions, blockers, finished work and errors pause the loop. It uses `Resources/ContinuePolicy.md`. Turn it off or press Stop to end continuation. It is off by default and does not survive app restart.
 - The chat menu opens the repository, checkout, raw run logs, or exact CLI session in Terminal. Stop an in-app run before opening the same session in Terminal.
@@ -187,7 +197,11 @@ Enable **Parallel agents**, choose the count, and send one problem or start rese
 
 Turn **Share context** on before launch to enable checkpoint sharing and choose its interval. Each cycle drains current runs, snapshots compact checkpoints and supporting files, then passes all checkpoint contents verbatim plus an evidence index into fresh sessions. Agents retain their own checkouts and choose relevant `RESEARCH_CONTEXT/*.md` topic files by their descriptive names. There is no extra synthesis-model call. Every successor links back to its previous chat; hidden provider state is not transferred.
 
-The **All agents** input stays visible: choose a recipient with **Send to**, draft while agents run, then stop or wait for the group to finish before sending a follow-up to that agent. Use **Stop agents** for the whole group. Sharing groups also offer **Share now**. Group settings are locked while active. In independent mode, one agent's failure does not cancel its peers; the group reports any failure once the remaining agents finish. In sharing mode, a worker or publication failure pauses the group before replacements start. Old chats and checkout files remain available, including after relaunch. Quitting asks to stop active runs. Agent behavior for independent work is editable in `Resources/IndependentAgentPolicy.md`.
+With **Follow replies** on, the chat selects the latest completed reply in the current parallel group, scrolls to the response, and focuses its composer. Typing holds the current recipient; drafts stay with their agents. **Previous reply**, **Next reply**, **Reply history**, and the waiting count let you work through earlier responses. Sending advances to the next waiting reply. You can turn following off to browse in place.
+
+The **All agents** input stays visible. Choose a recipient with **Send to** and send while peers continue working. An idle independent agent receives the follow-up immediately; a busy agent queues it for its next safe turn. Sharing groups carry queued requests to the same logical worker at a generation boundary. Stop or relaunch preserves queued requests without automatically sending them; use **Resume queued** after reviewing them. Interrupted deliveries need review and are never silently retried. Optional method branches report into their coordinator's chat; this reply navigation targets the resumable parallel-agent chats.
+
+Use **Stop agents** for the whole group. Sharing groups also offer **Share now**. Group settings are locked while active. In independent mode, one agent's failure does not cancel its peers; the group reports any failure once the remaining agents finish. In sharing mode, a worker or publication failure pauses the group before replacements start. Old chats and checkout files remain available, including after relaunch. Quitting asks to stop active runs. Agent behavior for independent work is editable in `Resources/IndependentAgentPolicy.md`.
 
 ![Combined parallel chat with agent numbers, providers, rounds, and per-agent status](docs/images/shared-agent-chat.png)
 

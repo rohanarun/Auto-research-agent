@@ -146,25 +146,53 @@ class Runner:
         temp.mkdir(parents=True, exist_ok=True)
         env.update(TMPDIR=str(temp), XDG_CACHE_HOME=str(temp / 'cache'))
         timed_out = False
+        secrets = [env.get(name, '') for name in ('OPENROUTER_API_KEY', 'ANTHROPIC_AUTH_TOKEN')]
+        def redact(text):
+            for secret in secrets:
+                if secret:
+                    text = text.replace(secret, '[REDACTED]')
+            return text
         with log.open('w') as out:
             p = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.PIPE,
-                                 stdout=out, stderr=subprocess.STDOUT, text=True,
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors='replace',
                                  start_new_session=True)
+            # Never write a raw credential to branch/evaluator logs, even when a CLI echoes its environment.
+            def drain():
+                with p.stdout:
+                    for line in p.stdout:
+                        out.write(redact(line))
+                        out.flush()
+            def feed():
+                try:
+                    with contextlib.suppress(BrokenPipeError, OSError):
+                        p.stdin.write(stdin or '')
+                finally:
+                    with contextlib.suppress(BrokenPipeError, OSError):
+                        p.stdin.close()
+            reader = threading.Thread(target=drain)
+            writer = threading.Thread(target=feed)
+            reader.start(); writer.start()
             with self.lock:
                 self.processes.add(p)
             try:
                 try:
-                    p.communicate(stdin, timeout=seconds)
+                    p.wait(timeout=seconds)
                 except subprocess.TimeoutExpired:
                     timed_out = True
                     self.terminate(p)
                     try:
-                        p.communicate(timeout=10)
+                        p.wait(timeout=10)
                     except subprocess.TimeoutExpired:
                         with contextlib.suppress(ProcessLookupError):
                             os.killpg(p.pid, signal.SIGKILL)
-                        p.communicate()
+                        p.wait()
             finally:
+                # The owned turn has ended. Descendants must not retain either pipe
+                # and strand draining (including children that ignore SIGTERM).
+                self.terminate(p)
+                with contextlib.suppress(ProcessLookupError):
+                    os.killpg(p.pid, signal.SIGKILL)
+                writer.join(); reader.join()
                 with self.lock:
                     self.processes.discard(p)
         if self.cancelled.is_set():

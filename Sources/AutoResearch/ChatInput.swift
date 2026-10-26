@@ -5,6 +5,36 @@ import SwiftUI
 /// the input method, so committing a composed character must never send a chat.
 final class ChatTextView: NSTextView {
     var onSend: () -> Void = {}
+    private var requestedFocus: UUID?
+    private var appliedFocus: UUID?
+
+    func focusForReply(_ request: UUID?) {
+        guard let request, request != appliedFocus else {
+            requestedFocus = nil
+            return
+        }
+        requestedFocus = request
+        applyRequestedFocus()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        applyRequestedFocus()
+    }
+
+    override func unmarkText() {
+        super.unmarkText()
+        applyRequestedFocus()
+    }
+
+    private func applyRequestedFocus() {
+        guard isEditable, !hasMarkedText(), let request = requestedFocus,
+              request != appliedFocus, let window, window.makeFirstResponder(self) else { return }
+        appliedFocus = request
+        requestedFocus = nil
+        setSelectedRange(NSRange(location: (string as NSString).length, length: 0))
+    }
+
     override func keyDown(with event: NSEvent) {
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if isEditable, !hasMarkedText(), [36, 76].contains(event.keyCode),
@@ -19,6 +49,7 @@ final class ChatTextView: NSTextView {
 struct ChatInput: NSViewRepresentable {
     @Binding var text: String
     var isEditable: Bool
+    var focusRequest: UUID? = nil
     var onSend: () -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -49,6 +80,7 @@ struct ChatInput: NSViewRepresentable {
             view.string = text
             view.setSelectedRange(NSRange(location: min(selection.location, (text as NSString).length), length: 0))
         }
+        view.focusForReply(focusRequest)
     }
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: ChatInput

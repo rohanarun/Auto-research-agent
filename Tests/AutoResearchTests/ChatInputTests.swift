@@ -21,6 +21,65 @@ final class ChatInputTests: XCTestCase {
         editor.keyDown(with: key())
         XCTAssertEqual(sent, ["First line\nSecond line"]); XCTAssertEqual(draft, "")
     }
+    @MainActor func testReplyFocusRequestIsAppliedOnceAndPreservesDraft() throws {
+        _ = NSApplication.shared
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 160), styleMask: [.borderless], backing: .buffered, defer: false)
+        let container = NSView(frame: window.contentView!.bounds)
+        let editor = ChatTextView(frame: NSRect(x: 0, y: 0, width: 500, height: 80))
+        let other = NSTextView(frame: NSRect(x: 0, y: 90, width: 500, height: 50))
+        editor.isEditable = true
+        editor.string = "Preserved agent-specific draft"
+        container.addSubview(editor); container.addSubview(other); window.contentView = container
+        window.makeFirstResponder(other)
+        editor.focusForReply(nil)
+        XCTAssertTrue(window.firstResponder === other)
+        let first = UUID()
+        editor.focusForReply(first)
+        XCTAssertTrue(window.firstResponder === editor)
+        XCTAssertEqual(editor.string, "Preserved agent-specific draft")
+        XCTAssertEqual(editor.selectedRange().location, (editor.string as NSString).length)
+        window.makeFirstResponder(other)
+        editor.focusForReply(first)
+        XCTAssertTrue(window.firstResponder === other, "Ordinary rerenders must not steal focus back.")
+        editor.focusForReply(UUID())
+        XCTAssertTrue(window.firstResponder === editor)
+        XCTAssertEqual(editor.string, "Preserved agent-specific draft")
+    }
+
+    @MainActor func testReplyFocusWaitsForWindowAndDoesNotInterruptMarkedText() {
+        _ = NSApplication.shared
+        let editor = ChatTextView(frame: NSRect(x: 0, y: 0, width: 400, height: 80))
+        editor.isEditable = true
+        editor.focusForReply(UUID())
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 80), styleMask: [.borderless], backing: .buffered, defer: false)
+        window.contentView = editor
+        XCTAssertTrue(window.firstResponder === editor)
+        editor.setMarkedText("漢", selectedRange: NSRange(location: 1, length: 0), replacementRange: NSRange(location: NSNotFound, length: 0))
+        editor.focusForReply(UUID())
+        XCTAssertTrue(editor.hasMarkedText())
+        XCTAssertEqual(editor.string, "漢")
+        editor.unmarkText()
+        XCTAssertFalse(editor.hasMarkedText())
+        XCTAssertEqual(editor.string, "漢")
+    }
+
+    @MainActor func testLeavingReplyContextCancelsDeferredFocus() {
+        _ = NSApplication.shared
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 160), styleMask: [.borderless], backing: .buffered, defer: false)
+        let container = NSView(frame: window.contentView!.bounds)
+        let editor = ChatTextView(frame: NSRect(x: 0, y: 0, width: 500, height: 80))
+        let other = NSTextView(frame: NSRect(x: 0, y: 90, width: 500, height: 50))
+        editor.isEditable = true
+        container.addSubview(editor); container.addSubview(other); window.contentView = container
+        editor.setMarkedText("漢", selectedRange: NSRange(location: 1, length: 0), replacementRange: NSRange(location: NSNotFound, length: 0))
+        editor.focusForReply(UUID())
+        editor.focusForReply(nil)
+        window.makeFirstResponder(other)
+        editor.unmarkText()
+        XCTAssertTrue(window.firstResponder === other)
+        XCTAssertEqual(editor.string, "漢")
+    }
+
     @MainActor func key(_ code: UInt16 = 36, modifiers: NSEvent.ModifierFlags = []) -> NSEvent {
         NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: modifiers, timestamp: 0, windowNumber: 0, context: nil, characters: "\r", charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: code)!
     }

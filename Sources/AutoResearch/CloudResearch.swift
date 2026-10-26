@@ -5,6 +5,8 @@ extension AppStore {
     func launchCloud(_ id: UUID, project: ResearchProject, request: String?) {
         guard project.builtinID == nil else { error = "Built-in challenge starters run on this Mac and use the official remote judge. Start them from the project page."; return }
         guard runners[id] == nil,let initial = sessions.first(where:{$0.id == id}) else { return }
+        do { try gatewayPreflight(initial, cloud: true) }
+        catch { append(id, role: "error", text: error.localizedDescription); state(id, "Needs attention"); return }
         let savedMonitor = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("cloud-method-attachments/" + id.uuidString + ".json")
         if FileManager.default.fileExists(atPath: savedMonitor.path) {
             restoreMethodMonitoring()
@@ -64,6 +66,7 @@ extension AppStore {
                     cloudPolicy += "\n\n" + ResearchMethods.instruction(directory: "/workspace/checkout/SHARED_CONTEXT/" + name)
                     append(id, role: "status", text: "Optional research methods installed in this Daytona sandbox. Branch workspaces and logs remain inside /workspace/checkout.")
                 }
+                prompt = try claimFleetFollowups(id, prompt: prompt)
                 let command = CLI.chat(provider:.codex,settings:cloudSettings,sessionID:initial.providerSessionID,prompt:prompt,policy:cloudPolicy)
                 append(id,role:"user",text:prompt)
                 let root = try Workspace.directory(settings.workspaceRoot,"sessions/" + id.uuidString)
@@ -111,6 +114,7 @@ extension AppStore {
                 if !(error is CancellationError) { append(id,role:"error",text:error.localizedDescription + (stopped.contains(id) ? " Cloud process drain was not confirmed; no successor may be started." : "")) }
             }
             runners.removeValue(forKey:id);persist()
+            if finishFleetTurn(id) { return }
             let finished = sessions.first(where:{$0.id == id})
             if finished?.sharedAgent != nil && !sharedConfiguration(project.id).usesMethods {
                 if finished?.state == "Needs attention",finished?.sharedAgent?.isIndependent != true { sharedCycles[project.id]?.stop(failure:"A cloud agent needs attention. Its sandbox was preserved.") }
@@ -160,6 +164,7 @@ extension AppStore {
     }
 
     private func runCloudResearch(_ project: ResearchProject, request: String?, resume: CloudGroupResume?) {
+        guard gatewayConfigurationReadable, !gateway.applies(to: .codex) else { error = "OpenRouter runs on This Mac only. Repair gateway settings, switch execution to This Mac, or turn Gateway off before starting Daytona research."; return }
         guard project.builtinID == nil else { error = "Built-in challenge starters use a local coordinator. Start research from the project page."; return }
         let options = resume?.options ?? sharedConfiguration(project.id)
         do { try options.validate() } catch { self.error = error.localizedDescription;return }
@@ -228,11 +233,15 @@ extension AppStore {
                 session.cloud = CloudSession(sandboxID:box,stateID:session.id.uuidString,previousStateID:old?.uuidString)
                 session.sharedAgent = SharedAgent(groupID:group,index:offset + 1,generation:generation,previousSessionID:old,contextFile:context?.path,sharesContext:options.enabled,agentCount:options.agentCount)
                 session.messages.append(ChatMessage(role:"status",text:"Private Daytona sandbox \(box). Fresh provider state; only cloud sign-in and this group's published checkpoints are supplied."))
+                self.inheritFleetDraft(session)
                 self.sessions.append(session);ids.append(session.id)
             }
             guard self.persist() else { throw ResearchError("Could not save cloud session lineage. No replacement agents were started.") }
             for id in ids { self.launchCloud(id,project:project,request:request) };return ids
         },drain: { ids in
+            let rotating = self.sharedRuns[project.id]?.phase == .capturing && self.sharedCycles[project.id]?.active == true
+            if rotating { self.fleetDrainingForRotation.formUnion(ids) }
+            defer { self.fleetDrainingForRotation.subtract(ids) }
             let tasks = ids.compactMap { self.workerTasks[$0] }
             for id in ids { self.stopWorker(id) }
             for task in tasks { await task.value }
@@ -275,6 +284,7 @@ extension AppStore {
         },retire: { ids in for id in ids { self.state(id,"Replaced") };self.persist() },cancelOperation: {},update: { phase,generation,ids,message in
             self.sharedRuns[project.id] = SharedRunStatus(groupID:group,sharesContext:options.enabled,generation:generation,phase:phase,sessionIDs:ids,message:message)
             if [.failed,.stopped,.completed].contains(phase) {
+                if phase != .completed { self.suspendFleetGroup(group) }
                 if let message { self.error = message }
                 let drained = boxes.filter { box in
                     let sessions = self.sessions.filter { $0.cloud?.sandboxID == box }
@@ -283,7 +293,7 @@ extension AppStore {
                 if let client, preparationSucceeded { self.cloudCleanup.formUnion(drained);Task { await self.cleanupCloudWorkers(drained,client:client) } };self.persist()
             }
         },waitForCompletion: { ids in
-            for id in ids { await self.workerTasks[id]?.value }
+            await self.waitForFleetTurns(ids)
             if self.sessions.contains(where:{ids.contains($0.id) && $0.state == "Needs attention"}) { throw ResearchError("A cloud agent needs attention. All completed research is preserved.") }
         })
         select(project);selectSharedGroup(group,projectID:project.id)

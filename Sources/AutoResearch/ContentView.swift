@@ -10,7 +10,6 @@ private let accent = Color(red: 0.30, green: 0.34, blue: 0.78)
 struct ContentView: View {
     @ObservedObject var store: AppStore
     @State private var followOutput = true
-    @State private var recipientIndex = 1
     var body: some View {
         HStack(spacing: 0) {
             sidebar.frame(width: 282)
@@ -18,6 +17,10 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 header
                 Divider().opacity(0.4)
+                if !store.responseAgents.isEmpty {
+                    FleetReplyNavigator(store: store)
+                    Divider().opacity(0.4)
+                }
                 if let groupID = store.selectedSharedGroupID, let project = store.project {
                     SharedChatView(store: store, projectID: project.id, groupID: groupID).id(groupID)
                     composer
@@ -66,7 +69,7 @@ struct ContentView: View {
                     }
                     if !store.projectSessions.isEmpty {
                         Text("Chats in this project").font(.system(size: 12, weight: .semibold)).foregroundStyle(muted).padding(.top, 22).padding(.bottom, 6).padding(.leading, 8)
-                        ForEach(store.projectSharedGroups) { representative in
+                        ForEach(store.projectSharedGroups, id: \.sharedAgent?.groupID) { representative in
                             sharedGroupRow(representative)
                         }
                         ForEach(store.projectSessions) { session in
@@ -233,13 +236,18 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 24) {
-                        ForEach(session.messages) { message in MessageView(message: message, provider: session.provider, speaker: session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · \($0.isIndependent ? "Independent" : "Round \($0.generation)")" }) }
+                        ForEach(session.messages) { message in
+                            MessageView(message: message, provider: session.provider, speaker: session.sharedAgent.map { "Agent \($0.index) · \(session.provider.title) · \($0.isIndependent ? "Independent" : "Round \($0.generation)")" })
+                                .id("\(session.id.uuidString)/\(message.id.uuidString)")
+                        }
                         if store.isRunning { HStack(spacing: 9) { ProgressView().controlSize(.small); Text(session.state == "Preparing" ? "Preparing workspace…" : "Researching…").font(.system(size: 12)).foregroundStyle(muted) }.padding(.vertical, 12) }
                         Color.clear.frame(height: 1).id("bottom")
                     }.frame(maxWidth: 760, alignment: .leading).padding(.horizontal, 34).padding(.vertical, 20).frame(maxWidth: .infinity)
                 }
                 .onChange(of: session.messages.count) { _, _ in if followOutput { withAnimation(.easeOut(duration: 0.18)) { proxy.scrollTo("bottom", anchor: .bottom) } } }
-                .onChange(of: session.id) { _, _ in proxy.scrollTo("bottom", anchor: .bottom) }
+                .onAppear { scrollToSelectedReply(in: session, using: proxy) }
+                .onChange(of: session.id) { _, _ in scrollToSelectedReply(in: session, using: proxy) }
+                .onChange(of: store.responseFocusRequest) { _, _ in scrollToSelectedReply(in: session, using: proxy) }
                 HStack {
                     Toggle("Follow output", isOn: $followOutput).toggleStyle(.checkbox)
                     Spacer()
@@ -250,55 +258,98 @@ struct ContentView: View {
             }
         }
     }
-    var composerAgents: [ResearchSession] {
-        guard let group = store.selectedSharedGroupID, let project = store.project else { return [] }
-        return SharedTranscript.latestAgents(in: store.sessions, projectID: project.id, groupID: group)
+    private func scrollToSelectedReply(in session: ResearchSession, using proxy: ScrollViewProxy) {
+        if let target = store.responseScrollTarget, target.hasPrefix(session.id.uuidString + "/") {
+            followOutput = false
+            proxy.scrollTo(target, anchor: .top)
+        } else {
+            proxy.scrollTo("bottom", anchor: .bottom)
+        }
     }
-    var composerRecipient: ResearchSession? {
-        composerAgents.first { $0.sharedAgent?.index == recipientIndex } ?? composerAgents.first
-    }
+    var composerAgents: [ResearchSession] { store.responseAgents }
+    var composerRecipient: ResearchSession? { store.responseRecipient }
     var composerBusy: Bool {
-        store.sharedActive(store.project?.id ?? "") || store.sessions.contains { $0.projectID == store.selectedProjectID && store.runners[$0.id] != nil }
+        if composerRecipient != nil { return store.responseSendingBlockedReason != nil }
+        return store.sharedActive(store.project?.id ?? "") || store.sessions.contains { $0.projectID == store.selectedProjectID && store.runners[$0.id] != nil }
     }
     var canSendComposer: Bool {
-        !composerBusy && store.project != nil && !store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (store.selectedSharedGroupID == nil || composerRecipient != nil)
+        if composerRecipient != nil { return store.canSendResponse }
+        return !composerBusy && store.project != nil && !store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     func sendComposer() {
         guard canSendComposer else { return }
-        store.send(to: store.selectedSharedGroupID == nil ? nil : composerRecipient?.id)
+        if composerRecipient != nil { store.sendResponseAndAdvance() }
+        else { store.send() }
+    }
+    var sendButton: some View {
+        Button(action: sendComposer) {
+            Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31)
+                .background(canSendComposer ? ink : Color.gray.opacity(0.2), in: Circle())
+                .foregroundStyle(canSendComposer ? .white : muted)
+        }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(!canSendComposer)
+            .help(composerRecipient == nil ? "Enter to send · Shift+Enter for a new line" : "Send to this agent and advance to the next waiting reply")
+            .accessibilityLabel(composerRecipient == nil ? "Send message" : "Send reply and advance")
+    }
+    var composerConnectionLabel: String {
+        let target = composerRecipient ?? store.session
+        let provider = target?.provider ?? store.provider
+        let route = target.map { $0.connectionRoute ?? "direct:\(provider.rawValue)" } ?? store.gateway.route(for: provider)
+        if route.hasPrefix("openrouter:") {
+            let model = target.map { $0.connectionModel ?? "Model not recorded" }
+                ?? (store.gateway.model(for: provider).isEmpty ? "Choose a model" : store.gateway.model(for: provider))
+            return "\(provider.title) · OpenRouter · \(model) · \(store.gatewayKeyConfigured ? "Key configured" : "Key missing")"
+        }
+        let model = target?.connectionModel ?? "CLI configured model"
+        return "\(provider.title) · Direct CLI · \(store.auth[provider] ?? "Checking connection") · \(model)"
     }
     var composer: some View {
         VStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
-                if store.selectedSharedGroupID != nil {
-                    Picker("Send to", selection: Binding(get: { composerRecipient?.sharedAgent?.index ?? recipientIndex }, set: { recipientIndex = $0 })) {
+                if let recipient = composerRecipient {
+                    Picker("Reply to", selection: Binding(get: { composerRecipient?.id ?? recipient.id }, set: { store.selectResponseRecipient($0) })) {
                         ForEach(composerAgents) { session in
-                            Text("Agent \(session.sharedAgent!.index) · \(session.provider.title)").tag(session.sharedAgent!.index)
+                            Text("Agent \(session.sharedAgent!.index) · \(session.provider.title)").tag(session.id)
                         }
                     }.font(.system(size: 12)).fixedSize().accessibilityLabel("Message recipient")
                 }
                 ZStack(alignment: .topLeading) {
                     if store.composer.isEmpty { Text(composerBusy ? "Draft a follow-up while research runs…" : "Ask a question, or give your research a direction…").font(.system(size: 14)).foregroundStyle(muted).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false) }
-                    ChatInput(text: $store.composer, isEditable: true, onSend: sendComposer)
+                    ChatInput(text: $store.composer, isEditable: true, focusRequest: composerRecipient == nil ? nil : store.responseFocusRequest, onSend: sendComposer)
                         .frame(minHeight: 56, maxHeight: 94)
                 }
                 HStack(spacing: 8) {
                     Image(systemName: "folder").font(.system(size: 11)).foregroundStyle(muted)
                     Text(store.project?.repository.isEmpty == false ? store.project!.repository : store.project?.name ?? "Select a project").font(.system(size: 11)).foregroundStyle(muted).lineLimit(1)
                     Spacer()
-                    if store.sharedActive(store.project?.id ?? ""), let project = store.project {
+                    if composerRecipient != nil {
+                        if store.sharedActive(store.project?.id ?? ""), let project = store.project {
+                            Button("Stop agents") { store.stopSharedResearch(project.id) }.buttonStyle(.bordered)
+                        }
+                        sendButton
+                    } else if store.sharedActive(store.project?.id ?? ""), let project = store.project {
                         Button("Stop agents") { store.stopSharedResearch(project.id) }.buttonStyle(.bordered).help("Stop the group before sending your draft")
                     } else if let running = store.sessions.first(where: { $0.projectID == store.selectedProjectID && store.runners[$0.id] != nil }) {
                         let id = running.id
                         Button { store.stop(id) } label: { Image(systemName: "stop.fill").font(.system(size: 11)).frame(width: 31, height: 31).background(ink, in: Circle()).foregroundStyle(.white) }.buttonStyle(.plain).help("Stop this run").accessibilityLabel("Stop research")
                     } else {
-                        Button(action: sendComposer) { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : .white) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(!canSendComposer).help("Enter to send · Shift+Enter for a new line").accessibilityLabel("Send message")
+                        sendButton
                     }
                 }
             }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.black.opacity(0.13), lineWidth: 1)).shadow(color: .black.opacity(0.035), radius: 10, y: 3)
-            if composerBusy { Text("Stop research to send your draft.").font(.system(size: 11)).foregroundStyle(muted) }
-            Text("\((composerRecipient?.provider ?? store.session?.provider ?? store.provider).title) · \(store.auth[composerRecipient?.provider ?? store.session?.provider ?? store.provider] ?? "Checking connection") · Uses your CLI’s configured model")
-                .font(.system(size: 10)).foregroundStyle(muted)
+            if composerRecipient != nil {
+                if let reason = store.responseSendingBlockedReason {
+                    Text(reason).font(.system(size: 11)).foregroundStyle(muted)
+                } else if let status = store.responseDeliveryStatus {
+                    HStack(spacing: 8) {
+                        Text(status).foregroundStyle(muted)
+                        if store.canResumeQueuedFollowups {
+                            Button("Resume queued") { store.resumeQueuedFollowups() }.buttonStyle(.borderless)
+                        }
+                    }.font(.system(size: 11))
+                }
+            } else if composerBusy { Text("Stop research to send your draft.").font(.system(size: 11)).foregroundStyle(muted) }
+            Text(composerConnectionLabel)
+                .font(.system(size: 10)).foregroundStyle(muted).lineLimit(2).multilineTextAlignment(.center)
         }.frame(maxWidth: 800).padding(.horizontal, 32).padding(.bottom, 20).padding(.top, 12).frame(maxWidth: .infinity)
     }
 }

@@ -33,21 +33,32 @@ struct ConnectionsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Your research workspace").font(.system(size: 23, weight: .semibold)); Spacer(); Button("Done") { store.saveSettings() }.keyboardShortcut(.defaultAction).disabled(store.hasActiveRuns) }
-            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
+            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Gateway").tag("Gateway"); Text("Daytona").tag("Daytona"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented).controlSize(.small)
             if tab == "Connections" {
                 // Three CLIs no longer fit the fixed sheet height, so the cards scroll.
                 ScrollView { VStack(alignment: .leading, spacing: 14) { ForEach(Provider.allCases) { provider in
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Image(systemName: "terminal").font(.system(size: 21))
-                            VStack(alignment: .leading, spacing: 4) { Text(provider.title).font(.system(size: 16, weight: .semibold)); Text(store.auth[provider] ?? "Checking…").font(.system(size: 11)).foregroundStyle(.secondary) }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(provider.title).font(.system(size: 16, weight: .semibold))
+                                Text(store.gateway.applies(to: provider)
+                                     ? (store.gatewayKeyConfigured ? "OpenRouter · key configured" : "OpenRouter · key required")
+                                     : (store.auth[provider] ?? "Checking…"))
+                                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                            }
                             Spacer()
-                            Button("Sign in") { store.login(provider) }.disabled(store.loginProvider != nil)
+                            if store.gateway.enabled && provider != .opencode {
+                                Button("Gateway settings") { tab = "Gateway" }
+                            } else {
+                                Button("Sign in") { store.login(provider) }.disabled(store.loginProvider != nil)
+                            }
                             Link("Install CLI", destination: installURL(provider))
                         }
                         TextField("CLI executable path", text: pathBinding(provider)).textFieldStyle(.roundedBorder)
                         HStack {
-                            TextField(provider == .opencode ? "Model as provider/model (empty uses your CLI default)" : "Model (empty uses your CLI default)", text: modelBinding(provider)).textFieldStyle(.roundedBorder)
+                            TextField(provider == .opencode ? "Model as provider/model (empty uses your CLI default)" : "Direct-login model (empty uses your CLI default)", text: modelBinding(provider)).textFieldStyle(.roundedBorder)
+                                .disabled(store.gateway.enabled && provider != .opencode)
                             if provider == .codex {
                                 Picker("Access", selection: $store.settings.codexSandbox) { Text("Workspace writes").tag("workspace-write"); Text("Read only").tag("read-only") }.frame(width: 215)
                             } else if provider == .opencode {
@@ -58,7 +69,7 @@ struct ConnectionsView: View {
                         }
                     }.padding(18).background(Color.gray.opacity(0.06), in: RoundedRectangle(cornerRadius: 14)).disabled(store.hasActiveRuns)
                 } } }
-                Text("Sign-in uses the official CLI and your browser. Credentials stay with each CLI; this app does not copy or store them. Permission errors remain visible in chat.").font(.system(size: 12)).foregroundStyle(.secondary)
+                Text(store.gateway.enabled ? "Codex and Claude use the models in Gateway settings. Your direct-login defaults are preserved. OpenCode keeps its own connection." : "Sign-in uses the official CLI and your browser. Credentials stay with each CLI; this app does not copy or store them. Permission errors remain visible in chat.").font(.system(size: 12)).foregroundStyle(.secondary)
                 Button("Refresh connection status") { Task { await store.refreshAuth() } }
                 if let provider = store.loginProvider {
                     Divider()
@@ -66,6 +77,8 @@ struct ConnectionsView: View {
                     ScrollView { Text(.init(store.loginOutput)).font(.system(size: 11, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(height: 115)
                     HStack { SecureField("Response if the CLI requests a code", text: $loginInput); Button("Submit") { store.sendLoginInput(loginInput); loginInput = "" } }
                 }
+            } else if tab == "Gateway" {
+                GatewaySettingsView(store: store)
             } else if tab == "Daytona" {
                 VStack(alignment:.leading,spacing:16) {
                     Picker("Run research",selection:Binding(get:{store.daytona.enabled},set:{store.setCloudExecution($0)})) {
