@@ -18,6 +18,12 @@ import ResearchCore
     @Published var error: String?
     @Published var catalogStatus = "Loading catalog"
     @Published var refreshing = false
+    @Published var builtinDrafts: [String: KernelResearchDraft] = [:]
+    @Published var builtinPlayPending = Set<String>()
+    var builtinPlayTasks: [String: Task<Void, Never>] = [:]
+    var builtinDraftsReadable = true
+    /// Test seam for the account probe; normal app launches use the official CLI.
+    var builtinAccountVerifier: (() async throws -> String)?
     @Published var showSettings = false
     @Published var showAddProject = false
     @Published var auth: [Provider: String] = [:]
@@ -63,6 +69,7 @@ import ResearchCore
     private var checkingAuth = false
     private var historyIsReadable = true
     let resourceDirectory: URL
+    let builtinProjects: [BuiltinProject]
     private let catalogPolicy: CatalogPolicy
     private var settingsFile: URL
     private var needsWorkspace = false
@@ -81,6 +88,8 @@ import ResearchCore
         settings = bundledDefaults
         settingsFile = URL(fileURLWithPath: bundledDefaults.workspaceRoot).appendingPathComponent("settings.json")
         needsWorkspace = bundledDefaults.workspaceRoot.isEmpty
+        do { builtinProjects = try BuiltinProjects.load(resources: resourceDirectory) }
+        catch { builtinProjects = []; self.error = "Built-in projects could not be loaded. \(error.localizedDescription)" }
         if !needsWorkspace { loadWorkspace(bundledDefaults) }
         do { researchSubtasks = try LeanSearch.subtasks(resources: resourceDirectory) }
         catch { self.error = "Could not load research subtasks: \(error.localizedDescription)" }
@@ -113,16 +122,26 @@ import ResearchCore
                 }
             }
             if projects.isEmpty, let html = try? String(contentsOf: resourceDirectory.appendingPathComponent("catalog-source.html"), encoding: .utf8) {
-                projects = try Catalog.parse(html)
-                catalogStatus = "Saved catalog · refreshing"
+                if let snapshot = try? Catalog.parse(html) {
+                    projects = snapshot
+                    catalogStatus = "Saved catalog · refreshing"
+                } else { catalogStatus = "Built-in projects · catalog unavailable" }
             }
+            projects = BuiltinProjects.merge(fetched: projects, existing: [], builtins: builtinProjects, sessionProjectIDs: [])
+            loadBuiltinDrafts()
             selectInitialProject()
         } catch { historyIsReadable = false; self.error = "Saved history could not be loaded. It will not be overwritten. \(error.localizedDescription)" }
     }
 
     var project: ResearchProject? { projects.first { $0.id == selectedProjectID } }
     var session: ResearchSession? { sessions.first { $0.id == selectedSessionID } }
-    var visibleProjects: [ResearchProject] { projects.filter { catalogPolicy.includes($0) && (search.isEmpty || "\($0.name) \($0.repository) \($0.category)".localizedCaseInsensitiveContains(search)) } }
+    var visibleProjects: [ResearchProject] { projects.filter { catalogPolicy.includes($0) && (search.isEmpty || "\($0.name) \($0.repository) \($0.category) \($0.builtinID ?? "")".localizedCaseInsensitiveContains(search)) } }
+    func builtinProject(_ project: ResearchProject) -> BuiltinProject? { builtinProjects.first { $0.id == project.builtinID } }
+    func prepareBuiltinWorkspace(_ project: ResearchProject) throws -> URL {
+        guard let definition = builtinProject(project) else { throw ResearchError("This built-in project's resources are unavailable. Reinstall the app before starting it.") }
+        return try definition.prepare(workspaceRoot: settings.workspaceRoot, resources: resourceDirectory)
+    }
+    func projectURL(_ project: ResearchProject) -> URL? { builtinProject(project)?.website ?? project.githubURL }
     private func selectInitialProject() {
         // Keep an existing chat accessible while excluding its repository from discovery.
         if selectedSessionID == nil, selectedSharedGroupID == nil, project.map({ !catalogPolicy.includes($0) }) ?? true {
@@ -132,8 +151,8 @@ import ResearchCore
     var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt == nil }.sorted { $0.createdAt > $1.createdAt } }
     var closedProjectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt != nil }.sorted { $0.closedAt! > $1.closedAt! } }
     var isRunning: Bool { selectedSessionID.map { runners[$0] != nil } ?? false }
-    var hasActiveRuns: Bool { daytonaBusy || !cloudCleanup.isEmpty || !runners.isEmpty || sharedCycles.values.contains { $0.active } }
-    func running(_ project: ResearchProject) -> Bool { sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
+    var hasActiveRuns: Bool { daytonaBusy || !cloudCleanup.isEmpty || !runners.isEmpty || !builtinPlayPending.isEmpty || sharedCycles.values.contains { $0.active } }
+    func running(_ project: ResearchProject) -> Bool { builtinPlayPending.contains(project.id) || sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
 
     func start() async {
         guard !starting else { return }; starting = true
@@ -148,10 +167,9 @@ import ResearchCore
         guard !refreshing else { return }; refreshing = true; defer { refreshing = false }
         do {
             let fetched = try await Catalog.fetch(settings.catalogURL)
-            let local = projects.filter { old in old.isCustom || !fetched.contains(where: { $0.id == old.id }) && sessions.contains(where: { $0.projectID == old.id }) }
-            projects = fetched + local.filter { item in !fetched.contains { $0.id == item.id } }
+            projects = BuiltinProjects.merge(fetched: fetched, existing: projects, builtins: builtinProjects, sessionProjectIDs: Set(sessions.map(\.projectID)))
             selectInitialProject()
-            catalogStatus = "\(fetched.filter(catalogPolicy.includes).count) repositories · live"
+            catalogStatus = "\(fetched.filter(catalogPolicy.includes).count) repositories · \(builtinProjects.count) built-in projects"
             save()
         } catch { catalogStatus = "Offline · saved catalog"; self.error = error.localizedDescription }
     }
@@ -242,12 +260,13 @@ import ResearchCore
     }
     func state(_ id: UUID, _ value: String) { if let i = sessions.firstIndex(where: { $0.id == id }) { sessions[i].state = value }; save() }
     func play(_ project: ResearchProject) {
+        if project.builtinID != nil { playBuiltin(project); return }
         if sharedActive(project.id) {
             if let id = sharedRuns[project.id]?.groupID { selectSharedGroup(id, projectID: project.id) }
             return
         }
         if let existing = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(existing); return }
-        if sharedConfiguration(project.id).parallelEnabled || sharedConfiguration(project.id).usesMethods { startSharedResearch(project); return }
+        if project.builtinID == nil && (sharedConfiguration(project.id).parallelEnabled || sharedConfiguration(project.id).usesMethods) { startSharedResearch(project); return }
         select(project)
         let session = ResearchSession(projectID: project.id, title: "Research · \(project.name)", provider: provider)
         sessions.append(session); selectedSessionID = session.id
@@ -293,7 +312,7 @@ import ResearchCore
             return
         }
         if recipientID != nil { error = "Select the agent's group before sending a follow-up."; return }
-        if selectedSessionID == nil, sharedConfiguration(project.id).parallelEnabled || sharedConfiguration(project.id).usesMethods { composer = ""; startSharedResearch(project, request: request); return }
+        if selectedSessionID == nil, project.builtinID == nil, sharedConfiguration(project.id).parallelEnabled || sharedConfiguration(project.id).usesMethods { composer = ""; startSharedResearch(project, request: request); return }
         if let other = sessions.first(where: { $0.projectID == project.id && runners[$0.id] != nil }) { selectSession(other); error = "This project already has an active run. Stop it before starting another writer."; return }
         composer = ""
         let id: UUID
@@ -324,10 +343,10 @@ import ResearchCore
             launchCPUSearch(id, project: project)
             return
         }
-        if let session = sessions.first(where: { $0.id == id }), session.researchSubtaskID == nil,
+        if project.builtinID == nil, let session = sessions.first(where: { $0.id == id }), session.researchSubtaskID == nil,
            session.usesCloud(preferCloud:daytona.enabled) { launchCloud(id, project:project, request:request);return }
         guard runners[id] == nil else { return }
-        let targetPath = sessions.first(where: { $0.id == id })?.workingDirectory ?? project.localPath ?? URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("projects/\(project.repository)").path
+        let targetPath = sessions.first(where: { $0.id == id })?.workingDirectory ?? project.localPath ?? URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent(project.managedWorkspaceComponent).path
         let target = URL(fileURLWithPath: targetPath).resolvingSymlinksInPath().path
         if activePaths.values.contains(target) { append(id, role: "error", text: "Another chat is already using this checkout. Stop that run before starting another writer."); state(id, "Needs attention"); return }
         // Record the reserved path before the first suspension so folder aliases cannot race a clone.
@@ -342,7 +361,12 @@ import ResearchCore
                 guard let current = sessions.first(where: { $0.id == id }) else { return }
                 guard FileManager.default.isExecutableFile(atPath: settings.executable(current.provider)) else { throw ResearchError("\(current.provider.title) CLI is not installed at the configured path. Open Connections to locate it or view installation instructions.") }
                 let directory: URL
-                if let path = current.workingDirectory ?? project.localPath { directory = try Workspace.validate(path) }
+                if project.builtinID != nil {
+                    guard builtinProject(project) != nil else { throw ResearchError("This built-in project's resources are unavailable.") }
+                    if let path = current.workingDirectory { directory = try Workspace.validate(path) }
+                    else { directory = try prepareBuiltinWorkspace(project) }
+                }
+                else if let path = current.workingDirectory ?? project.localPath { directory = try Workspace.validate(path) }
                 else {
                     let parent = try Workspace.directory(settings.workspaceRoot, "projects")
                     directory = parent.appendingPathComponent(project.repository)
@@ -358,7 +382,14 @@ import ResearchCore
                 guard !stopped.contains(id) else { throw CancellationError() }
                 if let i = sessions.firstIndex(where: { $0.id == id }) { sessions[i].workingDirectory = directory.path }
                 var prompt = request ?? ""
-                if request == nil {
+                if project.builtinID != nil {
+                    guard let instruction = Workspace.instructionFile(in: directory, trackedFiles: []) else { throw ResearchError("The starter's auto-research.md is missing or points outside its workspace. Restore the guide before continuing.") }
+                    let body = try String(contentsOf: instruction, encoding: .utf8)
+                    guard !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ResearchError("auto-research.md is empty. Add research instructions before starting.") }
+                    prompt = "\(request ?? "Start this research project using its starter guide.")\n\nProject: \(project.name) (\(project.builtinID!)). Work in \(directory.path). Read applicable AGENTS.md and the editable guide at \(instruction.path).\n\n\(body)"
+                    append(id, role: "status", text: "Loaded editable starter guide · local agent with official remote judge")
+                }
+                else if request == nil {
                     let files = try await runner.run(Command("/usr/bin/git", ["ls-files", "-z"]), directory: directory, environment: env)
                     let tracked = files.stdout.split(separator: "\0").map(String.init)
                     if let instruction = Workspace.instructionFile(in: directory, trackedFiles: tracked) {
@@ -372,7 +403,7 @@ import ResearchCore
                     }
                 }
                 guard !stopped.contains(id) else { throw CancellationError() }
-                let methodOptions = current.researchSubtaskID == nil ? sharedConfiguration(project.id).methods : nil
+                let methodOptions = current.researchSubtaskID == nil && project.builtinID == nil ? sharedConfiguration(project.id).methods : nil
                 if let methods = methodOptions, methods.enabled {
                     prompt += "\nYou are the coordinator for \(methods.branches) method branches collaborating on the same objective. Previous group indices are historical evidence, not current team assignments. Write a common plan; only the owned method runner launches branches."
                 }
@@ -515,7 +546,7 @@ import ResearchCore
         if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
         else { stopWorker(id) }
     }
-    func shutdown() { leanServer.stop(); for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
+    func shutdown() { leanServer.stop(); for task in builtinPlayTasks.values { task.cancel() }; for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
         if let client = daytonaClient,let connection = daytona.connectionSandboxID {
             cloudCleanup.insert(connection)
             Task {
