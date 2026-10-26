@@ -44,7 +44,13 @@ final class BuiltinLaunchTests: XCTestCase {
         settings.codexPath = cli.path
         let store = AppStore(resourceDirectory: resources, defaults: settings)
         store.provider = .codex
+        store.builtinAccountVerifier = { "fixture-account" }
         return (store, directory, settings)
+    }
+
+    @MainActor private func configurePlay(_ store: AppStore, project: ResearchProject) {
+        XCTAssertTrue(store.setBuiltinDraft(KernelResearchDraft(sourcePath: "my-original/kernel.py", checkBudget: "0",
+            researchPrompt: "Inspect my selected kernel without spending quota.", expectedAccount: "fixture-account"), for: project))
     }
 
     @MainActor private func enableOtherExecutionModes(_ store: AppStore, project: ResearchProject) throws {
@@ -62,6 +68,7 @@ final class BuiltinLaunchTests: XCTestCase {
     }
 
     @MainActor private func finish(_ store: AppStore) async throws -> ResearchSession {
+        for task in Array(store.builtinPlayTasks.values) { await task.value }
         let session = try XCTUnwrap(store.sessions.last)
         let task = try XCTUnwrap(store.workerTasks[session.id])
         await task.value
@@ -131,6 +138,7 @@ final class BuiltinLaunchTests: XCTestCase {
         let definition = try XCTUnwrap(store.builtinProjects.first)
         let project = definition.project
         try enableOtherExecutionModes(store, project: project)
+        configurePlay(store, project: project)
         store.play(project)
         let session = try await finish(store)
         XCTAssertEqual(store.sessions.count, 1)
@@ -147,6 +155,10 @@ final class BuiltinLaunchTests: XCTestCase {
         let prompt = try String(contentsOf: checkout.appendingPathComponent("fixture-input.txt"), encoding: .utf8)
         XCTAssertTrue(prompt.contains(definition.id))
         XCTAssertTrue(prompt.contains(try definition.instructions(resources: resources)))
+        XCTAssertTrue(prompt.contains("my-original/kernel.py"))
+        XCTAssertTrue(prompt.contains("fixture-account"))
+        XCTAssertFalse(store.showingProjectDetails)
+        XCTAssertEqual(store.selectedSessionID, session.id)
         XCTAssertFalse(prompt.contains("Optional research methods are enabled"))
         XCTAssertFalse(prompt.contains("there are no coordinated roles"))
     }
@@ -177,6 +189,7 @@ final class BuiltinLaunchTests: XCTestCase {
         let (store, directory, _) = try fixture()
         defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
         let project = try XCTUnwrap(store.builtinProjects.first).project
+        configurePlay(store, project: project)
         let checkout = try store.prepareBuiltinWorkspace(project)
         let editedGuide = "Public starter review only. Keep our saved negative result; do not rerun it."
         let evidence = Data("Unchanged evidence".utf8)
@@ -203,15 +216,136 @@ final class BuiltinLaunchTests: XCTestCase {
         store.projects.append(project)
         try enableOtherExecutionModes(store, project: project)
         store.play(project)
-        let session = try XCTUnwrap(store.sessions.last)
-        await store.workerTasks[session.id]?.value
-        let ended = try XCTUnwrap(store.sessions.first { $0.id == session.id })
-        XCTAssertEqual(ended.state, "Needs attention")
-        XCTAssertTrue(ended.messages.contains { $0.role == "error" && $0.text.contains("resources are unavailable") })
-        XCTAssertNil(ended.workingDirectory); XCTAssertNil(ended.providerSessionID); XCTAssertNil(ended.cloud)
+        XCTAssertTrue(store.sessions.isEmpty)
+        XCTAssertTrue(store.error?.contains("resources are unavailable") == true)
+        XCTAssertTrue(store.showingProjectDetails)
         XCTAssertTrue(store.sharedRuns.isEmpty)
         XCTAssertEqual(BuiltinNoNetworkProtocol.requests, 0)
         XCTAssertFalse(FileManager.default.fileExists(atPath: URL(fileURLWithPath: store.settings.workspaceRoot).appendingPathComponent(project.managedWorkspaceComponent).path))
+    }
+
+    @MainActor func testMissingPlaySetupShowsFormWithoutAccountOrAgentLaunch() throws {
+        let (store, directory, _) = try fixture()
+        defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
+        let project = try XCTUnwrap(store.builtinProjects.first).project
+        var probes = 0
+        store.builtinAccountVerifier = { probes += 1; return "fixture-account" }
+        store.play(project)
+        XCTAssertEqual(probes, 0)
+        XCTAssertTrue(store.sessions.isEmpty)
+        XCTAssertTrue(store.runners.isEmpty)
+        XCTAssertTrue(store.builtinPlayTasks.isEmpty)
+        XCTAssertTrue(store.showingProjectDetails)
+        XCTAssertEqual(store.selectedProjectID, project.id)
+        XCTAssertTrue(store.error?.contains("Complete this project's setup") == true)
+    }
+
+    @MainActor func testPlayRejectsUnexpectedAccountWithoutLaunchingAgent() async throws {
+        let (store, directory, _) = try fixture()
+        defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
+        let project = try XCTUnwrap(store.builtinProjects.first).project
+        configurePlay(store, project: project)
+        store.builtinAccountVerifier = { "someone-else" }
+        store.play(project)
+        for task in Array(store.builtinPlayTasks.values) { await task.value }
+        XCTAssertTrue(store.sessions.isEmpty)
+        XCTAssertTrue(store.runners.isEmpty)
+        XCTAssertTrue(store.error?.contains("does not match") == true)
+        XCTAssertTrue(store.showingProjectDetails)
+        XCTAssertFalse(store.hasActiveRuns)
+    }
+
+    @MainActor func testRepeatedPlayDoesNotDuplicateAccountPreparationOrUseAnEditedDraft() async throws {
+        let (store, directory, _) = try fixture()
+        defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
+        let project = try XCTUnwrap(store.builtinProjects.first).project
+        configurePlay(store, project: project)
+        var probes = 0
+        var release = false
+        store.builtinAccountVerifier = {
+            probes += 1
+            while !release { try await Task.sleep(for: .milliseconds(1)) }
+            return "fixture-account"
+        }
+        store.play(project)
+        store.play(project)
+        let pending = try XCTUnwrap(store.builtinPlayTasks[project.id])
+        for _ in 0..<100 where probes == 0 { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertEqual(probes, 1)
+        var changed = store.builtinDraft(for: project)
+        changed.sourcePath = "a-different-source.py"
+        XCTAssertTrue(store.setBuiltinDraft(changed, for: project))
+        release = true
+        await pending.value
+        XCTAssertTrue(store.sessions.isEmpty)
+        XCTAssertTrue(store.runners.isEmpty)
+        XCTAssertTrue(store.error?.contains("setup changed") == true)
+        XCTAssertFalse(store.hasActiveRuns)
+    }
+
+    @MainActor func testShutdownCancelsPendingAccountPreparationBeforeAgentLaunch() async throws {
+        let (store, directory, _) = try fixture()
+        defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
+        let project = try XCTUnwrap(store.builtinProjects.first).project
+        configurePlay(store, project: project)
+        var started = false
+        var finished = false
+        store.builtinAccountVerifier = {
+            started = true
+            defer { finished = true }
+            try await Task.sleep(for: .seconds(30))
+            return "fixture-account"
+        }
+        store.play(project)
+        let pending = try XCTUnwrap(store.builtinPlayTasks[project.id])
+        for _ in 0..<100 where !started { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertTrue(started)
+        store.shutdown()
+        await pending.value
+        XCTAssertTrue(finished)
+        XCTAssertTrue(store.sessions.isEmpty)
+        XCTAssertTrue(store.runners.isEmpty)
+        XCTAssertTrue(store.builtinPlayPending.isEmpty)
+        XCTAssertFalse(store.hasActiveRuns)
+    }
+
+    @MainActor func testDraftsPersistPerProjectWithoutStartingResearch() throws {
+        let (store, directory, settings) = try fixture()
+        defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
+        let first = try XCTUnwrap(store.builtinProjects.first).project
+        let second = try XCTUnwrap(store.builtinProjects.last).project
+        let draft = KernelResearchDraft(sourcePath: "/Volumes/My SSD/original.py", checkBudget: "3",
+            allowScoredSubmissions: true, scoreBudget: "1", researchPrompt: "Review this exact source.",
+            scoreCriterion: "Only a verified improvement.", expectedAccount: "my-own-account")
+        XCTAssertTrue(store.setBuiltinDraft(draft, for: first))
+        XCTAssertTrue(store.setBuiltinDraft(KernelResearchDraft(checkBudget: "0", researchPrompt: "Analyze only.", expectedAccount: "another-account"), for: second))
+        let restored = AppStore(resourceDirectory: resources, defaults: settings)
+        defer { restored.shutdown() }
+        XCTAssertEqual(restored.builtinDraft(for: first), draft)
+        XCTAssertEqual(restored.builtinDraft(for: second).checkBudget, "0")
+        XCTAssertEqual(restored.builtinDraft(for: second).expectedAccount, "another-account")
+        XCTAssertTrue(restored.sessions.isEmpty)
+        XCTAssertTrue(restored.runners.isEmpty)
+        XCTAssertTrue(restored.builtinPlayTasks.isEmpty)
+        let file = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("kernel-setups.json")
+        let permissions = try FileManager.default.attributesOfItem(atPath: file.path)[.posixPermissions] as? NSNumber
+        XCTAssertEqual(permissions?.intValue, 0o600)
+    }
+
+    @MainActor func testUnreadableDraftsArePreservedAndBlockPlay() throws {
+        let (store, directory, settings) = try fixture()
+        defer { store.shutdown(); try? FileManager.default.removeItem(at: directory) }
+        let file = URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("kernel-setups.json")
+        let malformed = Data("preserve malformed setup".utf8)
+        try malformed.write(to: file)
+        let restored = AppStore(resourceDirectory: resources, defaults: settings)
+        defer { restored.shutdown() }
+        let project = try XCTUnwrap(restored.builtinProjects.first).project
+        XCTAssertFalse(restored.setBuiltinDraft(KernelResearchDraft(), for: project))
+        restored.play(project)
+        XCTAssertTrue(restored.sessions.isEmpty)
+        XCTAssertEqual(try Data(contentsOf: file), malformed)
+        XCTAssertTrue(restored.error?.contains("unreadable") == true)
     }
 
     @MainActor func testBuiltinDetailRendersAtCompactAndWideWidths() async throws {

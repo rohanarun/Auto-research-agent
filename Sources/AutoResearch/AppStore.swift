@@ -16,6 +16,12 @@ import ResearchCore
     @Published var error: String?
     @Published var catalogStatus = "Loading catalog"
     @Published var refreshing = false
+    @Published var builtinDrafts: [String: KernelResearchDraft] = [:]
+    @Published var builtinPlayPending = Set<String>()
+    var builtinPlayTasks: [String: Task<Void, Never>] = [:]
+    var builtinDraftsReadable = true
+    /// Test seam for the account probe; normal app launches use the official CLI.
+    var builtinAccountVerifier: (() async throws -> String)?
     @Published var showSettings = false
     @Published var showAddProject = false
     @Published var auth: [Provider: String] = [:]
@@ -118,6 +124,7 @@ import ResearchCore
                 } else { catalogStatus = "Built-in projects · catalog unavailable" }
             }
             projects = BuiltinProjects.merge(fetched: projects, existing: [], builtins: builtinProjects, sessionProjectIDs: [])
+            loadBuiltinDrafts()
             selectInitialProject()
         } catch { historyIsReadable = false; self.error = "Saved history could not be loaded. It will not be overwritten. \(error.localizedDescription)" }
     }
@@ -140,8 +147,8 @@ import ResearchCore
     var projectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt == nil }.sorted { $0.createdAt > $1.createdAt } }
     var closedProjectSessions: [ResearchSession] { sessions.filter { $0.projectID == selectedProjectID && $0.closedAt != nil }.sorted { $0.closedAt! > $1.closedAt! } }
     var isRunning: Bool { selectedSessionID.map { runners[$0] != nil } ?? false }
-    var hasActiveRuns: Bool { daytonaBusy || !cloudCleanup.isEmpty || !runners.isEmpty || sharedCycles.values.contains { $0.active } }
-    func running(_ project: ResearchProject) -> Bool { sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
+    var hasActiveRuns: Bool { daytonaBusy || !cloudCleanup.isEmpty || !runners.isEmpty || !builtinPlayPending.isEmpty || sharedCycles.values.contains { $0.active } }
+    func running(_ project: ResearchProject) -> Bool { builtinPlayPending.contains(project.id) || sharedActive(project.id) || sessions.contains { $0.projectID == project.id && runners[$0.id] != nil } }
 
     func start() async {
         guard !starting else { return }; starting = true
@@ -249,6 +256,7 @@ import ResearchCore
     }
     func state(_ id: UUID, _ value: String) { if let i = sessions.firstIndex(where: { $0.id == id }) { sessions[i].state = value }; save() }
     func play(_ project: ResearchProject) {
+        if project.builtinID != nil { playBuiltin(project); return }
         if sharedActive(project.id) {
             if let id = sharedRuns[project.id]?.groupID { selectSharedGroup(id, projectID: project.id) }
             return
@@ -490,7 +498,7 @@ import ResearchCore
         if let session = sessions.first(where: { $0.id == id }), session.sharedAgent != nil, sharedActive(session.projectID) { stopSharedResearch(session.projectID) }
         else { stopWorker(id) }
     }
-    func shutdown() { for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
+    func shutdown() { for task in builtinPlayTasks.values { task.cancel() }; for cycle in sharedCycles.values { cycle.stop() }; for id in Array(runners.keys) { stopWorker(id) }; loginRunner?.stop(); daytonaLoginCancelled = true;daytonaLoginRunner?.stop()
         if let client = daytonaClient,let connection = daytona.connectionSandboxID {
             cloudCleanup.insert(connection)
             Task {

@@ -8,9 +8,14 @@ public struct KernelResearchSetup: Sendable {
     public let scoreBudget: Int
     public let researchPrompt: String
     public let scoreCriterion: String
+    public let expectedAccount: String
 
     public init(sourcePath: String, checkBudget: String, allowScoredSubmissions: Bool = false,
-                scoreBudget: String = "", researchPrompt: String, scoreCriterion: String = "") throws {
+                scoreBudget: String = "", researchPrompt: String, scoreCriterion: String = "", expectedAccount: String = "") throws {
+        self.expectedAccount = OKCLogin.normalizeAccount(expectedAccount)
+        guard OKCLogin.isAccountName(self.expectedAccount) else {
+            throw ResearchError("Enter the GitHub/OKC username you intend to use, then verify that account before pressing Play.")
+        }
         self.sourcePath = sourcePath.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !self.sourcePath.contains("\0") else { throw ResearchError("The kernel path contains an invalid character.") }
         self.checkBudget = try Self.budget(checkBudget, name: "check", positive: false)
@@ -39,6 +44,7 @@ public struct KernelResearchSetup: Sendable {
         struct Inputs: Encodable {
             let projectID: String
             let projectName: String
+            let expectedAccount: String
             let sourcePath: String?
             let maximumOfficialChecks: Int
             let maximumScoredSubmissions: Int
@@ -46,7 +52,7 @@ public struct KernelResearchSetup: Sendable {
             let researchPrompt: String
             let scoreCriterion: String?
         }
-        let input = Inputs(projectID: projectID, projectName: projectName,
+        let input = Inputs(projectID: projectID, projectName: projectName, expectedAccount: expectedAccount,
             sourcePath: sourcePath.isEmpty ? nil : sourcePath,
             maximumOfficialChecks: checkBudget, maximumScoredSubmissions: scoreBudget,
             authorizeScoredSubmissions: scoreBudget > 0, researchPrompt: researchPrompt,
@@ -60,8 +66,9 @@ public struct KernelResearchSetup: Sendable {
 }
 
 public enum OKCLogin {
-    public static func commandScript(directory: URL, home: URL) -> String {
+    public static func commandScript(directory: URL, home: URL, chooseAccount: Bool = false) -> String {
         let fallback = home.appendingPathComponent(".okc/bin/okc").path
+        let loginArguments = chooseAccount ? "login --force" : "login"
         return """
         #!/bin/zsh
         cd -- \(quote(directory.path)) || exit 1
@@ -70,16 +77,38 @@ public enum OKCLogin {
           okc_cli=\(quote(fallback))
         fi
         if [[ ! -x "$okc_cli" ]]; then
-          printf '%s\\n' 'OKC CLI is not installed. Follow the official instructions at https://openkernelchallenge.dev/ and then return to Sign in to OKC.'
+          printf '%s\\n' 'OKC CLI is not installed. Follow the official instructions at https://openkernelchallenge.dev/ and then return to Choose account.'
           exit 1
         fi
         printf '%s\\n' 'Sign in with your own account and personally review any challenge rules. No checks or scored submissions run here.'
-        if "$okc_cli" login; then
+        if "$okc_cli" \(loginArguments); then
           "$okc_cli" whoami
         else
           exit $?
         fi
         """ + "\n"
+    }
+
+    public static func normalizeAccount(_ text: String) -> String {
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (value.hasPrefix("@") ? String(value.dropFirst()) : value).lowercased()
+    }
+
+    public static func isAccountName(_ text: String) -> Bool {
+        text.range(of: "\\A[a-zA-Z0-9][a-zA-Z0-9_-]*\\z", options: .regularExpression) != nil
+    }
+
+    /// Interpret the official whoami identity line only. Unknown output must
+    /// not be displayed verbatim or mistaken for a verified account.
+    public static func account(from output: String) -> String? {
+        let clean = output.replacingOccurrences(of: "\\u001B\\[[0-?]*[ -/]*[@-~]", with: "", options: .regularExpression)
+        let bare = clean.trimmingCharacters(in: .whitespacesAndNewlines)
+        if isAccountName(bare) { return normalizeAccount(bare) }
+        let pattern = "(?im)^\\s*signed in as\\s+@?([a-zA-Z0-9][a-zA-Z0-9_-]*)\\s*$"
+        guard let expression = try? NSRegularExpression(pattern: pattern),
+              let match = expression.firstMatch(in: clean, range: NSRange(clean.startIndex..., in: clean)),
+              let range = Range(match.range(at: 1), in: clean) else { return nil }
+        return normalizeAccount(String(clean[range]))
     }
 
     private static func quote(_ text: String) -> String {
