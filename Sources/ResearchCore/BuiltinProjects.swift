@@ -23,6 +23,16 @@ public struct BuiltinProject: Decodable, Identifiable, Sendable {
         return common + "\n\n" + specific + "\n"
     }
 
+    public func setupPrompt(_ input: KernelResearchSetup, resources: URL) throws -> String {
+        try validate()
+        let template = try BuiltinProjects.readPrompt("StarterPrompts/SetupTemplate.md", resources: resources)
+        return try input.render(template: template, projectID: id, projectName: name)
+    }
+
+    public func loginInstructions(resources: URL) throws -> String {
+        try BuiltinProjects.readPrompt("StarterPrompts/OKCLogin.md", resources: resources)
+    }
+
     /// Seeds a local starter once. Existing instructions and research files are
     /// retained, including edits made by the user or a previous model session.
     public func prepare(workspaceRoot: String, resources: URL) throws -> URL {
