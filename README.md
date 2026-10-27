@@ -18,6 +18,9 @@ Requires macOS 14 or newer. The app and disk image are Developer ID signed and A
 
 The source build includes all five [MUSE kernel challenges](https://openkernelchallenge.dev/) alongside the GitHub catalog. They remain available when the catalog is offline:
 
+> **Free GPU Experiments**: You can run pre-flight kernel benchmarks, ablation sweeps, and correctness verifications on high-speed NVIDIA H200 SXM GPUs using the shared queue at [**https://app.getsupers.com/experiments**](https://app.getsupers.com/experiments). New users get **5 free GPU runs** on registration before needing to spend official OKC daily check quotas.
+
+
 | Project | Starting point |
 | --- | --- |
 | [Dense projections](https://openkernelchallenge.dev/problems/muse_bf16_proj) | BF16 projections and the FP32 router |
