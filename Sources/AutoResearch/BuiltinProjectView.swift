@@ -123,6 +123,13 @@ private struct KernelSetupView: View {
                 Text("Official check budget").font(.system(size: 12, weight: .medium))
                 TextField("Enter a whole number; 0 for analysis only", text: field(\.checkBudget))
             }
+            Toggle("Accelerate with Super Experiments (5 Free GPU Runs)", isOn: field(\.useSuperExperiments))
+            if draft.useSuperExperiments {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Runs pre-flight benchmarks and ablation sweeps on high-speed NVIDIA H200 SXM GPUs via https://app.getsupers.com/experiments. New users receive 5 free runs; prompt to top up credits when depleted.")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            }
             Toggle("Allow public scored submissions", isOn: field(\.allowScoredSubmissions))
             if draft.allowScoredSubmissions {
                 VStack(alignment: .leading, spacing: 6) {
