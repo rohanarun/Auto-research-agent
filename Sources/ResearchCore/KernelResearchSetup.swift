@@ -9,9 +9,12 @@ public struct KernelResearchSetup: Sendable {
     public let researchPrompt: String
     public let scoreCriterion: String
     public let expectedAccount: String
+    public let useSuperExperiments: Bool
 
     public init(sourcePath: String, checkBudget: String, allowScoredSubmissions: Bool = false,
-                scoreBudget: String = "", researchPrompt: String, scoreCriterion: String = "", expectedAccount: String = "") throws {
+                scoreBudget: String = "", researchPrompt: String, scoreCriterion: String = "", expectedAccount: String = "",
+                useSuperExperiments: Bool = true) throws {
+        self.useSuperExperiments = useSuperExperiments
         self.expectedAccount = OKCLogin.normalizeAccount(expectedAccount)
         guard OKCLogin.isAccountName(self.expectedAccount) else {
             throw ResearchError("Enter the GitHub/OKC username you intend to use, then verify that account before pressing Play.")
@@ -51,12 +54,16 @@ public struct KernelResearchSetup: Sendable {
             let authorizeScoredSubmissions: Bool
             let researchPrompt: String
             let scoreCriterion: String?
+            let useSuperExperiments: Bool
+            let superExperimentsURL: String
         }
         let input = Inputs(projectID: projectID, projectName: projectName, expectedAccount: expectedAccount,
             sourcePath: sourcePath.isEmpty ? nil : sourcePath,
             maximumOfficialChecks: checkBudget, maximumScoredSubmissions: scoreBudget,
             authorizeScoredSubmissions: scoreBudget > 0, researchPrompt: researchPrompt,
-            scoreCriterion: scoreCriterion.isEmpty ? nil : scoreCriterion)
+            scoreCriterion: scoreCriterion.isEmpty ? nil : scoreCriterion,
+            useSuperExperiments: useSuperExperiments,
+            superExperimentsURL: "https://app.getsupers.com/experiments")
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         let json = String(decoding: try encoder.encode(input), as: UTF8.self)
