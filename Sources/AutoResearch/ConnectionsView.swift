@@ -14,6 +14,7 @@ struct ConnectionsView: View {
         case .codex: URL(string: "https://developers.openai.com/codex/cli")!
         case .claude: URL(string: "https://code.claude.com/docs/en/overview")!
         case .opencode: URL(string: "https://opencode.ai/docs")!
+        case .antigravity: URL(string: "https://antigravity.google/docs/cli/reference")!
         }
     }
     private func pathBinding(_ provider: Provider) -> Binding<String> {
@@ -21,6 +22,7 @@ struct ConnectionsView: View {
         case .codex: $store.settings.codexPath
         case .claude: $store.settings.claudePath
         case .opencode: $store.settings.opencodePath
+        case .antigravity: $store.settings.antigravityPath
         }
     }
     private func modelBinding(_ provider: Provider) -> Binding<String> {
@@ -28,14 +30,38 @@ struct ConnectionsView: View {
         case .codex: $store.settings.codexModel
         case .claude: $store.settings.claudeModel
         case .opencode: $store.settings.opencodeModel
+        case .antigravity: $store.settings.antigravityModel
         }
+    }
+    private func modelPlaceholder(_ provider: Provider) -> String {
+        switch provider {
+        case .opencode: "Model as provider/model (empty uses your CLI default)"
+        case .antigravity: "Model, e.g. gemini-3.8-flash-high or gemini-4-argon-high"
+        default: "Model (empty uses your CLI default)"
+        }
+    }
+    /// Antigravity separates its agent mode from its approval bypass. The single
+    /// picker keeps both settings coherent and mirrors the other provider cards.
+    private var antigravityAccess: Binding<String> {
+        Binding(
+            get: {
+                if store.settings.antigravityPermission == "auto" { return "unrestricted" }
+                if store.settings.antigravityMode == "plan" { return "plan" }
+                if store.settings.antigravityMode == "auto" { return "auto" }
+                return "accept-edits"
+            },
+            set: { value in
+                store.settings.antigravityPermission = value == "unrestricted" ? "auto" : "review"
+                store.settings.antigravityMode = value == "plan" ? "plan" : value == "auto" ? "auto" : "accept-edits"
+            }
+        )
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Your research workspace").font(.system(size: 23, weight: .semibold)); Spacer(); Button("Done") { store.saveSettings() }.keyboardShortcut(.defaultAction).disabled(store.hasActiveRuns) }
             Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("Lean server").tag("Lean"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
             if tab == "Connections" {
-                // Three CLIs no longer fit the fixed sheet height, so the cards scroll.
+                // Four provider cards no longer fit the fixed sheet height, so the cards scroll.
                 ScrollView { VStack(alignment: .leading, spacing: 14) { ForEach(Provider.allCases) { provider in
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -47,11 +73,13 @@ struct ConnectionsView: View {
                         }
                         TextField("CLI executable path", text: pathBinding(provider)).textFieldStyle(.roundedBorder)
                         HStack {
-                            TextField(provider == .opencode ? "Model as provider/model (empty uses your CLI default)" : "Model (empty uses your CLI default)", text: modelBinding(provider)).textFieldStyle(.roundedBorder)
+                            TextField(modelPlaceholder(provider), text: modelBinding(provider)).textFieldStyle(.roundedBorder)
                             if provider == .codex {
                                 Picker("Access", selection: $store.settings.codexSandbox) { Text("Workspace writes").tag("workspace-write"); Text("Read only").tag("read-only") }.frame(width: 215)
                             } else if provider == .opencode {
                                 Picker("Permissions", selection: $store.settings.opencodePermission) { Text("Reject prompts").tag("reject"); Text("Auto-approve").tag("auto") }.frame(width: 230)
+                            } else if provider == .antigravity {
+                                Picker("Access", selection: antigravityAccess) { Text("Accept edits").tag("accept-edits"); Text("Auto").tag("auto"); Text("Plan only").tag("plan"); Text("Auto-approve all").tag("unrestricted") }.frame(width: 230)
                             } else {
                                 Picker("Permissions", selection: $store.settings.claudePermissionMode) { Text("Automatic review").tag("auto"); Text("Accept edits").tag("acceptEdits"); Text("Plan only").tag("plan"); Text("Deny unapproved").tag("dontAsk") }.frame(width: 230)
                             }
@@ -64,7 +92,9 @@ struct ConnectionsView: View {
                     Divider()
                     HStack { Text("\(provider.title) login").font(.headline); Spacer(); Button("Close login") { store.cancelLogin() } }
                     ScrollView { Text(.init(store.loginOutput)).font(.system(size: 11, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(height: 115)
-                    HStack { SecureField("Response if the CLI requests a code", text: $loginInput); Button("Submit") { store.sendLoginInput(loginInput); loginInput = "" } }
+                    if provider != .antigravity {
+                        HStack { SecureField("Response if the CLI requests a code", text: $loginInput); Button("Submit") { store.sendLoginInput(loginInput); loginInput = "" } }
+                    }
                 }
             } else if tab == "Daytona" {
                 VStack(alignment:.leading,spacing:16) {

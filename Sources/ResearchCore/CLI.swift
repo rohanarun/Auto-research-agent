@@ -26,6 +26,20 @@ public enum CLI {
             args += ["-"]
             return Command(settings.codexPath, args, input: "Harness instructions:\n\(policy)\n\nUser request:\n\(prompt)")
         }
+        if provider == .antigravity {
+            // Antigravity's print mode takes the request as the value of --print and
+            // has no system-prompt flag, so the policy travels with the request.
+            let request = "Harness instructions:\n\(policy)\n\nUser request:\n\(prompt)"
+            var args = ["--output-format", "stream-json", "--disable-slash-commands"]
+            if settings.antigravityPermission == "auto" { args.append("--dangerously-skip-permissions") }
+            if !settings.antigravityMode.isEmpty { args += ["--mode", settings.antigravityMode] }
+            if let sessionID { args += ["--conversation", sessionID] }
+            if !settings.antigravityModel.isEmpty { args += ["--model", settings.antigravityModel] }
+            // Attach the prompt to the flag so a leading dash or newline is never
+            // mistaken for another option. Antigravity does not read prompts from stdin.
+            args.append("--print=" + request)
+            return Command(settings.antigravityPath, args)
+        }
         if provider == .opencode {
             // `opencode run` reads the message from stdin when no positional message is given.
             // It has no system-prompt flag, so the policy travels with the request as for Codex.
@@ -54,6 +68,9 @@ public enum CLI {
         case .codex: Command(settings.codexPath, login ? ["login"] : ["login", "status"])
         case .claude: Command(settings.claudePath, ["auth", login ? "login" : "status"])
         case .opencode: Command(settings.opencodePath, ["auth", login ? "login" : "list"])
+        // Antigravity has no auth subcommand. `agy models` exits non-zero when the
+        // CLI is signed out; sign-in itself runs the interactive terminal UI.
+        case .antigravity: Command(settings.antigravityPath, ["models"])
         }
     }
     /// `opencode auth list` succeeds with no credentials, so status comes from its output.
@@ -70,6 +87,7 @@ public enum CLI {
         case .codex: ["resume", sessionID]
         case .claude: ["--resume", sessionID]
         case .opencode: ["--session", sessionID]
+        case .antigravity: ["--conversation", sessionID]
         }
     }
 }
@@ -193,7 +211,7 @@ public enum EventDecoder {
     }
     public static func decode(_ line: String, provider: Provider) -> [CLIEvent] {
         guard let data = line.data(using: .utf8), let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return [] }
-        let type = object["type"] as? String ?? ""
+        let type = object["type"] as? String ?? object["event"] as? String ?? ""
         if provider == .codex {
             if type == "thread.started", let id = object["thread_id"] as? String { return [.session(id)] }
             if type == "turn.completed" { return [.completed] }
@@ -222,6 +240,7 @@ public enum EventDecoder {
             }
             return []
         }
+        if provider == .antigravity { return decodeAntigravity(object, type: type) }
         if provider == .opencode { return decodeOpenCode(object, type: type) }
         var events: [CLIEvent] = []
         if let id = object["session_id"] as? String { events.append(.session(id)) }
@@ -249,6 +268,50 @@ public enum EventDecoder {
             }
         }
         return events
+    }
+    /// `agy --output-format stream-json` events. Tool steps carry their parameters
+    /// and output; the final assistant text arrives once in the `result` event.
+    static func decodeAntigravity(_ object: [String: Any], type: String) -> [CLIEvent] {
+        switch type {
+        case "init":
+            guard let id = object["conversation_id"] as? String, !id.isEmpty else { return [] }
+            return [.session(id)]
+        case "step_update":
+            guard let step = object["step_update"] as? [String: Any] else { return [] }
+            var events: [CLIEvent] = []
+            if let id = step["conversation_id"] as? String, !id.isEmpty { events.append(.session(id)) }
+            guard step["step_type"] as? String == "tool" else { return events }
+            let index = step["step_index"] as? Int ?? 0
+            let info = step["tool_info"] as? [String: Any] ?? [:]
+            var text = step["tool_name"] as? String ?? info["name"] as? String ?? "Tool"
+            if let parameters = info["parameters"], JSONSerialization.isValidJSONObject(parameters),
+               let data = try? JSONSerialization.data(withJSONObject: parameters, options: [.prettyPrinted, .sortedKeys]) {
+                text += "\n" + String(decoding: data, as: UTF8.self)
+            }
+            if let output = info["output"] as? String, !output.isEmpty { text += "\n" + output }
+            events.append(.message(id: "antigravity-tool-\(index)", role: "tool", text: text))
+            return events
+        case "result":
+            guard let result = object["result"] as? [String: Any] else { return [] }
+            var events: [CLIEvent] = []
+            let conversation = result["conversation_id"] as? String ?? ""
+            if !conversation.isEmpty { events.append(.session(conversation)) }
+            let status = result["status"] as? String ?? ""
+            guard status == "SUCCESS" else {
+                let reason = (result["error"] as? String ?? result["response"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                events.append(.failure(reason.isEmpty ? "Antigravity reported a failed turn." : reason))
+                return events
+            }
+            let response = (result["response"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !response.isEmpty {
+                let turns = result["num_turns"] as? Int ?? 0
+                events.append(.message(id: "antigravity-result-\(conversation)-\(turns)", role: "assistant", text: response))
+            }
+            events.append(.completed)
+            return events
+        default:
+            return []
+        }
     }
     /// `opencode run --format json` events: every line carries `sessionID`; content lives in `part`.
     static func decodeOpenCode(_ object: [String: Any], type: String) -> [CLIEvent] {

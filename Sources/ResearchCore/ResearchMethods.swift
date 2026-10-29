@@ -25,8 +25,8 @@ public enum ResearchMethods {
                              policy: String, resources: URL, disabledMCPServers: [String] = [],
                              enabledMCPServers: [String] = [], sharedContext: SharedContextOptions? = nil) throws -> [String: Data] {
         try options.validate()
-        guard provider != .opencode else {
-            throw ResearchError("Optional research methods currently support Codex and Claude. Use a normal OpenCode run or choose a supported provider for these methods.")
+        guard provider == .codex || provider == .claude else {
+            throw ResearchError("Optional research methods currently support Codex and Claude. Use a normal \(provider.title) run or choose a supported provider for these methods.")
         }
         if let sharedContext { try sharedContext.validate() }
         let command = CLI.chat(provider: provider, settings: settings, sessionID: nil,
