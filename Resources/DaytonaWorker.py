@@ -156,6 +156,40 @@ def fork_auth(request):
   def redirect_request(self,*args,**kwargs):raise RuntimeError('Private cloud credential redirects are forbidden')
  with urllib.request.build_opener(NoRedirect()).open(req,timeout=75) as f:response=json.load(f)
  assert response['exitCode']==0;return {'copied':True,'host_auth_read':False,'provider_history_copied':False}
+def prepare_auth_transfer(request):
+ # A single-use, expiring signed port URL carries cloud auth directly to the
+ # owned target. Neither the workspace API key nor auth bytes visit the Mac.
+ token=safe_id(request['token']);assert (R/'connection/auth.json').is_file(),'Cloud sign-in is required'
+ proc=subprocess.Popen([sys.executable,__file__,'serve-auth',token],stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,start_new_session=True,text=True)
+ line=proc.stdout.readline();proc.stdout.close()
+ assert line.strip().isdigit(),'Cloud auth transfer listener failed'
+ return {'port':int(line)}
+def serve_auth(token):
+ from http.server import BaseHTTPRequestHandler,HTTPServer
+ class Handler(BaseHTTPRequestHandler):
+  timeout=5
+  def log_message(self,*args):pass
+  def do_GET(self):
+   import secrets
+   if not secrets.compare_digest(self.headers.get('X-Research-Transfer',''),token):
+    self.send_error(403);return
+   data=(R/'connection/auth.json').read_bytes()
+   self.server.transferred=True;self.send_response(200);self.send_header('Cache-Control','no-store');self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+ with HTTPServer(('0.0.0.0',0),Handler) as server:
+  server.timeout=1;server.transferred=False;print(server.server_port,flush=True)
+  deadline=time.monotonic()+60
+  while not server.transferred and time.monotonic()<deadline:server.handle_request()
+def receive_auth_transfer(request):
+ import urllib.parse
+ url=urllib.parse.urlsplit(request['url'])
+ assert url.scheme=='https' and re.fullmatch(r'[a-z0-9]{10}-[0-9]+\.agent37\.app',url.netloc)
+ class NoRedirect(urllib.request.HTTPRedirectHandler):
+  def redirect_request(self,*args,**kwargs):raise RuntimeError('Cloud auth redirects are forbidden')
+ req=urllib.request.Request(request['url'],headers={'X-Research-Transfer':safe_id(request['token'])})
+ with urllib.request.build_opener(NoRedirect()).open(req,timeout=60) as response:data=response.read(1048577)
+ assert len(data)<=1048576;json.loads(data)
+ p=R/'auth/auth.json';p.parent.mkdir(parents=True,exist_ok=True);q=p.with_name('auth.incoming');q.write_bytes(data);q.chmod(0o600);q.replace(p)
+ return {'copied':True,'host_auth_read':False,'provider_history_copied':False}
 def checkpoint():
  def contents(p):
   if not p.exists():return None
@@ -196,6 +230,8 @@ def export_chunk(request):
  assert request['file'] in ['checkout-state.tar.gz','manifest.json'];p=R/'export'/request['file']
  with p.open('rb') as f:f.seek(int(request['offset']));raw=f.read(int(request['limit']))
  return {'data':base64.b64encode(raw).decode(),'offset':int(request['offset'])+len(raw),'eof':int(request['offset'])+len(raw)==p.stat().st_size}
+if __name__=='__main__' and len(sys.argv)>1 and sys.argv[1]=='serve-auth':
+ serve_auth(safe_id(sys.argv[2]));sys.exit(0)
 if __name__=='__main__':
  action=sys.argv[1]
  if action in ['setup-run','run']:
@@ -222,6 +258,8 @@ if __name__=='__main__':
   elif action=='stop':result=stop(request)
   elif action=='auth-status':result=auth_status()
   elif action=='fork-auth':result=fork_auth(request)
+  elif action=='prepare-auth-transfer':result=prepare_auth_transfer(request)
+  elif action=='receive-auth-transfer':result=receive_auth_transfer(request)
   elif action=='checkpoint':result=checkpoint()
   elif action=='put-context':result=put_context(request)
   elif action=='pack':result=pack()

@@ -2,6 +2,7 @@ import Foundation
 
 public struct DaytonaConfiguration: Codable, Equatable, Sendable {
     public var enabled = false
+    public var sandboxProvider: SandboxProvider = .daytona
     public var installID = UUID().uuidString
     public var connectionSandboxID: String?
     public var snapshot: String
@@ -14,9 +15,10 @@ public struct DaytonaConfiguration: Codable, Equatable, Sendable {
         self.snapshot = snapshot;self.codexPackage = codexPackage;self.reasoningEffort = reasoningEffort
         self.pollSeconds = pollSeconds;self.logChunkBytes = logChunkBytes
     }
-    private enum CodingKeys: String, CodingKey { case enabled,installID,connectionSandboxID,snapshot,codexPackage,reasoningEffort,pollSeconds,logChunkBytes,idleStopMinutes }
+    private enum CodingKeys: String, CodingKey { case sandboxProvider,enabled,installID,connectionSandboxID,snapshot,codexPackage,reasoningEffort,pollSeconds,logChunkBytes,idleStopMinutes }
     public init(from decoder: Decoder) throws {
         let d = try decoder.container(keyedBy:CodingKeys.self)
+        sandboxProvider = try d.decodeIfPresent(SandboxProvider.self,forKey:.sandboxProvider) ?? .daytona
         enabled = try d.decodeIfPresent(Bool.self,forKey:.enabled) ?? false
         installID = try d.decodeIfPresent(String.self,forKey:.installID) ?? UUID().uuidString
         connectionSandboxID = try d.decodeIfPresent(String.self,forKey:.connectionSandboxID)
@@ -39,23 +41,27 @@ public struct DaytonaSandbox: Codable, Sendable {
 }
 
 public struct CloudSession: Codable, Sendable {
+    public var sandboxProvider: SandboxProvider?
+    public var provider: SandboxProvider { sandboxProvider ?? .daytona }
     public var sandboxID: String
     public var stateID: String
     public var previousStateID: String?
-    public init(sandboxID: String, stateID: String, previousStateID: String? = nil) {
-        self.sandboxID = sandboxID;self.stateID = stateID;self.previousStateID = previousStateID
+    public init(sandboxID: String, stateID: String, previousStateID: String? = nil, sandboxProvider: SandboxProvider = .daytona) {
+        self.sandboxProvider = sandboxProvider;self.sandboxID = sandboxID;self.stateID = stateID;self.previousStateID = previousStateID
     }
 }
 
 /// API credentials are confined to the management origin. Sandbox control uses
 /// the sandbox's separate preview credential, kept only in memory.
 public actor DaytonaClient {
+    nonisolated public let provider: SandboxProvider
+    nonisolated public var controlPython: String { provider == .daytona ? "sudo -n python3" : "python3" }
     private let key: String
     private let session: URLSession
     private let apiURL: URL
-    private let installID: String
-    private let readRetryInterval: TimeInterval
-    private var owned: Set<String>
+    let installID: String
+    let readRetryInterval: TimeInterval
+    var owned: Set<String>
     private var previews: [String: Preview] = [:]
     private struct Preview: Decodable { let url: URL;let token: String }
     private struct Execution: Decodable { let exitCode: Int;let result: String }
@@ -67,18 +73,18 @@ public actor DaytonaClient {
             completionHandler(request.url?.scheme == "https" && request.url?.host == host && (requiredPrefix.map { request.url?.path.hasPrefix($0) == true } ?? true) ? request : nil)
         }
     }
-    public init(apiKey: String, installID: String, knownOwnedIDs: Set<String> = [], apiURL: URL, session: URLSession = .shared, readRetryInterval: TimeInterval = 2) throws {
-        guard apiURL.scheme == "https",apiURL.host == "app.daytona.io",apiURL.path == "/api",!apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw ResearchError("Enter a Daytona API key for the official Daytona service.")
+    public init(apiKey: String, installID: String, knownOwnedIDs: Set<String> = [], apiURL: URL, session: URLSession = .shared, readRetryInterval: TimeInterval = 2, provider: SandboxProvider = .daytona) throws {
+        guard apiURL == provider.apiURL,!apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw ResearchError("Enter a \(provider.title) API key for its official service.")
         }
         guard readRetryInterval.isFinite,readRetryInterval > 0 else { throw ResearchError("Invalid cloud read recovery interval.") }
-        self.key = apiKey;self.installID = installID;self.owned = knownOwnedIDs;self.apiURL = apiURL;self.session = session;self.readRetryInterval = readRetryInterval
+        self.provider = provider;self.key = apiKey;self.installID = installID;self.owned = knownOwnedIDs;self.apiURL = apiURL;self.session = session;self.readRetryInterval = readRetryInterval
     }
     private func request(_ url: URL, method: String, body: [String: Any]?, management: Bool, token: String? = nil) async throws -> Data {
         var req = URLRequest(url: url);req.httpMethod = method;req.timeoutInterval = 90
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if management {
-            guard url.host == apiURL.host,url.scheme == "https",url.path.hasPrefix(apiURL.path + "/") else { throw ResearchError("Refusing to send Daytona credentials outside its API.") }
+            guard url.host == apiURL.host,url.scheme == "https",url.path.hasPrefix(apiURL.path + "/") else { throw ResearchError("Refusing to send cloud credentials outside its API.") }
             req.setValue("Bearer " + key, forHTTPHeaderField: "Authorization")
         } else if let token { req.setValue(token, forHTTPHeaderField: "X-Daytona-Preview-Token") }
         if let body { req.httpBody = try JSONSerialization.data(withJSONObject: body) }
@@ -90,7 +96,7 @@ public actor DaytonaClient {
             do {
                 if management,method == "GET" {
                     let remaining = readDeadline.timeIntervalSinceNow
-                    guard remaining > 0 else { throw ResearchError("Daytona management reads remained unavailable through the request timeout; remote work is preserved for reconciliation.") }
+                    guard remaining > 0 else { throw ResearchError("Cloud management reads remained unavailable through the request timeout; remote work is preserved for reconciliation.") }
                     req.timeoutInterval = remaining
                 }
                 let (data,response) = try await session.data(for: req,delegate:RedirectPolicy(host:url.host,requiredPrefix:management ? apiURL.path + "/" : nil))
@@ -101,7 +107,7 @@ public actor DaytonaClient {
                     try await Task.sleep(for:.seconds(min(delay,max(0,readDeadline.timeIntervalSinceNow))));continue
                 }
                 guard (200..<300).contains(status) else {
-                    throw ResearchError("Daytona returned HTTP \(status) for \(management ? "management" : "sandbox control"). Check the connection, quota and sandbox state; existing work is preserved.")
+                    throw ResearchError("\(provider.title) returned HTTP \(status) for \(management ? "management" : "sandbox control"). Check the connection, quota and sandbox state; existing work is preserved.")
                 }
                 return data
             } catch let error as URLError where management && method == "GET" && [.timedOut,.networkConnectionLost,.cannotConnectToHost,.cannotFindHost,.notConnectedToInternet].contains(error.code) && Date() < readDeadline {
@@ -109,11 +115,12 @@ public actor DaytonaClient {
             }
         }
     }
-    private func api(_ path: String, method: String = "GET", body: [String: Any]? = nil) async throws -> Data {
-        guard path.hasPrefix("/"),!path.contains("..") else { throw ResearchError("Invalid Daytona API path.") }
+    func api(_ path: String, method: String = "GET", body: [String: Any]? = nil) async throws -> Data {
+        guard path.hasPrefix("/"),!path.contains("..") else { throw ResearchError("Invalid cloud API path.") }
         return try await request(URL(string: apiURL.absoluteString + path)!, method: method, body: body, management: true)
     }
     public func discoverOwned() async throws -> [DaytonaSandbox] {
+        if provider == .agent37 { return try await agent37Discover() }
         struct Page: Decodable { let items: [DaytonaSandbox];let nextCursor: String? }
         var boxes: [DaytonaSandbox] = [];var cursor: String?;var seen = Set<String>()
         repeat {
@@ -127,6 +134,7 @@ public actor DaytonaClient {
         return boxes
     }
     public func create(role: String, snapshot: String, name: String, group: String? = nil, idleStopMinutes: Int = 60) async throws -> DaytonaSandbox {
+        if provider == .agent37 { return try await agent37Create(role:role,template:snapshot,name:name,group:group,idleStopMinutes:idleStopMinutes) }
         var labels = ["autoresearch-install":installID,"autoresearch-role":role]
         if let group { labels["autoresearch-group"] = group }
         do {
@@ -141,12 +149,14 @@ public actor DaytonaClient {
     }
 
     public func inspect(_ id: String) async throws -> DaytonaSandbox {
+        if provider == .agent37 { return try await agent37Inspect(id) }
         guard UUID(uuidString:id) != nil,owned.contains(id) else { throw ResearchError("This sandbox is not owned by this app installation.") }
         let box = try JSONDecoder().decode(DaytonaSandbox.self,from: await api("/sandbox/" + id))
         guard box.id == id,box.labels?["autoresearch-install"] == installID else { throw ResearchError("The sandbox ownership label does not match this installation. It was left untouched.") }
         return box
     }
     public func start(_ id: String) async throws {
+        if provider == .agent37 { try await agent37Start(id);return }
         previews.removeValue(forKey:id)
         var box = try await inspect(id)
         while ["stopping","archiving"].contains(box.state) { try await Task.sleep(for: .seconds(1));box = try await inspect(id) }
@@ -157,6 +167,7 @@ public actor DaytonaClient {
         }
     }
     public func stop(_ id: String, archive: Bool) async throws {
+        if provider == .agent37 { try await agent37Stop(id);return }
         var box = try await inspect(id)
         if box.state == "archived" { return }
         while ["starting","restoring","pending_build","building"].contains(box.state) { try await Task.sleep(for:.seconds(1));box = try await inspect(id) }
@@ -175,6 +186,7 @@ public actor DaytonaClient {
         }
     }
     public func execute(_ id: String, command: String) async throws -> String {
+        if provider == .agent37 { return try await agent37Execute(id,command:command) }
         _ = try await inspect(id)
         if previews[id] == nil { previews[id] = try JSONDecoder().decode(Preview.self,from: await api("/sandbox/" + id + "/ports/2280/preview-url")) }
         let preview = previews[id]!
@@ -186,6 +198,7 @@ public actor DaytonaClient {
         return result.result
     }
     public func copyCloudAuthentication(from source: String, to target: String) async throws {
+        if provider == .agent37 { try await agent37CopyAuthentication(from:source,to:target);return }
         _ = try await inspect(source); _ = try await inspect(target)
         if previews[target] == nil { previews[target] = try JSONDecoder().decode(Preview.self, from: await api("/sandbox/" + target + "/ports/2280/preview-url")) }
         let p = previews[target]!
@@ -196,14 +209,23 @@ public actor DaytonaClient {
         let payload = files.mapValues { $0.base64EncodedString() }
         let code = "import sys,json,pathlib,base64,os;d=json.load(sys.stdin)\nfor name,value in d.items():\n p=pathlib.Path(name);p.parent.mkdir(parents=True,exist_ok=True);q=p.with_name(p.name+'.incoming');q.write_bytes(base64.b64decode(value));q.chmod(0o600);q.replace(p)\nprint('uploaded')"
         let data = try JSONSerialization.data(withJSONObject:payload).base64EncodedString()
-        _ = try await execute(id,command:"printf %s " + Self.quote(data) + " | base64 -d | sudo -n python3 -c " + Self.quote(code))
+        _ = try await execute(id,command:"printf %s " + Self.quote(data) + " | base64 -d | " + controlPython + " -c " + Self.quote(code))
     }
     public func call(_ id: String, action: String, payload: [String: Any] = [:]) async throws -> [String: Any] {
         guard action.allSatisfy({ $0.isLetter || $0 == "-" }) else { throw ResearchError("Invalid sandbox action.") }
         let encoded = try JSONSerialization.data(withJSONObject:payload).base64EncodedString()
-        let result = try await execute(id,command:"printf %s " + Self.quote(encoded) + " | base64 -d | sudo -n python3 /opt/autoresearch/bridge.py " + action)
-        guard let object = try JSONSerialization.jsonObject(with:Data(result.utf8)) as? [String:Any] else { throw ResearchError("Unreadable sandbox response; reconcile its saved run before retrying.") }
-        return object
+        do {
+            let result = try await execute(id,command:"printf %s " + Self.quote(encoded) + " | base64 -d | " + controlPython + " /opt/autoresearch/bridge.py " + action)
+            guard let object = try JSONSerialization.jsonObject(with:Data(result.utf8)) as? [String:Any] else { throw ResearchError("Unreadable sandbox response; reconcile its saved run before retrying.") }
+            return object
+        } catch is Agent37OutputTruncated where provider == .agent37 && ["poll","export-chunk"].contains(action) {
+            // These two bridge actions only read logs/files. Keep the exact
+            // offsets and cursor, reducing the response to fit exec's 512 KB
+            // stream cap. Never retry a launch, setup or other mutation.
+            guard let limit = payload["limit"] as? Int,limit > 1 else { throw Agent37OutputTruncated() }
+            var smaller = payload;smaller["limit"] = max(1,limit / 2)
+            return try await call(id,action:action,payload:smaller)
+        }
     }
     public static func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of:"'",with:"'\\''") + "'" }
 }
