@@ -1,0 +1,16 @@
+{
+  "metric": "189",
+  "claim": "Conditional on the preserved upstream nondirect residual counting lemma and its fixed activation-coordinate vanishing law, the nondirect residual contribution is O_D(q^(-D+189)) for every even D>=190.",
+  "assumptions": [
+    "The upstream residual exponent formula and gain estimate imported by the snapshot are valid.",
+    "The fixed three-cut activation law decomposes the local coefficient count by the unique differing cut coordinate, as stated in solution/proof.md.",
+    "The equality-stratum exclusion of the five multiply separated edges is valid.",
+    "No claim is made for the entire construction or for a smaller Sidorenko counterexample."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python3 -B solution/verify_residual189.py",
+  "evidence_files": [
+    "solution/residual189-evidence.json",
+    "experiments/original-baseline.json"
+  ]
+}

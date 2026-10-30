@@ -1,0 +1,22 @@
+{
+  "metric": "189",
+  "claim": "Conditional residual counting theorem: if the unchanged upstream activators supply the explicitly stated local-isotropy and containment-probability input, the fixed nondirect residual contribution is O_D(q^(-D+189)) for every even D>=190. The dimension argument covers every positive defect. Identification of that geometric input with the original activation law is not established by the saved finite-complex source; no unconditional improvement or bound for the entire construction is claimed.",
+  "assumptions": [
+    "The original residual geometry is a nondegenerate alternating space of dimension 2D, and each active pair space has dimension two.",
+    "The unchanged local activation law vanishes on nonisotropic local spans and bounds joint activation by O_D(q^(-D*sum_i k_i+sum_i binom(k_i,2))). This geometric input must be supplied by the upstream analytic argument; its identification is unresolved in the supplied snapshot.",
+    "The retained gain is O_D(q^(2m)); equality profiles allow only the original 28 pairs of coverage 1/3; nondirect profiles satisfy 2<=k<2m and d=sum_i k_i-2k>=1.",
+    "All other upstream analytic and full-construction dimension requirements remain in force."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python3 -B solution/verify.py && python3 -B solution/check_activation.py",
+  "evidence_files": [
+    "solution/verification.json",
+    "solution/frame-arithmetic.json",
+    "solution/activation-checks.json",
+    "solution/baseline-support-reproduced.json",
+    "solution/README.md"
+  ],
+  "status": "conditional_candidate_with_unresolved_upstream_identification",
+  "unconditional_target_established": false,
+  "remaining_gap": "Establish from the original unchanged activation law the nondegenerate alternating geometry, local isotropy, and displayed joint probability bound. The supplied analytic source does not contain this identification."
+}

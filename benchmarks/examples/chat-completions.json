@@ -1,0 +1,7 @@
+{
+  "kind": "chat-completions",
+  "url": "https://YOUR_PROVIDER_HOST/v1/chat/completions",
+  "key_env": "MODEL_API_KEY",
+  "send_reasoning_effort": true,
+  "parameters": {}
+}

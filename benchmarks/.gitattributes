@@ -1,0 +1,3 @@
+# Preserve byte-identical frozen inputs and sealed contestant sources, including original whitespace.
+data/kernel-starters/** -whitespace
+data/candidates/** -whitespace

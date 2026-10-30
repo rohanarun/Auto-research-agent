@@ -1,0 +1,18 @@
+{
+  "version": "kernel-target-v1",
+  "frozen_before_contestant_runs": true,
+  "budget_seconds": 1800,
+  "reference_banks": 2,
+  "final_candidate_banks": 2,
+  "timing_rounds_per_case": 5,
+  "aggregation": "weighted sum of per-case median times; speedup=baseline/candidate; geometric mean across banks",
+  "success": "All correctness, dynamic graph replay and source-rule audits pass on every case in two fresh held-out banks; one-sided 95% paired-timing bootstrap lower bound on geometric-mean speedup is >= 0.98 * calibrated reference geometric-mean speedup.",
+  "equivalence_tolerance": 0.02,
+  "bootstrap_samples": 10000,
+  "bootstrap_seed": 20261030,
+  "uncertainty_scope": "Timing variability only; one research trial per model/task; no inference about model-level variance.",
+  "diagnostic_cases": "Up to two selected public cases per request, at most three requests per trial. Diagnostics never determine final success.",
+  "source_audit": "Reject output/input caching, precision changes, skipped intermediates, checker/timer monkeypatching, private data access or cross-job dependence.",
+  "queue": "Single H200 serialized across trials; queue/startup waits included in wall-clock budget and reported; no inference-only GPU leases.",
+  "submission_selection": "Validate final sealed source only; report the earliest in-budget checkpoint containing byte-identical final source. Other source versions are not exhaustively judged, so this is time to an admitted final artifact, not a proof that no earlier breakthrough existed."
+}

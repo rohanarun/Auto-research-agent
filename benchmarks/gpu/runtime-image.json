@@ -1,0 +1,26 @@
+{
+  "tag": "lmsysorg/sglang:dev-muse-spark-open",
+  "digest": "sha256:8cfc5a72cb296771f5f8a4a4688cb6d05685610a830cbb616fa4ab0eb7bb2b0a",
+  "images": [
+    {
+      "architecture": "amd64",
+      "os": "linux",
+      "digest": "sha256:a0ae9cefecc0fb68e74a6f3b7f338eb80a53e3e6df4637ec2f024abc5fec07af"
+    },
+    {
+      "architecture": "arm64",
+      "os": "linux",
+      "digest": "sha256:3657f02cb87d86ed5bfcc589feb779a86426e6f6880b146c1f1fd9fc31512741"
+    },
+    {
+      "architecture": "unknown",
+      "os": "unknown",
+      "digest": "sha256:10e930c69ad92823384166ce4c9a7001a28c4f5a611cb31b333380ce945d45f1"
+    },
+    {
+      "architecture": "unknown",
+      "os": "unknown",
+      "digest": "sha256:673c057e04cd765d6b688a555fb35ff409560c9aea7966a15e3f45cbd7cf430c"
+    }
+  ]
+}

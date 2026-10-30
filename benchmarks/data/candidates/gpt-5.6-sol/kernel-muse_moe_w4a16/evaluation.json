@@ -1,0 +1,576 @@
+{
+  "source_sha256": "9f538a6591f9d41561b39710e32647fb74b84766777a8c5946f25acb4c128aa4",
+  "banks": [
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.387e-03 (worst row 5.387e-03)",
+          "baseline_us": 84.11200046539307,
+          "candidate_us": 83.3407998085022,
+          "paired_rounds": [
+            {
+              "candidate": 84.22080278396606,
+              "baseline": 84.62719917297363
+            },
+            {
+              "candidate": 83.3407998085022,
+              "baseline": 84.15679931640625
+            },
+            {
+              "candidate": 83.25120210647583,
+              "baseline": 83.74720215797424
+            },
+            {
+              "baseline": 83.8208019733429,
+              "candidate": 83.41439962387085
+            },
+            {
+              "baseline": 84.11200046539307,
+              "candidate": 83.1712007522583
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.573e-03 (worst row 5.735e-03)",
+          "baseline_us": 204.70399856567383,
+          "candidate_us": 205.52000999450684,
+          "paired_rounds": [
+            {
+              "candidate": 206.13760948181152,
+              "baseline": 204.48639392852783
+            },
+            {
+              "baseline": 204.52160835266113,
+              "candidate": 205.52000999450684
+            },
+            {
+              "baseline": 204.80000972747803,
+              "candidate": 205.1680088043213
+            },
+            {
+              "baseline": 204.70399856567383,
+              "candidate": 205.26399612426758
+            },
+            {
+              "baseline": 204.93760108947754,
+              "candidate": 206.4448118209839
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.531e-03 (worst row 5.943e-03)",
+          "baseline_us": 206.64639472961426,
+          "candidate_us": 219.1648006439209,
+          "paired_rounds": [
+            {
+              "candidate": 220.64640522003174,
+              "baseline": 206.87360763549805
+            },
+            {
+              "baseline": 206.64639472961426,
+              "candidate": 219.03679370880127
+            },
+            {
+              "candidate": 219.1648006439209,
+              "baseline": 206.04801177978516
+            },
+            {
+              "candidate": 219.47519779205322,
+              "baseline": 207.043194770813
+            },
+            {
+              "baseline": 206.63039684295654,
+              "candidate": 218.7488079071045
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.496e-03 (worst row 5.572e-03)",
+          "baseline_us": 148.63040447235107,
+          "candidate_us": 148.49599599838257,
+          "paired_rounds": [
+            {
+              "candidate": 148.72000217437744,
+              "baseline": 148.63040447235107
+            },
+            {
+              "baseline": 148.4320044517517,
+              "candidate": 148.49599599838257
+            },
+            {
+              "baseline": 148.86399507522583,
+              "candidate": 148.52479696273804
+            },
+            {
+              "baseline": 148.52479696273804,
+              "candidate": 148.4895944595337
+            },
+            {
+              "baseline": 149.0847945213318,
+              "candidate": 147.86560535430908
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.543e-03 (worst row 5.845e-03)",
+          "baseline_us": 463.5263919830322,
+          "candidate_us": 488.58561515808105,
+          "paired_rounds": [
+            {
+              "baseline": 463.6159896850586,
+              "candidate": 490.47040939331055
+            },
+            {
+              "baseline": 463.9711856842041,
+              "candidate": 489.737606048584
+            },
+            {
+              "baseline": 463.5263919830322,
+              "candidate": 488.58561515808105
+            },
+            {
+              "candidate": 488.4704113006592,
+              "baseline": 462.2335910797119
+            },
+            {
+              "baseline": 460.92162132263184,
+              "candidate": 487.7567768096924
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "bs": 256,
+            "load": "verify 32",
+            "seed": 406,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.543e-03 (worst row 5.987e-03)",
+          "baseline_us": 595.7536220550537,
+          "candidate_us": 526.4095783233643,
+          "paired_rounds": [
+            {
+              "baseline": 595.2960014343262,
+              "candidate": 526.7104148864746
+            },
+            {
+              "candidate": 526.4095783233643,
+              "baseline": 596.3551998138428
+            },
+            {
+              "baseline": 595.4624176025391,
+              "candidate": 525.8143901824951
+            },
+            {
+              "candidate": 526.6240119934082,
+              "baseline": 595.7536220550537
+            },
+            {
+              "baseline": 597.0687866210938,
+              "candidate": 525.1520156860352
+            }
+          ]
+        }
+      ],
+      "source_sha256": "9f538a6591f9d41561b39710e32647fb74b84766777a8c5946f25acb4c128aa4",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30022,
+      "correct": true,
+      "weighted_baseline_us": 102202.36873626709,
+      "weighted_candidate_us": 100291.00799560547,
+      "speedup_vs_baseline": 1.019058146675975,
+      "heldout_seed": 161214103
+    },
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.443e-03 (worst row 5.443e-03)",
+          "baseline_us": 83.94880294799805,
+          "candidate_us": 83.61920118331909,
+          "paired_rounds": [
+            {
+              "baseline": 85.11040210723877,
+              "candidate": 83.62240195274353
+            },
+            {
+              "candidate": 83.651202917099,
+              "baseline": 84.45119857788086
+            },
+            {
+              "baseline": 83.76320004463196,
+              "candidate": 83.20320248603821
+            },
+            {
+              "baseline": 83.60000252723694,
+              "candidate": 83.61920118331909
+            },
+            {
+              "candidate": 83.45919847488403,
+              "baseline": 83.94880294799805
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.565e-03 (worst row 5.830e-03)",
+          "baseline_us": 182.7679991722107,
+          "candidate_us": 183.40799808502197,
+          "paired_rounds": [
+            {
+              "candidate": 184.05439853668213,
+              "baseline": 182.86720514297485
+            },
+            {
+              "candidate": 183.12000036239624,
+              "baseline": 182.73600339889526
+            },
+            {
+              "candidate": 182.79999494552612,
+              "baseline": 182.7679991722107
+            },
+            {
+              "baseline": 182.87999629974365,
+              "candidate": 183.40799808502197
+            },
+            {
+              "baseline": 182.37760066986084,
+              "candidate": 183.4496021270752
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.532e-03 (worst row 5.999e-03)",
+          "baseline_us": 207.66398906707764,
+          "candidate_us": 220.25279998779297,
+          "paired_rounds": [
+            {
+              "candidate": 220.65598964691162,
+              "baseline": 208.19520950317383
+            },
+            {
+              "baseline": 207.66398906707764,
+              "candidate": 220.25279998779297
+            },
+            {
+              "baseline": 207.72159099578857,
+              "candidate": 219.95840072631836
+            },
+            {
+              "baseline": 207.4687957763672,
+              "candidate": 219.6063995361328
+            },
+            {
+              "baseline": 207.17120170593262,
+              "candidate": 221.1872100830078
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.510e-03 (worst row 5.753e-03)",
+          "baseline_us": 159.49759483337402,
+          "candidate_us": 160.13439893722534,
+          "paired_rounds": [
+            {
+              "candidate": 161.4367961883545,
+              "baseline": 159.92000102996826
+            },
+            {
+              "candidate": 159.65440273284912,
+              "baseline": 159.49759483337402
+            },
+            {
+              "candidate": 160.13439893722534,
+              "baseline": 159.20000076293945
+            },
+            {
+              "candidate": 159.61600542068481,
+              "baseline": 159.0783953666687
+            },
+            {
+              "candidate": 160.40639877319336,
+              "baseline": 159.66720581054688
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.533e-03 (worst row 5.960e-03)",
+          "baseline_us": 476.42879486083984,
+          "candidate_us": 410.95361709594727,
+          "paired_rounds": [
+            {
+              "baseline": 476.8671989440918,
+              "candidate": 411.33761405944824
+            },
+            {
+              "baseline": 476.34878158569336,
+              "candidate": 410.73598861694336
+            },
+            {
+              "baseline": 476.691198348999,
+              "candidate": 410.95361709594727
+            },
+            {
+              "baseline": 476.3775825500488,
+              "candidate": 411.3664150238037
+            },
+            {
+              "candidate": 410.4544162750244,
+              "baseline": 476.42879486083984
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "bs": 256,
+            "load": "verify 32",
+            "seed": 406,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.558e-03 (worst row 5.950e-03)",
+          "baseline_us": 642.0000076293945,
+          "candidate_us": 404.02560234069824,
+          "paired_rounds": [
+            {
+              "candidate": 405.65757751464844,
+              "baseline": 642.6623821258545
+            },
+            {
+              "baseline": 642.0000076293945,
+              "candidate": 404.02560234069824
+            },
+            {
+              "baseline": 643.2735919952393,
+              "candidate": 403.86881828308105
+            },
+            {
+              "candidate": 403.9584159851074,
+              "baseline": 641.1424160003662
+            },
+            {
+              "baseline": 641.1712169647217,
+              "candidate": 404.1600227355957
+            }
+          ]
+        }
+      ],
+      "source_sha256": "9f538a6591f9d41561b39710e32647fb74b84766777a8c5946f25acb4c128aa4",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30023,
+      "correct": true,
+      "weighted_baseline_us": 105138.43131065369,
+      "weighted_candidate_us": 87743.6170578003,
+      "speedup_vs_baseline": 1.1982459218816421,
+      "heldout_seed": 244327054
+    }
+  ],
+  "source_audit": {
+    "approved": true,
+    "sha256": "9f538a6591f9d41561b39710e32647fb74b84766777a8c5946f25acb4c128aa4",
+    "reviewer": "benchmark curator model, source review",
+    "notes": "Reviewed complete source and diff: only functional change chooses Marlin tile size from global expert population instead of local bank count. Exact same NVFP4 compressed weight format, FP32 reduction, dynamic routing and post-norm remain; no outputs are cached and no evaluator/timer code is modified. Correctness and target performance require independent full-bank measurement."
+  },
+  "scope": "Full public-shape, fresh-seed local benchmark; not an official OKC score."
+}

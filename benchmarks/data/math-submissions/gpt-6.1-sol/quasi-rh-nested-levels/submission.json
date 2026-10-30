@@ -1,0 +1,25 @@
+{
+  "metric": "874809963/1000000000",
+  "ell": "125570111/750000000",
+  "h": "797221155889059/1000000000000000",
+  "claim": "Conditional seven-level nested-affine certificate: theta <= 874809963/1000000000, retaining the original LOW floors, width-floor rule, direct-room threshold, source constraints and return prices.",
+  "assumptions": [
+    "All H1-H5 in depth3/PROOF.md instantiated at depth seven, with the same underlying analytic dependencies.",
+    "H1-H3 supply recursive LOW dispatch, coupled cell-uniform position families, H3 gap coverage, and the joint source-label/Pays/return construction at every depth.",
+    "H2 retains all intermediate missing-radical coordinates and prefix-fibre bounds and applies zero density once to final rows.",
+    "H4 supplies the required re-bracketing, deeper position coverage, rebasing, zero-room and supply feasibility; the original first-child width-floor and direct-room tests are checked exactly, not weakened.",
+    "H5 bounds every actual loss by the available reserve after preceding LOW payments; the explicit arithmetic allowance example does not prove missing analytic loss bounds.",
+    "No complete Lean verification or unconditional nonvanishing endpoint is claimed."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "PYTHONDONTWRITEBYTECODE=1 python solution/verify.py",
+  "evidence_files": [
+    "solution/parameters.json",
+    "solution/certificate.json",
+    "solution/verification.log",
+    "solution/baseline_sha256.json",
+    "solution/candidate.log",
+    "solution/search3.log",
+    "solution/search3.py"
+  ]
+}

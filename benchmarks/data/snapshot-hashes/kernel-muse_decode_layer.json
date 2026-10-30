@@ -1,0 +1,30 @@
+[
+  [
+    "AGENTS.md",
+    "cd0a128be02be76956ac4b1e49ebea3dc287f1c9e6d3256e659b0b7772465fa8"
+  ],
+  [
+    "TASK.md",
+    "22cae4f18fe204ab9d5a4aa34dae4e839363beb1f5967f33668a39d173507c46"
+  ],
+  [
+    "baseline.py",
+    "87d95a0c4b78f0fd6c772436b959330ca45652b10e82dfc8add9acf0549227d4"
+  ],
+  [
+    "checks.py",
+    "9a046c3c38db28b325dcd1557baecdf6bc9ef941d2175f9a900ba4c230bb8055"
+  ],
+  [
+    "nvfp4.py",
+    "cfdf37c7bc14b10f7353aba7d4632f4767401b92b4b073941a8030d9a961aaaf"
+  ],
+  [
+    "reference.py",
+    "23e177b87aee70c0d4990515989b95bff2972270cdac8ab967445b21fa2f5163"
+  ],
+  [
+    "submission.py",
+    "c90d9dafdefac27d37232f22d6cbdae6fe0d50b3f098f1644d847801f3bf0a92"
+  ]
+]

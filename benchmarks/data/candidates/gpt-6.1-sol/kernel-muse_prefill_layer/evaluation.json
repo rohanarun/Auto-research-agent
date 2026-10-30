@@ -1,0 +1,817 @@
+{
+  "source_sha256": "aba395f1d2939f56556c9def73fc09bd54792fc374f5d061d978b651fb3bf667",
+  "banks": [
+    {
+      "problem": "muse_prefill_layer",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "turn 1",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1001,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.795e-02 (worst row 1.183e-01) [bound 0.132]; attention input relative L2 error 3.229e-02 (worst row 6.006e-02) [bound 0.074]",
+          "baseline_us": 718.5013294219971,
+          "candidate_us": 719.3600336710612,
+          "paired_rounds": [
+            {
+              "baseline": 726.1919975280762,
+              "candidate": 725.3173192342123
+            },
+            {
+              "baseline": 721.4186986287435,
+              "candidate": 720.906654993693
+            },
+            {
+              "baseline": 718.5013294219971,
+              "candidate": 719.3600336710612
+            },
+            {
+              "baseline": 718.1599934895834,
+              "candidate": 718.3146476745605
+            },
+            {
+              "candidate": 719.0986474355062,
+              "baseline": 717.3333168029785
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "turn 1",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1002,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 6.562e-02 (worst row 1.210e-01) [bound 0.150]; attention input relative L2 error 3.754e-02 (worst row 6.500e-02) [bound 0.091]",
+          "baseline_us": 1113.0506992340088,
+          "candidate_us": 1111.90931002299,
+          "paired_rounds": [
+            {
+              "baseline": 1116.5493329366047,
+              "candidate": 1114.1653060913086
+            },
+            {
+              "baseline": 1113.0506992340088,
+              "candidate": 1111.90931002299
+            },
+            {
+              "candidate": 1112.8426392873127,
+              "baseline": 1115.066687266032
+            },
+            {
+              "baseline": 1111.9146347045898,
+              "candidate": 1107.690652211507
+            },
+            {
+              "candidate": 1108.1706682840984,
+              "baseline": 1111.7653052012126
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "batch": 4,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "turn 4",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1003,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.441e-02 (worst row 1.143e-01) [bound 0.123]; attention input relative L2 error 2.999e-02 (worst row 7.868e-02) [bound 0.068]",
+          "baseline_us": 1846.9546635945637,
+          "candidate_us": 1810.933272043864,
+          "paired_rounds": [
+            {
+              "candidate": 1810.933272043864,
+              "baseline": 1804.2453130086262
+            },
+            {
+              "candidate": 1808.6293538411458,
+              "baseline": 1807.5040181477864
+            },
+            {
+              "candidate": 1809.941291809082,
+              "baseline": 1846.9546635945637
+            },
+            {
+              "baseline": 1868.1492805480957,
+              "candidate": 1872.6612726847331
+            },
+            {
+              "candidate": 1893.130620320638,
+              "baseline": 1885.6266339619954
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "batch": 4,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "turn 4",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1004,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 6.817e-02 (worst row 1.175e-01) [bound 0.150]; attention input relative L2 error 3.794e-02 (worst row 7.360e-02) [bound 0.092]",
+          "baseline_us": 3465.1788075764975,
+          "candidate_us": 3437.6214345296225,
+          "paired_rounds": [
+            {
+              "baseline": 3442.4425760904946,
+              "candidate": 3404.933293660482
+            },
+            {
+              "baseline": 3448.725382486979,
+              "candidate": 3425.327936808268
+            },
+            {
+              "baseline": 3465.1788075764975,
+              "candidate": 3437.6214345296225
+            },
+            {
+              "baseline": 3477.2265752156577,
+              "candidate": 3439.94140625
+            },
+            {
+              "baseline": 3475.9947458902993,
+              "candidate": 3441.2053426106772
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "batch": 1,
+            "ctx": 0,
+            "dist": "soft",
+            "layer": "full",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1006,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 2.740e-02 (worst row 1.137e-01) [bound 0.058]; attention input relative L2 error 1.457e-02 (worst row 6.212e-02) [bound 0.031]",
+          "baseline_us": 8373.818715413412,
+          "candidate_us": 8311.381022135416,
+          "paired_rounds": [
+            {
+              "baseline": 8033.840179443359,
+              "candidate": 8271.584192911783
+            },
+            {
+              "candidate": 8292.559941609701,
+              "baseline": 8373.818715413412
+            },
+            {
+              "candidate": 8377.951939900717,
+              "baseline": 8429.0402730306
+            },
+            {
+              "baseline": 8400.416056315104,
+              "candidate": 8344.95989481608
+            },
+            {
+              "baseline": 8351.376215616861,
+              "candidate": 8311.381022135416
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "batch": 1,
+            "ctx": 32768,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1007,
+            "weight": 138
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 3.932e-02 (worst row 1.184e-01) [bound 0.079]; attention input relative L2 error 2.169e-02 (worst row 6.146e-02) [bound 0.044]",
+          "baseline_us": 8683.055877685547,
+          "candidate_us": 8671.594619750977,
+          "paired_rounds": [
+            {
+              "baseline": 8388.309478759766,
+              "candidate": 8730.576197306314
+            },
+            {
+              "candidate": 8698.912302652994,
+              "baseline": 8701.87759399414
+            },
+            {
+              "candidate": 8671.594619750977,
+              "baseline": 8616.032282511393
+            },
+            {
+              "candidate": 8630.559921264648,
+              "baseline": 8683.055877685547
+            },
+            {
+              "baseline": 8738.943735758463,
+              "candidate": 8666.714350382486
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "config": {
+            "batch": 1,
+            "ctx": 32768,
+            "dist": "soft",
+            "layer": "full",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1008,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 6.417e-02 (worst row 1.222e-01) [bound 0.150]; attention input relative L2 error 3.497e-02 (worst row 7.431e-02) [bound 0.084]",
+          "baseline_us": 12696.192423502604,
+          "candidate_us": 12389.867146809896,
+          "paired_rounds": [
+            {
+              "candidate": 12099.924723307291,
+              "baseline": 12646.741231282553
+            },
+            {
+              "candidate": 12521.626790364584,
+              "baseline": 12714.271545410156
+            },
+            {
+              "baseline": 12716.27680460612,
+              "candidate": 12330.05396525065
+            },
+            {
+              "candidate": 12389.867146809896,
+              "baseline": 12696.192423502604
+            },
+            {
+              "candidate": 12423.978169759115,
+              "baseline": 12607.477823893229
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "config": {
+            "batch": 1,
+            "ctx": 65536,
+            "dist": "soft",
+            "layer": "full",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1010,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 6.614e-02 (worst row 1.280e-01) [bound 0.150]; attention input relative L2 error 3.693e-02 (worst row 8.082e-02) [bound 0.089]",
+          "baseline_us": 16804.799397786457,
+          "candidate_us": 16399.232228597004,
+          "paired_rounds": [
+            {
+              "baseline": 16413.626352945965,
+              "candidate": 16399.232228597004
+            },
+            {
+              "candidate": 16274.07964070638,
+              "baseline": 16804.799397786457
+            },
+            {
+              "candidate": 16329.898834228516,
+              "baseline": 16797.96854654948
+            },
+            {
+              "candidate": 16440.751393636066,
+              "baseline": 17023.770650227863
+            },
+            {
+              "candidate": 16894.373575846355,
+              "baseline": 17357.823689778645
+            }
+          ]
+        }
+      ],
+      "source_sha256": "aba395f1d2939f56556c9def73fc09bd54792fc374f5d061d978b651fb3bf667",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30024,
+      "correct": true,
+      "weighted_baseline_us": 1995521.327495575,
+      "weighted_candidate_us": 1979473.72786204,
+      "speedup_vs_baseline": 1.0081070030926187,
+      "heldout_seed": 130774397
+    },
+    {
+      "problem": "muse_prefill_layer",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "turn 1",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1001,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.724e-02 (worst row 1.034e-01) [bound 0.133]; attention input relative L2 error 3.612e-02 (worst row 6.653e-02) [bound 0.084]",
+          "baseline_us": 931.3546816507975,
+          "candidate_us": 928.389310836792,
+          "paired_rounds": [
+            {
+              "candidate": 934.2506726582845,
+              "baseline": 931.3546816507975
+            },
+            {
+              "candidate": 932.9546292622884,
+              "baseline": 932.4320157368978
+            },
+            {
+              "baseline": 933.1466356913248,
+              "candidate": 928.389310836792
+            },
+            {
+              "candidate": 927.232027053833,
+              "baseline": 926.30934715271
+            },
+            {
+              "candidate": 924.1653283437093,
+              "baseline": 922.7306842803955
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "turn 1",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1002,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.930e-02 (worst row 1.092e-01) [bound 0.142]; attention input relative L2 error 3.677e-02 (worst row 6.509e-02) [bound 0.088]",
+          "baseline_us": 1294.2132949829102,
+          "candidate_us": 1290.8213138580322,
+          "paired_rounds": [
+            {
+              "baseline": 1296.463966369629,
+              "candidate": 1292.9813067118328
+            },
+            {
+              "candidate": 1292.4586931864421,
+              "baseline": 1294.2132949829102
+            },
+            {
+              "baseline": 1292.58131980896,
+              "candidate": 1290.8213138580322
+            },
+            {
+              "baseline": 1294.6453094482422,
+              "candidate": 1290.39470354716
+            },
+            {
+              "candidate": 1289.5946502685547,
+              "baseline": 1290.005366007487
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "batch": 4,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "turn 4",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1003,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.248e-02 (worst row 1.127e-01) [bound 0.120]; attention input relative L2 error 3.313e-02 (worst row 7.368e-02) [bound 0.076]",
+          "baseline_us": 3122.2826639811196,
+          "candidate_us": 3136.1865997314453,
+          "paired_rounds": [
+            {
+              "candidate": 2925.093332926432,
+              "baseline": 2922.3947525024414
+            },
+            {
+              "baseline": 3006.4427057902017,
+              "candidate": 3136.1865997314453
+            },
+            {
+              "baseline": 3163.482666015625,
+              "candidate": 3165.1840209960938
+            },
+            {
+              "candidate": 3160.2932612101235,
+              "baseline": 3137.3974482218423
+            },
+            {
+              "candidate": 3134.81076558431,
+              "baseline": 3122.2826639811196
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "batch": 4,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "turn 4",
+            "page": 1,
+            "q_len": 753,
+            "repeats": 6,
+            "seed": 1004,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 6.505e-02 (worst row 1.112e-01) [bound 0.150]; attention input relative L2 error 4.027e-02 (worst row 7.697e-02) [bound 0.097]",
+          "baseline_us": 4332.528114318848,
+          "candidate_us": 4294.522603352864,
+          "paired_rounds": [
+            {
+              "candidate": 4162.192026774089,
+              "baseline": 4225.6425221761065
+            },
+            {
+              "candidate": 4294.522603352864,
+              "baseline": 4327.605247497559
+            },
+            {
+              "baseline": 4362.160046895345,
+              "candidate": 4340.565363566081
+            },
+            {
+              "candidate": 4337.461471557617,
+              "baseline": 4332.528114318848
+            },
+            {
+              "baseline": 4360.335985819499,
+              "candidate": 4285.776138305664
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "batch": 1,
+            "ctx": 0,
+            "dist": "soft",
+            "layer": "full",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1006,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 2.179e-02 (worst row 4.565e-02) [bound 0.044]; attention input relative L2 error 1.417e-02 (worst row 3.210e-02) [bound 0.030]",
+          "baseline_us": 18802.757263183594,
+          "candidate_us": 19370.010375976562,
+          "paired_rounds": [
+            {
+              "baseline": 18382.62939453125,
+              "candidate": 18645.370483398438
+            },
+            {
+              "candidate": 18866.586049397785,
+              "baseline": 18799.04556274414
+            },
+            {
+              "candidate": 19541.114807128906,
+              "baseline": 20172.51205444336
+            },
+            {
+              "baseline": 20987.88833618164,
+              "candidate": 20182.10728963216
+            },
+            {
+              "candidate": 19370.010375976562,
+              "baseline": 18802.757263183594
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "batch": 1,
+            "ctx": 32768,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1007,
+            "weight": 138
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 3.330e-02 (worst row 9.536e-02) [bound 0.065]; attention input relative L2 error 2.155e-02 (worst row 6.474e-02) [bound 0.042]",
+          "baseline_us": 19151.599884033203,
+          "candidate_us": 19024.40007527669,
+          "paired_rounds": [
+            {
+              "baseline": 18327.611287434895,
+              "candidate": 18771.90399169922
+            },
+            {
+              "candidate": 18484.13340250651,
+              "baseline": 18631.09842936198
+            },
+            {
+              "candidate": 19034.523010253906,
+              "baseline": 19747.183481852215
+            },
+            {
+              "baseline": 20297.637939453125,
+              "candidate": 20363.301595052082
+            },
+            {
+              "baseline": 19151.599884033203,
+              "candidate": 19024.40007527669
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "config": {
+            "batch": 1,
+            "ctx": 32768,
+            "dist": "soft",
+            "layer": "full",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1008,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.658e-02 (worst row 1.242e-01) [bound 0.136]; attention input relative L2 error 3.533e-02 (worst row 9.086e-02) [bound 0.085]",
+          "baseline_us": 19394.906361897785,
+          "candidate_us": 18882.506052652996,
+          "paired_rounds": [
+            {
+              "candidate": 18234.36737060547,
+              "baseline": 19016.639709472656
+            },
+            {
+              "baseline": 19394.906361897785,
+              "candidate": 18641.515096028645
+            },
+            {
+              "candidate": 18882.506052652996,
+              "baseline": 19965.189615885418
+            },
+            {
+              "baseline": 20975.05060831706,
+              "candidate": 20313.99408976237
+            },
+            {
+              "candidate": 19159.008026123047,
+              "baseline": 19251.514434814453
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "config": {
+            "batch": 1,
+            "ctx": 65536,
+            "dist": "soft",
+            "layer": "full",
+            "load": "first turn",
+            "page": 1,
+            "q_len": 16384,
+            "repeats": 6,
+            "seed": 1010,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "stream",
+            "attn_input"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "update relative L2 error 5.841e-02 (worst row 1.211e-01) [bound 0.140]; attention input relative L2 error 3.644e-02 (worst row 9.512e-02) [bound 0.088]",
+          "baseline_us": 23069.15791829427,
+          "candidate_us": 22557.754516601562,
+          "paired_rounds": [
+            {
+              "baseline": 22728.251139322918,
+              "candidate": 22557.754516601562
+            },
+            {
+              "baseline": 23000.539143880207,
+              "candidate": 22277.72267659505
+            },
+            {
+              "baseline": 23069.15791829427,
+              "candidate": 24160.39530436198
+            },
+            {
+              "candidate": 23860.443115234375,
+              "baseline": 23250.457763671875
+            },
+            {
+              "candidate": 22418.202718098957,
+              "baseline": 23075.108846028645
+            }
+          ]
+        }
+      ],
+      "source_sha256": "aba395f1d2939f56556c9def73fc09bd54792fc374f5d061d978b651fb3bf667",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30025,
+      "correct": true,
+      "weighted_baseline_us": 3899685.109138489,
+      "weighted_candidate_us": 3874667.5400733943,
+      "speedup_vs_baseline": 1.0064567008153222,
+      "heldout_seed": 998243615
+    }
+  ],
+  "source_audit": {
+    "approved": true,
+    "source_rules_passed": true,
+    "sha256": "aba395f1d2939f56556c9def73fc09bd54792fc374f5d061d978b651fb3bf667",
+    "reviewer": "benchmark curator model, complete source/diff review",
+    "notes": "Complete diff against reviewed public baseline. Each call freshly gathers exactly the full union of visible paged FP8 keys/values into contiguous FP8 bytes; FA3 keeps each query causal/window mask. MoE alignment count changes to the32 resident experts after mapping nonlocal IDs to -1; all selected local routes retained. Original dtype/weight/accumulation path otherwise unchanged. No data-derived cache, oracle/timing access or loaded-module mutation."
+  },
+  "scope": "Full public-shape, fresh-seed local benchmark; not an official OKC score."
+}

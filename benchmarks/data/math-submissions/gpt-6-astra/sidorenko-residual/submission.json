@@ -1,0 +1,25 @@
+{
+  "metric": "189",
+  "claim": "Conditional dimension-counting theorem: the nondirect residual contribution is O_D(q^(-D+189)) for every even D>=190, provided the fixed upstream residual reduction has the common symplectic geometry and per-configuration weight specified in solution/proof.md. Applicability of that geometric input to the fixed construction is unverified; this is not an unconditional claim of benchmark success.",
+  "assumptions": [
+    "The unchanged upstream equality-profile reduction excludes the five pairs with cut separation probability greater than 1/3.",
+    "Residual configurations are two-dimensional edge subspaces in one common nondegenerate symplectic space of dimension 2D, and every local span is totally isotropic for that same form. This essential hypothesis is not established by the supplied snapshot or by its aggregate exponent.",
+    "The unchanged activation and gain reduction bounds each configuration by O_D(q^(2m-D*sum_i(k_i)+sum_i binom(k_i,2))), with boundedly many other discrete profile choices.",
+    "The original analytic section is absent from the offline snapshot; identifying these geometric assumptions with its fixed activation laws remains an unresolved provenance dependency.",
+    "All upstream dependencies and thresholds for other counting steps remain in force. No claim concerns the full construction or a smaller global Sidorenko counterexample."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python3 -B solution/verify.py",
+  "evidence_files": [
+    "solution/frame-bound-evidence.json",
+    "solution/symbolic-evidence.json",
+    "solution/geometry-evidence.json",
+    "solution/baseline-residual-check.json",
+    "solution/baseline-support-check.json",
+    "solution/verification.json",
+    "solution/dependency-evidence.json"
+  ],
+  "status": "conditional_candidate; applicability_to_fixed_upstream_geometry_unverified",
+  "target_established_for_fixed_construction": false,
+  "unresolved_dependency": "The supplied snapshot does not establish that the unchanged upstream activation laws impose the common symplectic isotropy used in the candidate proof."
+}

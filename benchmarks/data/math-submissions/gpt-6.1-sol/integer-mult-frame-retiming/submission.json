@@ -1,0 +1,229 @@
+{
+  "assumptions": [
+    "Inherited all-size weighted compiler and common ancestor charts",
+    "Restored borrowed rows and completed ordinary leaves",
+    "Weighted selectors, exact-tape routing and complete-stream primitives",
+    "Eligible prime supply over the inherited address rings",
+    "Precision/recovery and retained complex symbolic correctness",
+    "Inherited balanced outer analytic transfer"
+  ],
+  "bit_coarse": "44433850847589/62500000000000000",
+  "changed_construction": {
+    "both_reflected_ledgers": true,
+    "dimension_changes": {
+      "4_to_15": 1,
+      "5_to_6": 24
+    },
+    "exact_local_histogram_delta": {
+      "11": -1,
+      "13": 2,
+      "17": -1,
+      "2": -2,
+      "4": 24,
+      "5": -48,
+      "6": 25
+    },
+    "package": "solution/construction",
+    "predecessor": "research/five-stage-source527-banks",
+    "selected_add_frames": 25,
+    "selection_file": "solution/construction/post-retiming-selection.json",
+    "unchanged_input_output_frames": true,
+    "unchanged_scalar_and_copy_projection_sha256": "3ca6a99977a68ac10a60df9f62d0bef4cc73e6308f6e66d0c4810e834db06749"
+  },
+  "charged_costs": {
+    "bridge_additions": 253440,
+    "copy_erase_episodes": 2880,
+    "extra_bank_selector_calls": 376079448960,
+    "fallback_per_child": 460800,
+    "generic_wrappers": 1358551169280,
+    "high_affine_factors": 16573318416426240,
+    "literal_stock": 521425,
+    "low_transposition_coefficient": 2604450033360,
+    "m": 120,
+    "matrix_preparation": 20865896939520000,
+    "normalizer_factor_bound": 787,
+    "payload_prefix_bits": 95,
+    "payload_prefix_upper": 37045707779790503439645891584,
+    "physical_replicas": 24,
+    "positive_rank_children": 11792160,
+    "rank_mass": 62465400,
+    "route_families": 4994640,
+    "simultaneous_extra_work_streams": 1,
+    "terminal_exchange_stream_movements": 168960,
+    "unit_expanded_additions": 94965000,
+    "weighted_additions": 94648200
+  },
+  "claim": "Conditional exact finite source527 five-stage completed-bank construction at the target kappa, using twenty-five additional common-frame retimings after the retained thirty-seven dirty-entrance transports; all eight mandatory stages freshly replayed. No unconditional integer-multiplication theorem or practical speedup is claimed.",
+  "complex_coarse": "29898197786071/40000000000000000",
+  "construction_boundary": {
+    "added": [
+      "post-retiming-selection.json",
+      "post_retiming_transform.py"
+    ],
+    "changed": [
+      "MANIFEST.json",
+      "bank_check.py",
+      "finite_check.py",
+      "portable_bit.py",
+      "raw_ledger.py",
+      "verify.py"
+    ],
+    "predecessor_manifest_sha256": "e5d6c23705339954b41822ca2efb31612722441fa3f2727e78ff1e370cd1acd8"
+  },
+  "evidence_files": [
+    "solution/replay-1/verification.json",
+    "solution/replay-1/submission-audit.json",
+    "solution/replay-1/certificate.json",
+    "solution/replay-1/raw.json",
+    "solution/replay-1/bit.json",
+    "solution/replay-1/scalar.json",
+    "solution/replay-1/primes.json",
+    "solution/replay-1/banks.json",
+    "solution/replay-1/complex.json",
+    "solution/replay-1/math.json",
+    "solution/replay-1/finite.json",
+    "solution/replay-1/physical.json",
+    "solution/replay-1/global_result.json",
+    "solution/replay-1/geometry.json",
+    "solution/replay-1/post-retiming.json",
+    "solution/replay-1/post-retiming-frame-pairs.json",
+    "solution/replay-1/post-retiming-per-role.json",
+    "solution/replay-1/post-retiming-used-bases.json",
+    "solution/replay-1/records.bin.gz",
+    "solution/construction/post-retiming-selection.json",
+    "solution/construction/MANIFEST.json",
+    "solution/replay-1.log",
+    "solution/audit-1.log"
+  ],
+  "exact_histogram": {
+    "1": 4969440,
+    "10": 92760,
+    "11": 53280,
+    "12": 183960,
+    "13": 67680,
+    "14": 130560,
+    "15": 33720,
+    "16": 120000,
+    "17": 60600,
+    "18": 58440,
+    "19": 39240,
+    "2": 2290440,
+    "20": 161520,
+    "21": 669240,
+    "22": 161280,
+    "23": 84480,
+    "3": 1230000,
+    "4": 437040,
+    "46": 84480,
+    "5": 292320,
+    "50": 84480,
+    "6": 186720,
+    "7": 150720,
+    "8": 75960,
+    "9": 73800
+  },
+  "fallback": {
+    "bad_class_proportion": "1/10000000000000000",
+    "included_in_both_exact_moment_engines": true,
+    "rank_one_children_per_paid_child": 460800
+  },
+  "finite_ordinary_cutoffs": {
+    "chain": [
+      "384599/10000000000",
+      "2775248118464430038567611637079/3906250000000000000000000000000000",
+      "173569646890533820136293660704737206104010152531/244140625000000000000000000000000000000000000000000",
+      "10848108113399910147381120312303549944888512175300531435523597759/15258789062500000000000000000000000000000000000000000000000000000000"
+    ],
+    "gaps": [
+      {
+        "cutoff_log2_at_charged_coefficient": "157497502388713",
+        "full_cutoff_rule": "Apply cutoff_log2(delta, C_full), where C_full bounds the displayed coefficient times every inherited primitive, wrapper and preceding ordinary-level constant.",
+        "gaps": {
+          "atom": "1867559509882461432388362921/3906250000000000000000000000000000",
+          "borrowing": "3900697636203561257461432388362921/3906250000000000000000000000000000",
+          "remainder": "3900697743011152520785693707112921/3906250000000000000000000000000000",
+          "stock": "62455566149152411/62500000000000000"
+        },
+        "minimum_gap": "1867559509882461432388362921/3906250000000000000000000000000000",
+        "stage": 1
+      },
+      {
+        "cutoff_log2_at_charged_coefficient": "311605991787887773417",
+        "full_cutoff_rule": "Apply cutoff_log2(delta, C_full), where C_full bounds the displayed coefficient times every inherited primitive, wrapper and preceding ordinary-level constant.",
+        "gaps": {
+          "atom": "82982860711113706339295262793895989847469/244140625000000000000000000000000000000000000000000",
+          "borrowing": "243793485623236071648613706339295262793895989847469/244140625000000000000000000000000000000000000000000",
+          "remainder": "3900697743011152520785693707112921/3906250000000000000000000000000000",
+          "stock": "62455566149152411/62500000000000000"
+        },
+        "minimum_gap": "82982860711113706339295262793895989847469/244140625000000000000000000000000000000000000000000",
+        "stage": 2
+      },
+      {
+        "cutoff_log2_at_charged_coefficient": "616506881985144429047228804",
+        "full_cutoff_rule": "Apply cutoff_log2(delta, C_full), where C_full bounds the displayed coefficient times every inherited primitive, wrapper and preceding ordinary-level constant.",
+        "gaps": {
+          "atom": "3687248055743879687696450055111487824699468564476402241/15258789062500000000000000000000000000000000000000000000000000000000",
+          "borrowing": "15237092846269512931649493879687696450055111487824699468564476402241/15258789062500000000000000000000000000000000000000000000000000000000",
+          "remainder": "3900697743011152520785693707112921/3906250000000000000000000000000000",
+          "stock": "62455566149152411/62500000000000000"
+        },
+        "minimum_gap": "3687248055743879687696450055111487824699468564476402241/15258789062500000000000000000000000000000000000000000000000000000000",
+        "stage": 3
+      }
+    ],
+    "ordinary": "10848108113399910147381120312303549944888512175300531435523597759/15258789062500000000000000000000000000000000000000000000000000000000"
+  },
+  "finite_recipe_coefficient": 37443554571005881,
+  "literal_profile": {
+    "W": 521425,
+    "calls": 11792160,
+    "deficit": 105600,
+    "histogram": {
+      "1": 4969440,
+      "10": 92760,
+      "11": 53280,
+      "12": 183960,
+      "13": 67680,
+      "14": 130560,
+      "15": 33720,
+      "16": 120000,
+      "17": 60600,
+      "18": 58440,
+      "19": 39240,
+      "2": 2290440,
+      "20": 161520,
+      "21": 669240,
+      "22": 161280,
+      "23": 84480,
+      "3": 1230000,
+      "4": 437040,
+      "46": 84480,
+      "5": 292320,
+      "50": 84480,
+      "6": 186720,
+      "7": 150720,
+      "8": 75960,
+      "9": 73800
+    },
+    "literal_children": 11792160,
+    "literal_rank_mass": 62465400,
+    "literal_stock": 521425,
+    "m": 120,
+    "maxchild": 50,
+    "normalization": 24,
+    "physical_replicas": 24,
+    "rank_mass": 62465400
+  },
+  "metric": "710436534421701/1000000000000000000",
+  "proof_file": "solution/proof.md",
+  "row_reserve": {
+    "bound": "14401*w*ceil(log2(n)) + inherited ordinary-leaf reserve",
+    "external_complex_coefficient": 20161,
+    "halving_degree": 1,
+    "internal_coefficient": 14401,
+    "physical_stock_less_than_prime": true,
+    "restored": true
+  },
+  "verification_command": "python3 -B solution/verify.py --output solution/fresh-verification"
+}

@@ -1,0 +1,7 @@
+{
+  "max_diagnostic_requests": 3,
+  "max_cases_per_request": 2,
+  "diagnostic_deadline_seconds": 240,
+  "diagnostic_rounds": 2,
+  "policy_note": "These are the initial pilot limits. Changing them defines a different harness configuration; record the policy and prompt hash with new results."
+}

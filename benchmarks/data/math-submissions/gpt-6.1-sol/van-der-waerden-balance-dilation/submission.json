@@ -1,0 +1,30 @@
+{
+  "metric": "1/25",
+  "claim": "Conditional on the retained source geometric and coordinate inputs, there is K independent of every integer r >= 2 such that W_r(k) > k^((1/25)*k*floor(log2(r))) for every integer k >= K. The improved balance, dilation, entropy, probability and transfer estimates are derived in the proof.",
+  "assumptions": [
+    "Retain the coordinate model and adaptive-mesh width, neighborhood and truncated-complexity lemmas of the supplied September 23, 2026 van der Waerden manuscript; their hypotheses at the new scales are checked in proof.md.",
+    "Retain affinity inside a small box, the prime-power coordinate separation, the closest-return/rational-path/relative-width geometric arguments, and the elementary prime input. Their required scale inequalities are verified in proof.md.",
+    "Use the retained finite affine-comparison arrangement lemma, finite asymmetric local lemma, and digit-product argument. No improved balance proposition, improved sufficient region, or numerical experiment is assumed."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python -B solution/check.py",
+  "evidence_files": [
+    "solution/evidence.json",
+    "solution/check-output.txt",
+    "solution/source-integrity.json",
+    "solution/baseline-audit-output.txt",
+    "solution/review.md"
+  ],
+  "parameters": {
+    "a": "1/3",
+    "m": "3/4",
+    "b": "33/100",
+    "c": "1/25",
+    "epsilon": "1/1000",
+    "theta": "499/1000",
+    "delta": "1/1000",
+    "nu": "1/200",
+    "gamma": "49/100"
+  },
+  "verification_scope": "The executable checks establish exact rational margins, finite structural checks and source integrity. The displayed mathematical proof supplies the asymptotic conditional argument; executable checks alone do not prove it."
+}
