@@ -9,7 +9,7 @@ class FinalValidationTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory(dir=Path(os.environ['AUTO_RESEARCH_WORKSPACE']));self.root=Path(self.temp.name);self.run=self.root/'runs/example/kernel-example';cp=self.run/'checkpoints/0001';cp.mkdir(parents=True);(self.run/'work').mkdir();(self.root/'gpu').mkdir();task=self.root/'tasks/kernel-example';task.mkdir(parents=True)
   self.source=b'candidate';sha=hashlib.sha256(self.source).hexdigest();(cp/'submission.py').write_bytes(self.source);(cp/'submission.json').write_text('{}');(cp/'checkpoint.json').write_text(json.dumps({'at_seconds':12}))
-  (self.run/'result.json').write_text(json.dumps({'model':'example-model','status':'submitted','budget_seconds':1800,'task_id':'kernel-example'}));(task/'snapshot-hashes.json').write_text('[]');(self.root/'suite.json').write_text(json.dumps({'tasks':[{'id':'kernel-example','kind':'gpu','problem':'example','target':'2'}]}))
+  (self.run/'result.json').write_text(json.dumps({'model':'example-model','status':'submitted','budget_seconds':1800,'task_id':'kernel-example'}));(task/'snapshot-hashes.json').write_text('[]');(task/'snapshot').mkdir();(task/'snapshot/baseline.py').write_text('baseline');(self.root/'suite.json').write_text(json.dumps({'tasks':[{'id':'kernel-example','kind':'gpu','problem':'muse_attention_decode','target':'2'}]}))
   self.approvals=self.root/'approvals.json';self.approvals.write_text(json.dumps({'example-model/kernel-example':{'sha256':sha,'approved':True,'source_rules_passed':True}}))
  def tearDown(self):self.temp.cleanup()
  def invoke(self):

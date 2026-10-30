@@ -8,11 +8,12 @@ def check_record(r):
   t=r.get('time_to_validated_breakthrough_seconds');assert t is not None and 0<=t<=r['budget_seconds'],'A pass needs an in-budget admitted checkpoint'
   if r['task_id'].startswith('kernel-'):
    assert r.get('candidate_correct') is True and r.get('source_rules_passed') is True,'A kernel pass needs correctness and source-rule admission'
-   assert r['one_sided_95_lower']>=.98*r['reference_speedup'],'A kernel pass must meet the frozen timing threshold'
+   assert r['speedup_vs_baseline']>r['speedup_threshold'],'A kernel pass must exceed the baseline speedup cutoff'
+   assert r['time_to_validated_breakthrough_seconds']==r['final_source_sealed_at_seconds'],'Time must bind the exact evaluated source'
  if r.get('benchmark_outcome')=='right_censored_no_submission':assert r.get('time_to_validated_breakthrough_seconds') is None
 
 def main():
- dataset=json.loads((CODE/'data/results.json').read_text());cohort=json.loads((CODE/'data/cohort.json').read_text());rows=dataset['results'];index={}
+ policy=json.loads((CODE/'gpu/scoring-policy.json').read_text());dataset=json.loads((CODE/'data/results.json').read_text());cohort=json.loads((CODE/'data/cohort.json').read_text());rows=dataset['results'];index={}
  for r in rows:
   key=(r['model'],r['task_id']);assert key not in index,'Duplicate valid trial cell';index[key]=r;check_record(r)
   if not r['task_id'].startswith('kernel-'):
@@ -22,6 +23,10 @@ def main():
    if r.get('proof_review'):assert r['proof_review']['proof_sha256']==r['proof_sha256']
    if r.get('benchmark_outcome')=='pass':assert r['submission_sealed_at_seconds']==r['time_to_validated_breakthrough_seconds']
    continue
+  if r.get('speedup_vs_baseline') is not None:
+   assert r['speedup_threshold']==policy['speedup_threshold'] and r['scoring_policy_version']==policy['version']
+   if r.get('candidate_correct') and r.get('source_rules_passed'):assert (r['benchmark_outcome']=='pass')==(r['speedup_vs_baseline']>policy['speedup_threshold'])
+  if r.get('time_to_measured_speedup_seconds') is not None:assert 0<=r['time_to_measured_speedup_seconds']<=r['budget_seconds'] and r['time_to_measured_speedup_seconds']==r['final_source_sealed_at_seconds']
   if r.get('candidate_artifact'):
    source=(CODE/r['candidate_artifact']).resolve();assert source.is_relative_to(CODE) and not source.is_symlink();assert hashlib.sha256(source.read_bytes()).hexdigest()==r['candidate_sha256']
    evaluation=json.loads((CODE/r['evaluation_artifact']).read_text());assert evaluation['source_sha256']==r['candidate_sha256']
