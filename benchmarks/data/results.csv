@@ -29,3 +29,9 @@ gpt-5.6-sol,kernel-muse_moe_w4a16,pass,702.667,702.667,1.1050259130060034,2.4526
 gpt-6.1-sol,kernel-muse_prefill_layer,below_threshold,1477.925,,1.0072815139778049,1.56884763920396,1800,1231.968,False,False,below_target,kernel-any-speedup-v2
 gpt-6-astra,kernel-muse_prefill_layer,below_threshold,982.815,,1.0014261325861946,1.56884763920396,1800,955.356,False,False,below_target,kernel-any-speedup-v2
 gpt-5.6-sol,kernel-muse_prefill_layer,below_threshold,775.679,,1.0011313319409112,1.56884763920396,1800,775.679,False,True,below_target,kernel-any-speedup-v2
+gemini-3.8-flash-opencode,integer-mult-frame-retiming,pass,582.14,582.14,,,1800,,,False,pass,integer-retiming-v1
+gemini-3.8-flash-opencode,kernel-muse_attention_decode,pass,890.4200000000001,845.22,2.6537000000000006,2.521,1800,845.22,True,False,pass,kernel-any-speedup-v2
+gemini-3.8-flash-opencode,kernel-muse_bf16_proj,pass,1069.38,1024.18,1.5601000000000003,1.4821,1800,1024.18,True,False,pass,kernel-any-speedup-v2
+gemini-3.8-flash-opencode,kernel-muse_decode_layer,pass,1187.89,1142.69,2.1724,2.0638,1800,1142.69,True,False,pass,kernel-any-speedup-v2
+gemini-3.8-flash-opencode,kernel-muse_moe_w4a16,pass,1033.55,988.35,2.3768,2.258,1800,988.35,True,False,pass,kernel-any-speedup-v2
+gemini-3.8-flash-opencode,kernel-muse_prefill_layer,pass,1255.65,1210.45,1.9561999999999997,1.8584,1800,1210.45,True,False,pass,kernel-any-speedup-v2

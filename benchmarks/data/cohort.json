@@ -2,12 +2,14 @@
   "models": [
     "gpt-6.1-sol",
     "gpt-6-astra",
-    "gpt-5.6-sol"
+    "gpt-5.6-sol",
+    "gemini-3.8-flash-opencode"
   ],
   "model_labels": {
     "gpt-6.1-sol": "GPT-6.1 Sol",
     "gpt-6-astra": "GPT-6 Astra",
-    "gpt-5.6-sol": "GPT-5.6 Sol"
+    "gpt-5.6-sol": "GPT-5.6 Sol",
+    "gemini-3.8-flash-opencode": "Gemini 3.8 Flash (OpenCode)"
   },
   "core_tasks": [
     "integer-mult-frame-retiming",
@@ -95,6 +97,15 @@
       "cli_version": "codex-cli 0.165.0-alpha.1.2",
       "harness_sha256": "56cb3549ca34f7be85a0de667c88e457c0d0b81ea66982d056b667b49944b605",
       "started_at": "2026-10-29T23:55:31.698218+00:00",
+      "selection": "own authored historical improvements; integer first"
+    },
+    "gemini-3.8-flash-opencode": {
+      "model": "gemini-3.8-flash-opencode",
+      "reasoning_effort": "high",
+      "budget_seconds": 1800,
+      "harness": "opencode-v2",
+      "cli_version": "opencode 2.1.0",
+      "started_at": "2026-10-30T03:00:00.000000+00:00",
       "selection": "own authored historical improvements; integer first"
     }
   },

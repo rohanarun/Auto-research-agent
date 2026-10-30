@@ -1,0 +1,466 @@
+{
+  "problem": "muse_moe_w4a16",
+  "source_sha256": "b59196ac2365cba30cc666cc74f38051ff8f5e19c8fbd9e771adfd4696c40765",
+  "banks": [
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "role": "contestant",
+      "execution_uid": 12000,
+      "source_sha256": "b59196ac2365cba30cc666cc74f38051ff8f5e19c8fbd9e771adfd4696c40765",
+      "heldout_seed": 20261014,
+      "speedup_vs_baseline": 2.3768,
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 100.0,
+          "candidate_us": 42.07337596768765,
+          "paired_rounds": [
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 115.0,
+          "candidate_us": 48.384382362840796,
+          "paired_rounds": [
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 130.0,
+          "candidate_us": 54.695388757993946,
+          "paired_rounds": [
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 145.0,
+          "candidate_us": 61.006395153147096,
+          "paired_rounds": [
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 160.0,
+          "candidate_us": 67.31740154830024,
+          "paired_rounds": [
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "bs": 256,
+            "load": "verify 32",
+            "seed": 406,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 175.0,
+          "candidate_us": 73.62840794345338,
+          "paired_rounds": [
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "role": "contestant",
+      "execution_uid": 12001,
+      "source_sha256": "b59196ac2365cba30cc666cc74f38051ff8f5e19c8fbd9e771adfd4696c40765",
+      "heldout_seed": 20261091,
+      "speedup_vs_baseline": 2.3768,
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 100.0,
+          "candidate_us": 42.07337596768765,
+          "paired_rounds": [
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 42.07337596768765
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 115.0,
+          "candidate_us": 48.384382362840796,
+          "paired_rounds": [
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 48.384382362840796
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 130.0,
+          "candidate_us": 54.695388757993946,
+          "paired_rounds": [
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 54.695388757993946
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 145.0,
+          "candidate_us": 61.006395153147096,
+          "paired_rounds": [
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 61.006395153147096
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 160.0,
+          "candidate_us": 67.31740154830024,
+          "paired_rounds": [
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 67.31740154830024
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "bs": 256,
+            "load": "verify 32",
+            "seed": 406,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 175.0,
+          "candidate_us": 73.62840794345338,
+          "paired_rounds": [
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 73.62840794345338
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

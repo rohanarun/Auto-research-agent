@@ -12,8 +12,8 @@ def main():
  data=json.loads((CODE/'data/results.json').read_text());rows=data['results'];cohort=json.loads((CODE/'data/cohort.json').read_text())
  threshold=json.loads((CODE/'gpu/scoring-policy.json').read_text())['speedup_threshold'];models=cohort['models'];tasks=cohort['core_tasks'];labels=cohort['task_labels'];model_labels=cohort['model_labels'];out=CODE/'charts';out.mkdir(exist_ok=True)
  plt.rcParams.update({'font.family':'DejaVu Sans','font.size':11,'axes.spines.top':False,'axes.spines.right':False,'svg.fonttype':'none','savefig.facecolor':'white'})
- index={(r['model'],r['task_id']):r for r in rows};palette=['#2563eb','#8b5cf6','#ea580c']
- fig,ax=plt.subplots(figsize=(11,5.8));ax.set_xlim(0,len(models));ax.set_ylim(0,len(tasks));ax.invert_yaxis()
+ index={(r['model'],r['task_id']):r for r in rows};palette=['#2563eb','#8b5cf6','#ea580c','#10b981']
+ fig,ax=plt.subplots(figsize=(13,5.8));ax.set_xlim(0,len(models));ax.set_ylim(0,len(tasks));ax.invert_yaxis()
  for y,task in enumerate(tasks):
   for x,model in enumerate(models):
    r=index.get((model,task),{});status=r.get('benchmark_outcome','not_run');color='#eef2f7';message='No scored result'
@@ -33,7 +33,7 @@ def main():
  fig.suptitle('Measured research progress within 30 minutes',fontsize=19,fontweight='bold',y=.99);fig.text(.01,.015,f'Kernel cutoff >{threshold}x • Time = exact evaluated source first sealed',fontsize=10,color='#475569')
  fig.tight_layout(rect=[0,.05,1,.93]);fig.savefig(out/'recovery-matrix.png',dpi=180);fig.savefig(out/'recovery-matrix.svg');plt.close(fig)
  integer=[index[(m,'integer-mult-frame-retiming')] for m in models]
- fig,ax=plt.subplots(figsize=(10,3.9))
+ fig,ax=plt.subplots(figsize=(10,4.6))
  for i,(model,r) in enumerate(zip(models,integer)):
   t=r.get('time_to_validated_breakthrough_seconds');budget=r['budget_seconds']/60
   if t is not None:
@@ -42,17 +42,17 @@ def main():
    ax.barh(i,budget,height=.5,color='#eef2f7',edgecolor='#64748b',hatch='///');ax.plot([budget],[i],marker='>',color='#475569',markersize=9);ax.text(budget-.4,i,'No admitted submission by 30 min',ha='right',va='center',fontsize=10)
  ax.set_yticks(range(len(models)),[model_labels[m] for m in models]);ax.invert_yaxis();ax.set_xlim(0,34);ax.set_xlabel('Research minutes to an independently admitted finite witness');ax.set_title('Integer multiplication: exact conditional milestone',loc='left',fontsize=16,fontweight='bold',pad=18);ax.grid(axis='x',alpha=.15);ax.set_axisbelow(True)
  fig.text(.01,.01,'The 8-stage reference replay and exact frame equivalence do not prove inherited all-size analytic/compiler assumptions.',fontsize=8.5,color='#475569');fig.tight_layout(rect=[0,.04,1,1]);fig.savefig(out/'integer-recovery.png',dpi=180);fig.savefig(out/'integer-recovery.svg');plt.close(fig)
- kernel_tasks=[t for t in tasks if t.startswith('kernel-')];fig,ax=plt.subplots(figsize=(10,6))
+ kernel_tasks=[t for t in tasks if t.startswith('kernel-')];fig,ax=plt.subplots(figsize=(11,6.5))
  for y,task in enumerate(kernel_tasks):
   for j,model in enumerate(models):
-   r=index.get((model,task),{});value=r.get('speedup_vs_baseline');ci=r.get('timing_interval_95');offset=(j-(len(models)-1)/2)*.22
+   r=index.get((model,task),{});value=r.get('speedup_vs_baseline');ci=r.get('timing_interval_95');offset=(j-(len(models)-1)/2)*.18
    if value is not None:
     point=value;error=[[max(0,point-ci[0])],[max(0,ci[1]-point)]] if ci else None
     ax.errorbar(point,y+offset,xerr=error,fmt='o',color=palette[j%len(palette)],capsize=3,markersize=6)
    else:
     status=r.get('benchmark_outcome','not_run');ax.text(.02,y+offset,model_labels[model]+': '+status.replace('_',' '),fontsize=8,color=palette[j%len(palette)],va='center',transform=ax.get_yaxis_transform())
  threshold=json.loads((CODE/'gpu/scoring-policy.json').read_text())['speedup_threshold'];ax.axvline(threshold,color='#334155',linestyle='--',linewidth=1);ax.set_yticks(range(len(kernel_tasks)),[labels[t] for t in kernel_tasks]);ax.invert_yaxis();ax.set_xlabel('Measured weighted aggregate speedup versus baseline');ax.set_title('Kernel performance after correctness checks',loc='left',fontsize=16,fontweight='bold',pad=18);ax.grid(axis='x',alpha=.15)
- handles=[plt.Line2D([],[],marker='o',linestyle='',color=palette[i%len(palette)],label=model_labels[m]) for i,m in enumerate(models)];ax.legend(handles=handles,loc='upper left',bbox_to_anchor=(0,1.015),ncol=3,frameon=False,fontsize=9);ax.text(threshold,.97,f'{threshold}x cutoff',rotation=90,ha='right',va='top',fontsize=8,color='#334155',transform=ax.get_xaxis_transform())
+ handles=[plt.Line2D([],[],marker='o',linestyle='',color=palette[i%len(palette)],label=model_labels[m]) for i,m in enumerate(models)];ax.legend(handles=handles,loc='upper left',bbox_to_anchor=(0,1.015),ncol=4,frameon=False,fontsize=9);ax.text(threshold,.97,f'{threshold}x cutoff',rotation=90,ha='right',va='top',fontsize=8,color='#334155',transform=ax.get_xaxis_transform())
  fig.text(.01,.01,'Two fresh banks; bars show timing uncertainty only. Raw cutoff crossings are distinct from confident improvements.',fontsize=9,color='#475569');fig.tight_layout(rect=[0,.04,1,1]);fig.savefig(out/'kernel-performance.png',dpi=180);fig.savefig(out/'kernel-performance.svg');plt.close(fig)
  fields=['model','task_id','benchmark_outcome','elapsed_seconds','time_to_validated_breakthrough_seconds','speedup_vs_baseline','reference_speedup','budget_seconds','time_to_measured_speedup_seconds','timing_supported_above_threshold','source_equals_baseline_ast','historical_benchmark_outcome','scoring_policy_version']
  with (CODE/'data/results.csv').open('w',newline='') as f:
