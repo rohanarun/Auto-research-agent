@@ -1,12 +1,12 @@
 {
-  "version": "kernel-target-v1",
-  "frozen_before_contestant_runs": true,
+  "version": "kernel-any-speedup-v2",
+  "frozen_before_contestant_runs": false,
   "budget_seconds": 1800,
   "reference_banks": 2,
   "final_candidate_banks": 2,
   "timing_rounds_per_case": 5,
   "aggregation": "weighted sum of per-case median times; speedup=baseline/candidate; geometric mean across banks",
-  "success": "All correctness, dynamic graph replay and source-rule audits pass on every case in two fresh held-out banks; one-sided 95% paired-timing bootstrap lower bound on geometric-mean speedup is >= 0.98 * calibrated reference geometric-mean speedup.",
+  "success": "All correctness, dynamic graph replay and source-rule audits pass on every case in two fresh banks, and the measured geometric-mean aggregate speedup is strictly greater than 1.01 versus baseline. Timing confidence is reported separately and does not gate the requested point-estimate cutoff.",
   "equivalence_tolerance": 0.02,
   "bootstrap_samples": 10000,
   "bootstrap_seed": 20261030,
@@ -14,5 +14,10 @@
   "diagnostic_cases": "Up to two selected public cases per request, at most three requests per trial. Diagnostics never determine final success.",
   "source_audit": "Reject output/input caching, precision changes, skipped intermediates, checker/timer monkeypatching, private data access or cross-job dependence.",
   "queue": "Single H200 serialized across trials; queue/startup waits included in wall-clock budget and reported; no inference-only GPU leases.",
-  "submission_selection": "Validate final sealed source only; report the earliest in-budget checkpoint containing byte-identical final source. Other source versions are not exhaustively judged, so this is time to an admitted final artifact, not a proof that no earlier breakthrough existed."
+  "submission_selection": "Validate final sealed source only; report the earliest in-budget checkpoint containing byte-identical final source. Other source versions are not exhaustively judged, so this is time to an admitted final artifact, not a proof that no earlier breakthrough existed.",
+  "initial_cohort_application": "Retrospective rescore requested after publication; original actors pursued the archived historical targets. No new inference or GPU measurements.",
+  "speedup_threshold": 1.01,
+  "comparison": "strictly_greater",
+  "actor_goal": "Find any source-compliant speedup strictly greater than 1.01x versus the frozen baseline. Historical reference kernels are secondary context, not the primary success threshold. Measure and seal each useful candidate within the research budget. Distinguish measured speedup from timing uncertainty; unchanged baseline code is a control, not evidence of an algorithmic improvement.",
+  "historical_reference_metric": "Secondary: one-sided 95% lower bound >= 0.98 * calibrated historical reference point."
 }

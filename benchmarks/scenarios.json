@@ -111,17 +111,20 @@
       "metric": "speedup_vs_sglang",
       "direction": "max",
       "baseline": "1",
-      "target": "2.28787467520176",
+      "target": "1.01",
       "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
-      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_attention_decode implementation from this frozen public starter. Our calibrated reference achieves 2.28787467520176x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "goal": "Find any source-compliant speedup strictly greater than 1.01x versus the frozen baseline. Historical reference kernels are secondary context, not the primary success threshold. Measure and seal each useful candidate within the research budget. Distinguish measured speedup from timing uncertainty; unchanged baseline code is a control, not evidence of an algorithmic improvement.",
       "snapshot_sha256": "4ca76d306b41c12457339c4adc2940af0f071e81da3f792a7a7a93a47372712b",
       "own_reference_sha256": "394f2517ca8eaf69b7d422832edfd59451a9f73103981d13b1059070abb17b4b",
-      "target_status": "calibrated_private_h200_v1",
+      "target_status": "baseline_speedup_v2",
       "reference_timing_interval_95": [
         2.279166508854043,
         2.292275828893108
       ],
-      "equivalence_tolerance": 0.02
+      "equivalence_tolerance": 0.02,
+      "historical_target": "2.28787467520176",
+      "historical_goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_attention_decode implementation from this frozen public starter. Our calibrated reference achieves 2.28787467520176x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "scoring_policy_version": "kernel-any-speedup-v2"
     },
     {
       "id": "kernel-muse_bf16_proj",
@@ -130,17 +133,20 @@
       "metric": "speedup_vs_sglang",
       "direction": "max",
       "baseline": "1",
-      "target": "1.38930054576902",
+      "target": "1.01",
       "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
-      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_bf16_proj implementation from this frozen public starter. Our calibrated reference achieves 1.38930054576902x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "goal": "Find any source-compliant speedup strictly greater than 1.01x versus the frozen baseline. Historical reference kernels are secondary context, not the primary success threshold. Measure and seal each useful candidate within the research budget. Distinguish measured speedup from timing uncertainty; unchanged baseline code is a control, not evidence of an algorithmic improvement.",
       "snapshot_sha256": "b11e4d76a746a63885233b97b6d566dc5896df33c3aa5d070d39eae5d94f0b20",
       "own_reference_sha256": "bee34c95ff88d38dbbc47820291e3b325d54ac6512afdf88c1c8c4f63681a91f",
-      "target_status": "calibrated_private_h200_v1",
+      "target_status": "baseline_speedup_v2",
       "reference_timing_interval_95": [
         1.3814702699063157,
         1.3934409283504345
       ],
-      "equivalence_tolerance": 0.02
+      "equivalence_tolerance": 0.02,
+      "historical_target": "1.38930054576902",
+      "historical_goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_bf16_proj implementation from this frozen public starter. Our calibrated reference achieves 1.38930054576902x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "scoring_policy_version": "kernel-any-speedup-v2"
     },
     {
       "id": "kernel-muse_decode_layer",
@@ -149,17 +155,20 @@
       "metric": "speedup_vs_sglang",
       "direction": "max",
       "baseline": "1",
-      "target": "2.16490883180629",
+      "target": "1.01",
       "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
-      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_decode_layer implementation from this frozen public starter. Our calibrated reference achieves 2.16490883180629x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "goal": "Find any source-compliant speedup strictly greater than 1.01x versus the frozen baseline. Historical reference kernels are secondary context, not the primary success threshold. Measure and seal each useful candidate within the research budget. Distinguish measured speedup from timing uncertainty; unchanged baseline code is a control, not evidence of an algorithmic improvement.",
       "snapshot_sha256": "9be13c2a031f0d9c832f2f00df664f855e1d818acffdcac792d08e37600e7a7a",
       "own_reference_sha256": "f0c3f089996637518f774ea6b9cad483b03ce3fe3c828e49e26d7a03ce21e802",
-      "target_status": "calibrated_private_h200_v1",
+      "target_status": "baseline_speedup_v2",
       "reference_timing_interval_95": [
         2.162336844615777,
         2.1660531504977967
       ],
-      "equivalence_tolerance": 0.02
+      "equivalence_tolerance": 0.02,
+      "historical_target": "2.16490883180629",
+      "historical_goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_decode_layer implementation from this frozen public starter. Our calibrated reference achieves 2.16490883180629x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "scoring_policy_version": "kernel-any-speedup-v2"
     },
     {
       "id": "kernel-muse_moe_w4a16",
@@ -168,17 +177,20 @@
       "metric": "speedup_vs_sglang",
       "direction": "max",
       "baseline": "1",
-      "target": "2.45268331711034",
+      "target": "1.01",
       "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
-      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_moe_w4a16 implementation from this frozen public starter. Our calibrated reference achieves 2.45268331711034x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "goal": "Find any source-compliant speedup strictly greater than 1.01x versus the frozen baseline. Historical reference kernels are secondary context, not the primary success threshold. Measure and seal each useful candidate within the research budget. Distinguish measured speedup from timing uncertainty; unchanged baseline code is a control, not evidence of an algorithmic improvement.",
       "snapshot_sha256": "924450e520cafd35a109e3a172362c419e1e22afb07661941b529ac3efb1dc62",
       "own_reference_sha256": "ba3d6b03d451de6d9bb9c3f52b1366dd0e52dec86bcbc2862fe4dd9585973c31",
-      "target_status": "calibrated_private_h200_v1",
+      "target_status": "baseline_speedup_v2",
       "reference_timing_interval_95": [
         2.4479393104183194,
         2.457822470735713
       ],
-      "equivalence_tolerance": 0.02
+      "equivalence_tolerance": 0.02,
+      "historical_target": "2.45268331711034",
+      "historical_goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_moe_w4a16 implementation from this frozen public starter. Our calibrated reference achieves 2.45268331711034x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "scoring_policy_version": "kernel-any-speedup-v2"
     },
     {
       "id": "kernel-muse_prefill_layer",
@@ -187,17 +199,20 @@
       "metric": "speedup_vs_sglang",
       "direction": "max",
       "baseline": "1",
-      "target": "1.56884763920396",
+      "target": "1.01",
       "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
-      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_prefill_layer implementation from this frozen public starter. Our calibrated reference achieves 1.56884763920396x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "goal": "Find any source-compliant speedup strictly greater than 1.01x versus the frozen baseline. Historical reference kernels are secondary context, not the primary success threshold. Measure and seal each useful candidate within the research budget. Distinguish measured speedup from timing uncertainty; unchanged baseline code is a control, not evidence of an algorithmic improvement.",
       "snapshot_sha256": "a0e5f0ba833e5d2bee90592762a571d2752f5118391c71063a6e560326e6ed05",
       "own_reference_sha256": "655f53db48f88124990788cab482f6b2a462c85a96d6ea81edc99fa03a24a60b",
-      "target_status": "calibrated_private_h200_v1",
+      "target_status": "baseline_speedup_v2",
       "reference_timing_interval_95": [
         1.5259186331122303,
         1.5920309673301731
       ],
-      "equivalence_tolerance": 0.02
+      "equivalence_tolerance": 0.02,
+      "historical_target": "1.56884763920396",
+      "historical_goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_prefill_layer implementation from this frozen public starter. Our calibrated reference achieves 1.56884763920396x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "scoring_policy_version": "kernel-any-speedup-v2"
     }
   ],
   "selection": "Own historical improvements; integer-multiplication first",

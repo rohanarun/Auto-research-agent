@@ -24,11 +24,12 @@ def main():
  b.require_ssd();assert json.loads((ROOT/'preflight.json').read_text())['passed'];assert json.loads((ROOT/'gpu/runtime-prepared.json').read_text())['passed'],'Run gpu/prepare.py before the research clock';tasks=[t for t in json.loads((ROOT/'suite.json').read_text())['tasks'] if t['kind']=='gpu']
  if a.task:tasks=[t for t in tasks if t['id'] in a.task]
  assert tasks,'No selected GPU tasks'
- for t in tasks:assert t['target_status']=='calibrated_private_h200_v1',t['id']
+ policy=json.loads((CODE_ROOT/'gpu/scoring-policy.json').read_text())
+ tasks=[{**t,'target':str(policy['speedup_threshold']),'goal':policy['actor_goal'],'scoring_policy_version':policy['version']} for t in tasks]
  runs=[(ROOT/'runs'/(COHORT+'-'+quote(m,safe=''))/t['id'],t) for t in tasks for m in MODELS]
  for run,t in runs:assert not run.exists(),'No silent trial replays'
  stop=threading.Event();thread=threading.Thread(target=q.serve,args=(runs,stop),daemon=True);thread.start()
- b.write(ROOT/'kernel-matrix.json',{'status':'running','cohort':COHORT,'models':MODELS,'tasks':[t['id'] for t in tasks],'budget_seconds':a.seconds,'harness':'codex-cli-broker-v1-gpu-queue','started_at':b.utc(),'prompt_sha256':hashlib.sha256((b.SYSTEM_PROMPT(a.seconds)+GPU_PROMPT).encode()).hexdigest(),'concurrency':a.workers,'gpu_diagnostic_policy':q.POLICY,'shared_gpu':'one at a time; wall-clock includes queue wait'})
+ b.write(ROOT/'kernel-matrix.json',{'status':'running','cohort':COHORT,'models':MODELS,'tasks':[t['id'] for t in tasks],'budget_seconds':a.seconds,'harness':'codex-cli-broker-v1-gpu-queue','started_at':b.utc(),'prompt_sha256':hashlib.sha256((b.SYSTEM_PROMPT(a.seconds)+GPU_PROMPT).encode()).hexdigest(),'concurrency':a.workers,'scoring_policy_version':policy['version'],'gpu_diagnostic_policy':q.POLICY,'shared_gpu':'one at a time; wall-clock includes queue wait'})
  try:
   with concurrent.futures.ThreadPoolExecutor(max_workers=a.workers) as pool:
    fs={pool.submit(b.run_task,t,SimpleNamespace(model=m,effort='high',seconds=a.seconds),COHORT+'-'+quote(m,safe='')):(t,m) for t in tasks for m in MODELS}

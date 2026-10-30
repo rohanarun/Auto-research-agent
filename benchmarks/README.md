@@ -1,10 +1,10 @@
 # Auto-research benchmark
 
-Rewind an open research project to a pinned predecessor, give an offline research agent 30 minutes, and measure whether its sealed work recovers the next improvement we previously made. This folder contains the runner, task manifests, evaluation code, initial results and chart source.
+Rewind an open research project to a pinned predecessor, give an offline research agent 30 minutes, and measure progress from its sealed work. Kernels now count any correct, source-compliant measured speedup strictly greater than 1.01× versus baseline; mathematical tasks retain their stated historical milestones. This folder contains the runner, task manifests, evaluation code, initial results and chart source.
 
 [Initial scores](RESULTS.md) · [Protocol and limitations](PROTOCOL.md) · [Release validation](VALIDATION.md) · [Raw results](data/results.json) · [Charts](charts/) · [Source and timing consistency check](tools/check_results.py)
 
-The initial comparison uses GPT‑6.1 Sol, GPT‑6 Astra and GPT‑5.6 Sol, each with high reasoning. It is one trial per model/task using a structured-action Codex CLI broker. These are pilot observations, not a statistically established model ranking. The alternative notebook harness and API transports are available for new experiments; they were not part of the initial comparison.
+The initial comparison uses GPT‑6.1 Sol, GPT‑6 Astra and GPT‑5.6 Sol, each with high reasoning. It is one trial per model/task using a structured-action Codex CLI broker. These are pilot observations, not a statistically established model ranking. The initial kernel actors pursued historical targets; v2 rescored their unchanged measurements at the requested 1.01× cutoff after publication. Timing support, unchanged-code controls and time to each evaluated source are reported separately. The alternative notebook harness and API transports are available for new experiments; they were not part of the initial comparison.
 
 ## Tasks
 
@@ -64,13 +64,13 @@ python3.12 gpu/validate.py --cohort YOUR_UNIQUE_KERNEL_RUN-YOUR_MODEL_ID \
   --approvals /absolute/path/to/source-audits.json
 ```
 
-Repeat `--cohort` for additional completed models; directory model IDs are URL-escaped by the runner. This evaluates two fresh banks, applies the frozen bootstrap/target policy, writes `adjudicated-result.json` beside each trial and deletes its GPU. It refuses to overwrite earlier final measurements. Standalone `gpu/check.py` is an inspection tool; its output alone does not admit a research-time breakthrough.
+Repeat `--cohort` for additional completed models; directory model IDs are URL-escaped by the runner. This evaluates two fresh banks, applies the versioned baseline-speedup policy and separately reports bootstrap timing support, writes `adjudicated-result.json` beside each trial and deletes its GPU. It refuses to overwrite earlier final measurements. Standalone `gpu/check.py` is an inspection tool; its output alone does not admit a research-time breakthrough.
 
 The diagnostic policy is editable in `gpu/research-policy.json`, or via `AUTO_RESEARCH_GPU_POLICY`; changing it creates a different harness configuration recorded in cohort metadata. The actor uses the file-only `gpu_test.py` bridge for at most three diagnostic requests, up to two public cases each. It never receives provider or OKC credentials. Diagnostics and GPU queue waits count against the wall-clock cap. Full final evaluations use fresh hidden seeds after the research clock stops. To limit GPU use, evaluation selects the final sealed source version and reports its earliest byte-identical in-budget checkpoint; it does not exhaustively evaluate every earlier source version. Audit the sealed source against TASK.md before admitting a score. GPU correctness, timing, source-rule compliance and target recovery are separate fields.
 
 The warmup cache contains only public SGLang dependency compilations; keep it in the private workspace and never commit its binaries. The runtime image is pinned by digest. Correctness in this local protocol covers the public timed workload shapes with fresh seeds, not the organizer’s entire separate edge-case suite or hidden leaderboard tests. The private evaluator checks all public timed shapes on two fresh weight/input banks, validates changed-input CUDA graph replays, preserves authoritative oracle weights and original dtype/shape contracts, and measures randomized paired CUDA-graph blocks. Each block starts after a 64 MiB zero-fill, then averages repeated replays; caches can warm inside a block. The local score uses weighted shape aggregation and no fixed graph-cost subtraction. See the exact protocol before comparing scores. This is a local benchmark protocol, not an official Open Kernel submission or leaderboard score. No official check/submission quota is consumed.
 
-Our optimized reference kernel sources remain private under their existing project policy. Their hashes, calibration traces and numeric targets are published. Public starter/evaluator sources are included with provenance and separate ownership notices. Others can evaluate their kernels against the fixed targets, but reproducing the exact reference implementation requires that source separately. Use your own reference source to define a new versioned target; do not silently replace a published target.
+Our optimized reference kernel sources remain private under their existing project policy. Their hashes, calibration traces and numeric targets remain published as secondary historical-reference metrics. Public starter/evaluator sources are included with provenance and separate ownership notices. The primary baseline-speedup criterion is fully evaluable from the public baseline. Reproducing the private historical reference implementation requires that source separately. Use your own reference source to define a new versioned target; do not silently replace a published target.
 
 ## Reproduce the charts
 
@@ -80,4 +80,4 @@ python3.12 -m venv /your/mounted/volume/chart-env
 /your/mounted/volume/chart-env/bin/python tools/chart.py
 ```
 
-Charts read the committed result data. Timeouts are censored observations; missing, invalid and infrastructure results are never plotted as zero performance. Keep the seed, trial count, exact model identifier, harness hash and validation status with any new score. See [CONTRIBUTING.md](CONTRIBUTING.md).
+To reproduce the retrospective classification and tables, run `python3.12 tools/rescore.py` and `python3.12 tools/render_results.py` before the chart command. These commands make no model or GPU calls. Charts read the committed result data. Timeouts are censored observations; missing, invalid and infrastructure results are never plotted as zero performance. Keep the seed, trial count, exact model identifier, harness hash and validation status with any new score. See [CONTRIBUTING.md](CONTRIBUTING.md).

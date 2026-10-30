@@ -98,5 +98,8 @@
       "selection": "own authored historical improvements; integer first"
     }
   },
-  "final_validation_status": "complete"
+  "final_validation_status": "complete",
+  "primary_scoring_policy_version": "kernel-any-speedup-v2",
+  "initial_actor_scoring_policy_version": "kernel-target-v1",
+  "rescore": "Retrospective classification of existing measurements; actor prompts, source versions, timings and cohort hashes unchanged."
 }

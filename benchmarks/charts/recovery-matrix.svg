@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-10-30T00:10:42.261197</dc:date>
+    <dc:date>2026-10-30T00:51:20.287004</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -43,7 +43,7 @@ L 349.605 95.7217
 L 349.605 141.6903
 L 147.635 141.6903
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
     <path d="M 360.235 95.7217
@@ -51,7 +51,7 @@ L 562.205 95.7217
 L 562.205 141.6903
 L 360.235 141.6903
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
     <path d="M 572.835 95.7217
@@ -59,7 +59,7 @@ L 774.805 95.7217
 L 774.805 141.6903
 L 572.835 141.6903
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_6">
     <path d="M 147.635 144.1097
@@ -67,7 +67,7 @@ L 349.605 144.1097
 L 349.605 190.0783
 L 147.635 190.0783
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_7">
     <path d="M 360.235 144.1097
@@ -75,7 +75,7 @@ L 562.205 144.1097
 L 562.205 190.0783
 L 360.235 190.0783
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_8">
     <path d="M 572.835 144.1097
@@ -83,7 +83,7 @@ L 774.805 144.1097
 L 774.805 190.0783
 L 572.835 190.0783
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #fce1df; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #fce1df; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_9">
     <path d="M 147.635 192.4977
@@ -91,7 +91,7 @@ L 349.605 192.4977
 L 349.605 238.4663
 L 147.635 238.4663
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_10">
     <path d="M 360.235 192.4977
@@ -99,7 +99,7 @@ L 562.205 192.4977
 L 562.205 238.4663
 L 360.235 238.4663
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_11">
     <path d="M 572.835 192.4977
@@ -107,7 +107,7 @@ L 774.805 192.4977
 L 774.805 238.4663
 L 572.835 238.4663
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_12">
     <path d="M 147.635 240.8857
@@ -115,7 +115,7 @@ L 349.605 240.8857
 L 349.605 286.8543
 L 147.635 286.8543
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_13">
     <path d="M 360.235 240.8857
@@ -123,7 +123,7 @@ L 562.205 240.8857
 L 562.205 286.8543
 L 360.235 286.8543
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_14">
     <path d="M 572.835 240.8857
@@ -131,7 +131,7 @@ L 774.805 240.8857
 L 774.805 286.8543
 L 572.835 286.8543
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_15">
     <path d="M 147.635 289.2737
@@ -139,7 +139,7 @@ L 349.605 289.2737
 L 349.605 335.2423
 L 147.635 335.2423
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_16">
     <path d="M 360.235 289.2737
@@ -147,7 +147,7 @@ L 562.205 289.2737
 L 562.205 335.2423
 L 360.235 335.2423
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_17">
     <path d="M 572.835 289.2737
@@ -155,7 +155,7 @@ L 774.805 289.2737
 L 774.805 335.2423
 L 572.835 335.2423
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #d6f2e2; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_18">
     <path d="M 147.635 337.6617
@@ -163,7 +163,7 @@ L 349.605 337.6617
 L 349.605 383.6303
 L 147.635 383.6303
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_19">
     <path d="M 360.235 337.6617
@@ -171,7 +171,7 @@ L 562.205 337.6617
 L 562.205 383.6303
 L 360.235 383.6303
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_20">
     <path d="M 572.835 337.6617
@@ -179,7 +179,7 @@ L 774.805 337.6617
 L 774.805 383.6303
 L 572.835 383.6303
 z
-" clip-path="url(#pbc09b625b8)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p34ddbf515c)" style="fill: #e8edf4; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
@@ -253,73 +253,73 @@ z
    </g>
    <g id="text_13">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(185.831719 164.254469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(216.783281 175.452281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(201.847344 175.452281)">Below 1.01x cutoff</text>
    </g>
    <g id="text_14">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(398.431719 164.254469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(429.383281 175.452281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(414.447344 175.452281)">Below 1.01x cutoff</text>
    </g>
    <g id="text_15">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="673.82" y="169.853375" transform="rotate(-0 673.82 169.853375)">Incorrect candidate</text>
    </g>
    <g id="text_16">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(185.831719 212.642469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(216.783281 223.840281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(202.519219 212.642469)">Observed 1.1279x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(226.830937 223.840281)">27m 36s</text>
    </g>
    <g id="text_17">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(398.431719 212.642469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(429.383281 223.840281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(415.119219 212.642469)">Observed 1.0880x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(439.430937 223.840281)">18m 03s</text>
    </g>
    <g id="text_18">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(611.031719 212.642469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(641.983281 223.840281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(627.047344 223.840281)">Below 1.01x cutoff</text>
    </g>
    <g id="text_19">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(185.831719 261.030469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(216.783281 272.228281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(202.519219 261.030469)">Observed 1.0442x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(226.830937 272.228281)">23m 55s</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(398.431719 261.030469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(429.383281 272.228281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(415.119219 261.030469)">Observed 1.0989x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(439.430937 272.228281)">22m 22s</text>
    </g>
    <g id="text_21">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(611.031719 261.030469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(641.983281 272.228281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(627.047344 272.228281)">Below 1.01x cutoff</text>
    </g>
    <g id="text_22">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(185.831719 309.418469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(216.783281 320.616281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(202.519219 309.418469)">Observed 1.4243x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(226.830937 320.616281)">22m 46s</text>
    </g>
    <g id="text_23">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(398.431719 309.418469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(429.383281 320.616281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(415.119219 309.418469)">Observed 1.2667x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(439.430937 320.616281)">26m 54s</text>
    </g>
    <g id="text_24">
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(611.031719 309.418469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(641.983281 320.616281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(627.719219 309.418469)">Observed 1.1050x</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(652.030937 320.616281)">11m 42s</text>
    </g>
    <g id="text_25">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(185.831719 357.806469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(216.783281 369.004281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(201.847344 369.004281)">Below 1.01x cutoff</text>
    </g>
    <g id="text_26">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(398.431719 357.806469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(429.383281 369.004281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(414.447344 369.004281)">Below 1.01x cutoff</text>
    </g>
    <g id="text_27">
     <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(611.031719 357.806469)">Correct on tested shapes</text>
-    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(641.983281 369.004281)">Below target</text>
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'" transform="translate(627.047344 369.004281)">Below 1.01x cutoff</text>
    </g>
   </g>
   <g id="text_28">
-   <text style="font-weight: 700; font-size: 19px; font-family: 'DejaVu Sans'; text-anchor: middle" x="396" y="18.613031" transform="rotate(-0 396 18.613031)">Recovering our next research improvement</text>
+   <text style="font-weight: 700; font-size: 19px; font-family: 'DejaVu Sans'; text-anchor: middle" x="396" y="18.613031" transform="rotate(-0 396 18.613031)">Measured research progress within 30 minutes</text>
   </g>
   <g id="text_29">
-   <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #475569" x="7.92" y="411.336" transform="rotate(-0 7.92 411.336)">One valid trial per cell • High reasoning • 30-minute cap • Shared GPU queue; see cohort and retry details</text>
+   <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #475569" x="7.92" y="411.336" transform="rotate(-0 7.92 411.336)">Kernel cutoff &gt;1.01x • Time = exact evaluated source first sealed</text>
   </g>
  </g>
  <defs>
-  <clipPath id="pbc09b625b8">
+  <clipPath id="p34ddbf515c">
    <rect x="142.32" y="94.512" width="637.8" height="290.328"/>
   </clipPath>
  </defs>
