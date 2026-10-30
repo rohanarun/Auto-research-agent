@@ -1,10 +1,10 @@
 # Cloud execution with Daytona and Agent37
 
-Current source builds support **Daytona and Agent37** as cloud sandbox providers.
+Version 1.5.0 and current source builds support **Daytona and Agent37** as cloud sandbox providers.
 Both run Codex through the same persistent bridge, with single-agent research,
 parallel agents, checkpoint sharing, optional research methods, worker chat and
-recovery exports. The linked v1.4.0 downloadable release predates Agent37 support;
-[build the current source](../README.md#build-from-source) to use it.
+recovery exports. [Download version 1.5.0](../README.md#download) or
+[build the current source](../README.md#build-from-source) to use either provider.
 
 ## Connect a provider
 
