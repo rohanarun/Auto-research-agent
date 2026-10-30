@@ -11,7 +11,7 @@
   "opencodeModel": "",
   "opencodePermission": "reject",
   "antigravityPath": "",
-  "antigravityModel": "gemini-3.8-flash-high",
+  "antigravityModel": "",
   "antigravityMode": "accept-edits",
-  "antigravityPermission": "auto"
+  "antigravityPermission": "review"
 }

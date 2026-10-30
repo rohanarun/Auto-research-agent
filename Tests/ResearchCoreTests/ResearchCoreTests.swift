@@ -79,23 +79,23 @@ final class ResearchCoreTests: XCTestCase {
         let request = try XCTUnwrap(command.arguments.last)
         XCTAssertTrue(request.hasPrefix("--print=Harness instructions:\npolicy"))
         XCTAssertTrue(request.contains("$(echo surprise)"))
-        config.antigravityPermission = "auto"; config.antigravityModel = "gemini-3.8-flash-high"; config.antigravityMode = "plan"
+        config.antigravityPermission = "auto"; config.antigravityModel = "fixture-model"; config.antigravityMode = "plan"
         let opted = CLI.chat(provider: .antigravity, settings: config, sessionID: nil, prompt: "research", policy: "policy")
         XCTAssertTrue(opted.arguments.contains("--dangerously-skip-permissions"))
         XCTAssertEqual(opted.arguments.firstIndex(of: "--mode").map { opted.arguments[$0 + 1] }, "plan")
-        XCTAssertEqual(opted.arguments.firstIndex(of: "--model").map { opted.arguments[$0 + 1] }, "gemini-3.8-flash-high")
+        XCTAssertEqual(opted.arguments.firstIndex(of: "--model").map { opted.arguments[$0 + 1] }, "fixture-model")
         XCTAssertFalse(opted.arguments.contains("--conversation"))
         XCTAssertEqual(CLI.resumeArguments(.antigravity, sessionID: "conv_specific"), ["--conversation", "conv_specific"])
         XCTAssertEqual(CLI.auth(.antigravity, settings: config, login: false).arguments, ["models"])
     }
-    func testAntigravityExampleDefaultsToGeminiFlash() throws {
+    func testAntigravityExampleUsesConfiguredCLIModelByDefault() throws {
         let example = try JSONDecoder().decode(Settings.self, from: Data(contentsOf: root.appendingPathComponent("Resources/Defaults.example.json")))
-        XCTAssertEqual(example.antigravityModel, "gemini-3.8-flash-high")
+        XCTAssertEqual(example.antigravityModel, "")
         XCTAssertEqual(example.antigravityMode, "accept-edits")
-        XCTAssertEqual(example.antigravityPermission, "auto")
+        XCTAssertEqual(example.antigravityPermission, "review")
     }
     func testAntigravityDecoderTracksSessionToolsAndResult() {
-        XCTAssertEqual(EventDecoder.decode(#"{"event":"init","conversation_id":"conv_1","init":{"model":"gemini-3.8-flash-low"}}"#, provider: .antigravity), [.session("conv_1")])
+        XCTAssertEqual(EventDecoder.decode(#"{"event":"init","conversation_id":"conv_1","init":{"model":"fixture-model"}}"#, provider: .antigravity), [.session("conv_1")])
         let active = EventDecoder.decode(#"{"event":"step_update","step_update":{"conversation_id":"conv_1","step_index":2,"state":"ACTIVE","step_type":"tool","tool_name":"run_command","tool_info":{"name":"run_command","parameters":{"CommandLine":"ls"}}}}"#, provider: .antigravity)
         XCTAssertEqual(active, [.session("conv_1"), .message(id: "antigravity-tool-2", role: "tool", text: "run_command\n{\n  \"CommandLine\" : \"ls\"\n}")])
         let done = EventDecoder.decode(#"{"event":"step_update","step_update":{"conversation_id":"conv_1","step_index":2,"state":"DONE","step_type":"tool","tool_name":"run_command","tool_info":{"name":"run_command","parameters":{"CommandLine":"ls"},"output":"README.md"}}}"#, provider: .antigravity)
@@ -111,10 +111,10 @@ final class ResearchCoreTests: XCTestCase {
         let legacy = #"{"workspaceRoot":"/Volumes/x","catalogURL":"https://example.com","codexPath":"","claudePath":"","codexModel":"","claudeModel":"","codexSandbox":"workspace-write","claudePermissionMode":"auto"}"#
         let decoded = try JSONDecoder().decode(Settings.self, from: Data(legacy.utf8))
         XCTAssertEqual(decoded.opencodePath, ""); XCTAssertEqual(decoded.opencodePermission, "reject")
-        XCTAssertEqual(decoded.antigravityPath, ""); XCTAssertEqual(decoded.antigravityMode, "accept-edits"); XCTAssertEqual(decoded.antigravityPermission, "auto")
+        XCTAssertEqual(decoded.antigravityPath, ""); XCTAssertEqual(decoded.antigravityMode, "accept-edits"); XCTAssertEqual(decoded.antigravityPermission, "review")
         let roundTrip = try JSONDecoder().decode(Settings.self, from: JSONEncoder().encode(decoded))
         XCTAssertEqual(roundTrip.opencodePermission, "reject"); XCTAssertEqual(roundTrip.workspaceRoot, "/Volumes/x")
-        XCTAssertEqual(roundTrip.antigravityPermission, "auto")
+        XCTAssertEqual(roundTrip.antigravityPermission, "review")
     }
     func testMCPSelectionIsGenericAndScopedToThisRun() throws {
         let names = try CLI.configuredMCPServers(Data(#"[{"name":"unrelated_service","enabled":true},{"name":"docs"}]"#.utf8))

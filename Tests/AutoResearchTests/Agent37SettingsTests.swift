@@ -12,6 +12,7 @@ final class Agent37SettingsTests: XCTestCase {
         let runtime = try Workspace.directory(projectRoot.path,"tmp/agent37-settings-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at:runtime) }
         settings.workspaceRoot = runtime.path
+        settings.antigravityPath = "/fixture/bin/agy"
         let store = AppStore(resourceDirectory:resources,defaults:settings)
         let daytonaInstall = store.daytona.installID
         store.daytona.connectionSandboxID = UUID().uuidString
@@ -23,7 +24,11 @@ final class Agent37SettingsTests: XCTestCase {
         XCTAssertNil(store.daytona.connectionSandboxID);XCTAssertNotEqual(store.daytona.installID,daytonaInstall)
         store.daytona.connectionSandboxID = "ab12cd34ef";store.cloudOwnedIDs = ["ab12cd34ef"]
         store.daytona.enabled = true;try store.saveDaytona()
+        var legacySettings = store.settings
+        legacySettings.antigravityPath = ""
+        try Workspace.write(legacySettings,to:runtime.appendingPathComponent("settings.json"))
         let restored = AppStore(resourceDirectory:resources,defaults:settings)
+        XCTAssertEqual(restored.settings.antigravityPath,settings.antigravityPath,"Legacy CLI discovery must coexist with saved cloud provider settings")
         XCTAssertEqual(restored.daytona.sandboxProvider,.agent37);XCTAssertEqual(restored.cloudOwnedIDs,["ab12cd34ef"])
         let project = ResearchProject(repository:"owner/repo",name:"Fixture")
         var chat = ResearchSession(projectID:project.id,title:"Daytona",provider:.codex)

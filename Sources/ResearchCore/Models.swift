@@ -93,9 +93,8 @@ public struct Settings: Codable, Sendable {
     public var antigravityModel: String
     /// Antigravity agent mode: "accept-edits" (default), "auto" or "plan".
     public var antigravityMode: String
-    /// "review" keeps Antigravity's own approval checks; "auto" (the default)
-    /// passes --dangerously-skip-permissions so unattended research never waits
-    /// for a permission prompt.
+    /// "review" (the default) keeps Antigravity's own approval checks; the
+    /// opt-in "auto" setting passes --dangerously-skip-permissions.
     public var antigravityPermission: String
     public func executable(_ provider: Provider) -> String {
         switch provider {
@@ -129,7 +128,7 @@ extension Settings {
         antigravityPath = try c.decodeIfPresent(String.self, forKey: .antigravityPath) ?? ""
         antigravityModel = try c.decodeIfPresent(String.self, forKey: .antigravityModel) ?? ""
         antigravityMode = try c.decodeIfPresent(String.self, forKey: .antigravityMode) ?? "accept-edits"
-        antigravityPermission = try c.decodeIfPresent(String.self, forKey: .antigravityPermission) ?? "auto"
+        antigravityPermission = try c.decodeIfPresent(String.self, forKey: .antigravityPermission) ?? "review"
     }
 }
 

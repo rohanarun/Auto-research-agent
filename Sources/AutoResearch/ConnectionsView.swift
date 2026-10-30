@@ -36,7 +36,7 @@ struct ConnectionsView: View {
     private func modelPlaceholder(_ provider: Provider) -> String {
         switch provider {
         case .opencode: "Model as provider/model (empty uses your CLI default)"
-        case .antigravity: "Model, e.g. gemini-3.8-flash-high or gemini-4-argon-high"
+        case .antigravity: "Model (empty uses your CLI default)"
         default: "Model (empty uses your CLI default)"
         }
     }
