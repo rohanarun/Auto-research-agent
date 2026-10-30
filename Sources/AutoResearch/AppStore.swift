@@ -101,8 +101,11 @@ import ResearchCore
         // Workspaces saved before OpenCode support pick up the detected CLI instead of an empty path.
         if settings.opencodePath.isEmpty { settings.opencodePath = defaults.opencodePath }
         if settings.antigravityPath.isEmpty { settings.antigravityPath = defaults.antigravityPath }
-        if let saved = try? Data(contentsOf:URL(fileURLWithPath:settings.workspaceRoot).appendingPathComponent("daytona.json")),let config = try? JSONDecoder().decode(DaytonaConfiguration.self,from:saved) { daytona = config }
-        if let ids = try? Data(contentsOf:URL(fileURLWithPath:settings.workspaceRoot).appendingPathComponent("daytona-owned.json")),let decoded = try? JSONDecoder().decode(Set<String>.self,from:ids) { cloudOwnedIDs = decoded }
+        let cloudRoot = URL(fileURLWithPath:settings.workspaceRoot)
+        let selected = (try? Data(contentsOf:cloudRoot.appendingPathComponent("cloud-provider.json"))).flatMap { try? JSONDecoder().decode(SandboxProvider.self,from:$0) } ?? .daytona
+        if let data = try? Data(contentsOf:resourceDirectory.appendingPathComponent(selected.defaultsFile)),let config = try? JSONDecoder().decode(DaytonaConfiguration.self,from:data) { daytona = config }
+        if let saved = try? Data(contentsOf:cloudRoot.appendingPathComponent(selected.configurationFile)),let config = try? JSONDecoder().decode(DaytonaConfiguration.self,from:saved),config.sandboxProvider == selected { daytona = config }
+        if let ids = try? Data(contentsOf:cloudRoot.appendingPathComponent(selected.rawValue + "-owned.json")),let decoded = try? JSONDecoder().decode(Set<String>.self,from:ids) { cloudOwnedIDs = decoded }
         policy = (try? String(contentsOf: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("research-policy.md"), encoding: .utf8))
             ?? (try? String(contentsOf: resourceDirectory.appendingPathComponent("ResearchPolicy.md"), encoding: .utf8)) ?? ""
         if let data = try? Data(contentsOf: URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("mcp-selection.json")), let names = try? JSONDecoder().decode([String].self, from: data) { enabledMCPServers = Set(names) }
@@ -617,13 +620,13 @@ import ResearchCore
             loginOutput = "Antigravity signs in through its own terminal interface. Complete the Google sign-in in the Terminal window that opened (run /login there if it is not offered automatically), then return here and press Refresh connection status."
         } catch { self.error = error.localizedDescription }
     }
-    func revealProject() { if session?.cloud != nil { NSWorkspace.shared.open(URL(string:"https://app.daytona.io/dashboard/sandboxes")!);return }; if let path = session?.workingDirectory ?? project?.localPath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
+    func revealProject() { if session?.cloud != nil { NSWorkspace.shared.open((session?.cloud?.provider ?? daytona.sandboxProvider).dashboardURL);return }; if let path = session?.workingDirectory ?? project?.localPath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
     func revealLogs() {
         guard let id = selectedSessionID else { return }
         NSWorkspace.shared.open(URL(fileURLWithPath: settings.workspaceRoot).appendingPathComponent("sessions/\(id.uuidString)"))
     }
     func openTerminal() {
-        guard session?.cloud == nil else { error = "This chat runs in Daytona. Open its sandbox from the project button; its CLI history stays in that private sandbox.";return }
+        guard session?.cloud == nil else { error = "This chat runs in a cloud sandbox. Open its sandbox from the project button; its CLI history stays in that private sandbox.";return }
         guard let session, let directory = session.workingDirectory, let providerID = session.providerSessionID else { error = "Start a chat first to open its CLI session in Terminal."; return }
         guard !sharedActive(session.projectID) else { error = "Stop the shared-context group before continuing one of its sessions in Terminal."; return }
         do {

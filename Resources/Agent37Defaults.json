@@ -1,0 +1,9 @@
+{
+  "sandboxProvider": "agent37",
+  "snapshot": "agent37-base",
+  "codexPackage": "@openai/codex",
+  "reasoningEffort": "high",
+  "pollSeconds": 2,
+  "logChunkBytes": 262144,
+  "idleStopMinutes": 60
+}

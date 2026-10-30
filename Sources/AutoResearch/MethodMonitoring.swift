@@ -50,6 +50,9 @@ extension AppStore {
 
     private func resumeMethodMonitoring(_ attachment: CloudMethodAttachment, session: ResearchSession) {
         guard let cloud = session.cloud else { return }
+        guard cloud.provider == daytona.sandboxProvider else {
+            error = "Select \(cloud.provider.title) in Connections & settings → Cloud to reconnect saved research.";return
+        }
         let id = session.id
         // Reserve the saved session immediately; no second launch can race attachment.
         runners[id] = ProcessRunner(); state(id, "Reconnecting")
@@ -65,7 +68,7 @@ extension AppStore {
                                             operationID: attachment.operationID, resumeExisting: true)
                 let runner = ProcessRunner(backend: backend); runners[id] = runner
                 state(id, "Running")
-                append(id, role: "status", text: "Reconnected to the existing Daytona research run. Worker messages are read from its saved logs; no agents were restarted.")
+                append(id, role: "status", text: "Reconnected to the existing cloud research run. Worker messages are read from its saved logs; no agents were restarted.")
                 let root = try Workspace.directory(settings.workspaceRoot, "sessions/" + id.uuidString)
                 let result = try await runner.run(Command("autoresearch-methods", [attachment.controlDirectory]), directory: root, onLine: { line, _ in
                     Task { @MainActor in self.consumeMethodLine(line, sessionID: id, operation: attachment.operationID) }
@@ -74,7 +77,7 @@ extension AppStore {
                 else if result.code == 0 {
                     append(id, role: "assistant", text: try ResearchMethods.summary(result.stdout)); state(id, "Completed")
                 } else {
-                    append(id, role: "error", text: "Research execution ended with code \(result.code). All checkpoints and logs remain in Daytona.")
+                    append(id, role: "error", text: "Research execution ended with code \(result.code). All checkpoints and logs remain in the cloud sandbox.")
                     state(id, "Needs attention")
                 }
                 cloudDrains[id] = true

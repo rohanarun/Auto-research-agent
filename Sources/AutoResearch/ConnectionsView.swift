@@ -59,7 +59,7 @@ struct ConnectionsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Your research workspace").font(.system(size: 23, weight: .semibold)); Spacer(); Button("Done") { store.saveSettings() }.keyboardShortcut(.defaultAction).disabled(store.hasActiveRuns) }
-            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Daytona").tag("Daytona"); Text("Lean server").tag("Lean"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
+            Picker("Settings", selection: $tab) { Text("Connections").tag("Connections"); Text("Cloud").tag("Daytona"); Text("Lean server").tag("Lean"); Text("MCP tools").tag("MCP"); Text("Research policy").tag("Policy"); Text("Workspace").tag("Workspace") }.pickerStyle(.segmented)
             if tab == "Connections" {
                 // Four provider cards no longer fit the fixed sheet height, so the cards scroll.
                 ScrollView { VStack(alignment: .leading, spacing: 14) { ForEach(Provider.allCases) { provider in
@@ -99,12 +99,15 @@ struct ConnectionsView: View {
             } else if tab == "Daytona" {
                 VStack(alignment:.leading,spacing:16) {
                     Picker("Run research",selection:Binding(get:{store.daytona.enabled},set:{store.setCloudExecution($0)})) {
-                        Text("This Mac").tag(false);Text("Daytona sandboxes · Codex").tag(true)
+                        Text("This Mac").tag(false);Text("\(store.daytona.sandboxProvider.title) sandboxes · Codex").tag(true)
                     }.pickerStyle(.segmented).disabled(store.hasActiveRuns)
+                    Picker("Sandbox provider",selection:Binding(get:{store.daytona.sandboxProvider},set:{store.selectSandboxProvider($0);daytonaKey = ""})) {
+                        ForEach(SandboxProvider.allCases,id:\.self) { Text($0.title).tag($0) }
+                    }.disabled(store.hasActiveRuns)
                     Text("Private parallel sandboxes").font(.headline)
                     Text("Each agent has its own Linux checkout. Share context uses live-written checkpoint files, combines them directly, then supplies the bundle to fresh sessions. Your Mac account files are never uploaded.").font(.system(size:13)).foregroundStyle(.secondary)
                     HStack {
-                        SecureField("Daytona API key",text:$daytonaKey).textFieldStyle(.roundedBorder)
+                        SecureField("\(store.daytona.sandboxProvider.title) API key",text:$daytonaKey).textFieldStyle(.roundedBorder)
                         Button("Save key") { store.saveDaytonaKey(daytonaKey);daytonaKey = "" }.disabled(daytonaKey.isEmpty || store.hasActiveRuns || store.daytonaBusy)
                     }
                     HStack {
@@ -113,7 +116,7 @@ struct ConnectionsView: View {
                         Button("Connect") { store.connectDaytona(signIn:false) }.disabled(store.daytonaBusy || store.hasActiveRuns)
                         Button("Sign in to cloud Codex") { store.connectDaytona(signIn:true) }.disabled(store.daytonaBusy || store.hasActiveRuns)
                     }
-                    Text("The API key is stored in macOS Keychain. Cloud model access uses the official device login separately. Cloud compute is billed to your Daytona account. Completed work is downloaded and verified before workers are archived; failed exports preserve the sandbox. Idle sandboxes also stop after \(store.daytona.idleStopMinutes) minutes.").font(.system(size:12)).foregroundStyle(.secondary)
+                    Text("The API key is stored in macOS Keychain. Cloud model access uses the official device login separately. Cloud compute is billed to your \(store.daytona.sandboxProvider.title) account. Completed work is downloaded and verified before workers are \(store.daytona.sandboxProvider == .daytona ? "archived" : "stopped with their disks retained"); failed exports preserve the sandbox. Idle sandboxes \(store.daytona.sandboxProvider == .daytona ? "stop" : "sleep") after \(store.daytona.idleStopMinutes) minutes.").font(.system(size:12)).foregroundStyle(.secondary)
                     if !store.daytonaLoginOutput.isEmpty {
                         ScrollView { Text(store.daytonaLoginOutput).font(.system(size:11,design:.monospaced)).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading) }.frame(height:150)
                         if store.daytonaBusy { Button("Cancel cloud sign-in") { store.cancelCloudLogin() } }
@@ -123,7 +126,7 @@ struct ConnectionsView: View {
                         Button("Stop owned cloud compute") { store.stopCloudCompute() }.disabled(store.hasActiveRuns || store.daytonaBusy || !store.cloudCleanup.isEmpty)
                         Button("Remove saved key") { store.removeDaytonaKey() }.disabled(store.hasActiveRuns || store.daytonaBusy || !store.cloudCleanup.isEmpty)
                     }
-                    if !store.cloudCleanup.isEmpty { Text("Verifying and archiving \(store.cloudCleanup.count) worker(s)…").font(.caption).foregroundStyle(.secondary) }
+                    if !store.cloudCleanup.isEmpty { Text("Verifying and stopping \(store.cloudCleanup.count) worker(s)…").font(.caption).foregroundStyle(.secondary) }
                     Spacer()
                 }
             } else if tab == "Lean" {
