@@ -22,9 +22,13 @@ Requires macOS 14 or newer. The app and disk image are Developer ID signed and A
 
 The [benchmark suite](benchmarks/README.md) rewinds open research projects to pinned earlier snapshots and measures whether an offline agent recovers our next improvement within 30 minutes. It includes integer multiplication, all five MUSE kernels, and four additional mathematical tasks, with setup, an isolated command harness, model/API adapters, sealed submissions, scores and reproducible chart code.
 
-The first pilot tested **GPT-6.1 Sol, GPT-6 Astra and GPT-5.6 Sol**, each at high reasoning. Kernel progress now means a correct, source-compliant measured speedup **strictly greater than 1.01× over baseline**: **7 of 15** kernel cells cross that cutoff, with research time to each evaluated artifact recorded. All seven also have a one-sided 95% timing lower bound above the cutoff. Two GPT-5.6 sources match the baseline AST and do not qualify. The unchanged measurements were rescored after the initial publication; the original historical-target criterion remains archived as a secondary metric. Sol and Astra recovered the conditional finite integer milestone in **11.64 and 13.86 minutes**; GPT-5.6 reached the cap without a sealed submission. These are single-trial observations under the local H200 protocol, not official leaderboard scores or a model ranking. Two additional mathematical tasks remain unscored pending review.
+The published comparison includes **GPT-6.1 Sol, GPT-6 Astra, GPT-5.6 Sol**, and **Gemini 3.8 Flash (OpenCode)**. Kernel progress means a correct, source-compliant measured speedup **strictly greater than 1.01× over baseline**. The charts show published speedups, timing uncertainty, and research time to the exact evaluated source. These are single-trial observations under the local H200 protocol, not official leaderboard scores or an established model ranking. See the full results for cohort differences, conditional mathematical claims, and pending reviews.
 
-![Initial offline research benchmark: recovery by task and model](benchmarks/charts/recovery-matrix.png)
+![Research progress by task and model, including Gemini 3.8 Flash through OpenCode, with measured speedups and research times](benchmarks/charts/recovery-matrix.png)
+
+![Kernel speedups versus baseline for all published models, with timing uncertainty and the 1.01x cutoff](benchmarks/charts/kernel-performance.png)
+
+![Integer multiplication time to an admitted conditional finite witness for all published models](benchmarks/charts/integer-recovery.png)
 
 [Full results and charts](benchmarks/RESULTS.md) · [Run your own model or harness](benchmarks/README.md#setup) · [Protocol and limitations](benchmarks/PROTOCOL.md) · [Source data](benchmarks/data/results.json)
 
