@@ -1,13 +1,14 @@
 import Foundation
 
 public enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
-    case codex, claude, opencode
+    case codex, claude, opencode, antigravity
     public var id: String { rawValue }
     public var title: String {
         switch self {
         case .codex: "Codex"
         case .claude: "Claude"
         case .opencode: "OpenCode"
+        case .antigravity: "Antigravity"
         }
     }
 }
@@ -88,11 +89,19 @@ public struct Settings: Codable, Sendable {
     /// "reject" lets OpenCode auto-reject permission prompts (its headless default);
     /// "auto" passes --auto, approving anything the user's OpenCode config does not deny.
     public var opencodePermission: String
+    public var antigravityPath: String
+    public var antigravityModel: String
+    /// Antigravity agent mode: "accept-edits" (default), "auto" or "plan".
+    public var antigravityMode: String
+    /// "review" (the default) keeps Antigravity's own approval checks; the
+    /// opt-in "auto" setting passes --dangerously-skip-permissions.
+    public var antigravityPermission: String
     public func executable(_ provider: Provider) -> String {
         switch provider {
         case .codex: codexPath
         case .claude: claudePath
         case .opencode: opencodePath
+        case .antigravity: antigravityPath
         }
     }
 }
@@ -100,8 +109,9 @@ public struct Settings: Codable, Sendable {
 extension Settings {
     private enum CodingKeys: String, CodingKey {
         case workspaceRoot, catalogURL, codexPath, claudePath, codexModel, claudeModel, codexSandbox, claudePermissionMode, opencodePath, opencodeModel, opencodePermission
+        case antigravityPath, antigravityModel, antigravityMode, antigravityPermission
     }
-    /// Settings saved before OpenCode support omit its keys; they decode to safe defaults.
+    /// Settings saved before a provider was added omit its keys; they decode to safe defaults.
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         workspaceRoot = try c.decode(String.self, forKey: .workspaceRoot)
@@ -115,6 +125,10 @@ extension Settings {
         opencodePath = try c.decodeIfPresent(String.self, forKey: .opencodePath) ?? ""
         opencodeModel = try c.decodeIfPresent(String.self, forKey: .opencodeModel) ?? ""
         opencodePermission = try c.decodeIfPresent(String.self, forKey: .opencodePermission) ?? "reject"
+        antigravityPath = try c.decodeIfPresent(String.self, forKey: .antigravityPath) ?? ""
+        antigravityModel = try c.decodeIfPresent(String.self, forKey: .antigravityModel) ?? ""
+        antigravityMode = try c.decodeIfPresent(String.self, forKey: .antigravityMode) ?? "accept-edits"
+        antigravityPermission = try c.decodeIfPresent(String.self, forKey: .antigravityPermission) ?? "review"
     }
 }
 

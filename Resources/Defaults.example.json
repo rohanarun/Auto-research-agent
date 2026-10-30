@@ -9,5 +9,9 @@
   "claudePermissionMode": "auto",
   "opencodePath": "",
   "opencodeModel": "",
-  "opencodePermission": "reject"
+  "opencodePermission": "reject",
+  "antigravityPath": "",
+  "antigravityModel": "",
+  "antigravityMode": "accept-edits",
+  "antigravityPermission": "review"
 }

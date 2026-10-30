@@ -1,10 +1,14 @@
 # Auto-research agent
 
-The idea is to make it dead simple to point your Codex, Claude or OpenCode at open problems, put unused tokens to work, and help push the frontier.
+> **We're now sponsored by Agent37, so the first 100 contributors get Agent37 sandboxes for free to run experiments!** To qualify, submit a research PR following your project's `auto-research.md` guide and include your contact email in the PR description to redeem the offer. See [Sponsors](#sponsors).
+
+The idea is to make it dead simple to point your Codex, Claude, OpenCode or Antigravity at open problems, put unused tokens to work, and help push the frontier.
 
 Auto-research agent is a native macOS app with a Codex-style project sidebar and chat. It helps you find GitHub projects with `auto-research.md` agent guides and makes starting a contribution a one-button click: pick an open problem and press Play.
 
-It runs the Codex, Claude Code or OpenCode CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
+It runs the Codex, Claude Code, OpenCode or Antigravity CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
+
+Source builds also support **Daytona and Agent37** for private cloud Codex sandboxes. Choose either provider with your own API key in **Connections & settings → Cloud**; see the [cloud setup guide](docs/cloud-execution.md).
 
 ![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
@@ -12,7 +16,7 @@ It runs the Codex, Claude Code or OpenCode CLI under the hood, using your own ac
 
 [Download for macOS — Apple Silicon (.dmg)](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg) · [SHA-256 checksum](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg.sha256)
 
-Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code or OpenCode CLI in **Connections & settings**. The download contains no account credentials or local chats.
+Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code or OpenCode CLI in **Connections & settings**. Antigravity and Agent37 support are available in current source builds; the linked release predates these additions. The download contains no account credentials or local chats.
 
 ## Built-in MUSE kernel projects
 
@@ -29,7 +33,7 @@ The source build includes all five [MUSE kernel challenges](https://openkernelch
 | [Decoder layer](https://openkernelchallenge.dev/problems/muse_decode_layer) | End-to-end decode with attention, experts and residuals |
 | [Prefill layer](https://openkernelchallenge.dev/problems/muse_prefill_layer) | Longer query blocks on the separate prefill leaderboard |
 
-Press Play to create a local workspace with an editable `auto-research.md` starter guide. These projects use one local coordinator, even when Daytona or parallel research is selected globally. They use your installed coding CLI and your own Open Kernel Challenge account. The agent analyzes source and can perform CPU checks on your Mac; `okc check` and `okc submit` run the GPU evaluation on the official service. You do not need to own or rent a GPU. Remote evaluation is still GPU work and consumes the service's current quotas.
+Press Play to create a local workspace with an editable `auto-research.md` starter guide. These projects use one local coordinator, even when Daytona, Agent37 or parallel research is selected globally. They use your installed coding CLI and your own Open Kernel Challenge account. The agent analyzes source and can perform CPU checks on your Mac; `okc check` and `okc submit` run the GPU evaluation on the official service. You do not need to own or rent a GPU. Remote evaluation is still GPU work and consumes the service's current quotas.
 
 Open a built-in project and enter your own GitHub/OKC username. **Refresh account** shows the account currently authenticated by the official CLI. **Choose account…** opens `okc login --force` in Terminal so you can sign in through the official browser flow and personally accept the rules; the app never collects your password or token. An existing CLI login may belong to a different account. Refresh the account after login; Play checks that it matches the username you entered. If the CLI is missing, install it using the [official setup guide](https://openkernelchallenge.dev/), then return to the account controls.
 
@@ -40,6 +44,8 @@ Choose your kernel file (or leave it blank for the public starter), enter a chec
 The guides suggest small changes to intermediates, layouts and pointwise work. They include no private tuned kernels, account data or saved competitive results, and make no score or rank guarantee. Official checks, uncertainty and actual scored outcomes remain separate. The prompts live in `Resources/StarterPrompts/`; project metadata lives in `Resources/BuiltinProjects.json`. The downloadable release above predates this source feature.
 
 ## Cloud execution: Daytona and Agent37
+
+Both providers support the same single-agent, parallel sharing, method monitoring and verified recovery workflows. Each requires your own provider API key and a separate cloud Codex sign-in. See [setup and provider differences](docs/cloud-execution.md).
 
 In **Connections & settings → Cloud**, select **Daytona**, enter your Daytona API key and click
 **Save key**, then **Connect**. The key is stored in macOS Keychain and is sent only
@@ -84,8 +90,9 @@ The providers have separate Keychain services, installation identities, connecti
 instances and ownership ledgers. The Agent37 workspace key is sent only to
 `https://api.agent37.com/v1`, including its documented control-plane exec endpoint.
 Cloud Codex authentication moves directly between owned instances through a
-single-use listener and a 60-second signed port URL. Neither the API key nor the
-cloud authentication file is sent through a research prompt or copied to the Mac.
+single-use listener and a 60-second signed port URL. The API key stays in macOS
+Keychain and management API requests; the cloud authentication file stays in the
+cloud. Neither credential is sent through a research prompt.
 Your Mac's account files are never uploaded.
 
 Agent37 uses the configurable template in `Resources/Agent37Defaults.json`
@@ -118,8 +125,8 @@ not establish authenticated Codex research behavior. An optional
 The **RSI-top** and **Fork and flush** checkboxes enable a model-prepared research
 plan with a fixed evaluator, retained branch artifacts and fresh exploration
 contexts. These methods currently support Codex and Claude locally, and Codex in
-Daytona. Normal OpenCode runs remain supported. Method branches share one Daytona
-sandbox; the method runner owns parallelism instead of starting another group.
+Daytona or Agent37. Normal OpenCode and Antigravity runs remain supported. Method
+branches share one cloud sandbox; the method runner owns parallelism instead of starting another group.
 Exploration uses the configured branch count; continuation follows one selected
 leader. When context sharing is enabled, workers exchange explicit evidence and
 peer reviews at checkpoint boundaries.
@@ -143,8 +150,8 @@ Declare metrics that may be absent with `"optional": true`; absence stays missin
 not zero. Selection metrics are always required. Initial evaluation checks the
 complete frozen plan before starting any model workers.
 
-Daytona method conversations appear in the existing chat with worker, round and
-checkpoint labels. Monitoring incrementally reads bounded chunks of existing logs;
+Daytona and Agent37 method conversations appear in the existing chat with worker,
+round and checkpoint labels. Monitoring incrementally reads bounded chunks of existing logs;
 it does not invoke a model, pause workers, run evaluators or modify checkpoints.
 Polling uses the configured interval and log byte budget. Reasoning and private
 account payloads are excluded from the chat projection. Saved operation identities
@@ -192,7 +199,7 @@ prevent causal speedup claims.
 
 ## Build from source
 
-Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and, for local execution, at least one installed CLI: [Codex](https://developers.openai.com/codex/cli), [Claude Code](https://code.claude.com/docs/en/overview) or [OpenCode](https://opencode.ai/docs). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
+Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and, for local execution, at least one installed CLI: [Codex](https://developers.openai.com/codex/cli), [Claude Code](https://code.claude.com/docs/en/overview), [OpenCode](https://opencode.ai/docs) or [Antigravity](https://antigravity.google/docs/cli/reference) (`agy`). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
 
 From a terminal in your external-volume development workspace:
 
@@ -211,7 +218,7 @@ Open `build/Auto Research.app`. The build targets the host architecture and has 
 
 The build generates an ignored `Resources/Defaults.json` from `Resources/Defaults.example.json`, discovering CLI executables from `PATH` and using this checkout's `Runtime/` folder. `Runtime/settings.json` stores settings after the first save. Model fields are intentionally empty so each CLI chooses its configured default. Existing runtime settings and chats are preserved.
 
-Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volume runtime directory), `RESEARCH_CODEX_PATH`, `RESEARCH_CLAUDE_PATH`, and `RESEARCH_APP_OUTPUT`. Configure these before the first build or edit CLI paths in the app. Moving an existing runtime requires preserving its files and settings; the build does not migrate active projects.
+Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volume runtime directory), `RESEARCH_CODEX_PATH`, `RESEARCH_CLAUDE_PATH`, `RESEARCH_OPENCODE_PATH`, `RESEARCH_ANTIGRAVITY_PATH`, and `RESEARCH_APP_OUTPUT`. Configure these before the first build or edit CLI paths in the app. Moving an existing runtime requires preserving its files and settings; the build does not migrate active projects.
 
 ## Use it
 
@@ -228,7 +235,7 @@ Optional build environment variables are `RESEARCH_WORKSPACE` (an external-volum
 
 ## Parallel agents on the same problem
 
-Parallel mode is optional and off by default. The initial count is two agents; optional sharing defaults to a ten-minute interval. Both are editable before starting. Each agent uses the selected Codex, Claude or OpenCode CLI and its configured model and account. Existing saved sharing groups retain their settings.
+Parallel mode is optional and off by default. The initial count is two agents; optional sharing defaults to a ten-minute interval. Both are editable before starting. Each agent uses the selected Codex, Claude, OpenCode or Antigravity CLI and its configured model and account. Existing saved sharing groups retain their settings.
 
 Enable **Parallel agents**, choose the count, and send one problem or start research. Every agent receives that problem in its own checkout. Leave **Share context** off for independent work: each agent runs its own session without peer notes, coordinated roles, timed interruptions, or replacement sessions. Everyone's output appears together in **All agents**, with agent labels and links to individual chats. This combined display does not feed one agent's output into another's context. Independent checkouts live under `Runtime/parallel-agents/`.
 
@@ -244,7 +251,7 @@ Agent count multiplies concurrent CLI usage. Each agent periodically updates a m
 
 ## Permissions and evidence
 
-Codex defaults to the workspace-write sandbox; read-only is available. The headless bridge sets approval policy to never, so operations needing additional approval fail visibly instead of hanging. Claude defaults to its automatic permission review, with accept-edits, plan and deny-unapproved modes available. OpenCode defaults to rejecting permission prompts it cannot ask about, so those tool calls fail visibly; an opt-in **Auto-approve** setting passes `--auto`, which approves anything your OpenCode configuration does not explicitly deny. Set the OpenCode model as `provider/model`. No bypass-permissions option is enabled by default. Configured CLI permissions can limit network or tool operations; use the Terminal handoff for interactive approvals.
+Codex defaults to the workspace-write sandbox; read-only is available. The headless bridge sets approval policy to never, so operations needing additional approval fail visibly instead of hanging. Claude defaults to its automatic permission review, with accept-edits, plan and deny-unapproved modes available. OpenCode defaults to rejecting permission prompts it cannot ask about, so those tool calls fail visibly; an opt-in **Auto-approve** setting passes `--auto`, which approves anything your OpenCode configuration does not explicitly deny. Set the OpenCode model as `provider/model`. Antigravity defaults to its `accept-edits` mode with its own approval checks. Its opt-in **Auto-approve all** setting passes `--dangerously-skip-permissions`; Accept edits, Auto and Plan only use Antigravity's own permission policy. Leave its model field empty to use your CLI’s configured default, or enter an Antigravity model name. Sign in to Antigravity by running `agy` in Terminal (use `/login` if it is not offered automatically), then refresh connection status in the app. No provider has a bypass-permissions option enabled by default. Configured CLI permissions can limit network or tool operations; use the Terminal handoff for interactive approvals.
 
 The UI distinguishes preparing, running, stopped, interrupted, completed and needs-attention states. Exit status alone is insufficient for success: the provider must emit a completed-turn event. A completed turn is not a verified research result; the editable research policy requires the agent to describe its evidence accurately.
 
@@ -270,7 +277,7 @@ Set `RESEARCH_LIVE_DASHBOARD_TEST=1` to verify the public backend chart feeds; t
 
 Set `RESEARCH_LIVE_SHARED_TEST=1` to verify a shared handoff using two real Codex workers, a shared file index, and two fresh successor sessions. This uses your logged-in CLI account. The ordinary test suite checks replacement ordering, cancellation, failed context publication, legacy history loading, and independent checkout preservation without provider requests.
 
-Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless), [OpenCode CLI](https://opencode.ai/docs/cli/). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
+Provider integration references: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/), [Claude programmatic usage](https://code.claude.com/docs/en/headless), [OpenCode CLI](https://opencode.ai/docs/cli/), [Antigravity CLI](https://antigravity.google/docs/cli/reference). Catalog: [Auto Research by Super](https://app.getsupers.com/auto-research).
 
 ## Package a release
 
@@ -280,10 +287,14 @@ Set `RESEARCH_SIGNING_IDENTITY` to your Developer ID Application identity and `R
 
 Contributions are welcome. Include the problem, the expected behavior, and relevant test results. For protocol or process changes, add a regression test using synthetic events; real provider tests are opt-in and use the contributor's account. Do not include credentials, local account configuration, chat transcripts, research checkouts, or raw provider logs in issues or pull requests.
 
-Licensed under the [MIT License](LICENSE). Codex, Claude Code, OpenCode, the fetched catalog, and the research repositories are separate projects with their own terms and licenses; their contents are not relicensed by this repository.
+Licensed under the [MIT License](LICENSE). Codex, Claude Code, OpenCode, Antigravity, the fetched catalog, and the research repositories are separate projects with their own terms and licenses; their contents are not relicensed by this repository.
+
+## Sponsors
+
+**[Agent37](https://www.agent37.com/)** sponsors this repo: the first 100 contributors get Agent37 sandboxes for free to run experiments. To qualify, submit a research PR following your selected project's `auto-research.md` guide, and include your contact email in the PR description so we can send you the offer. For an example research guide, see [QRH's auto-research.md](https://github.com/rohanarun/quasi-rh-hillclimb/blob/main/auto-research.md).
 
 ## CPU search and shared Lean verification
 
-Connections & settings → Lean server can host an authenticated verifier on this Mac and optionally share it through ngrok. Search agents submit candidates and poll durable jobs while the host retains Lean dependencies, build caches and verification evidence. New local runs receive the local connection automatically; Daytona workers receive the remote connection when sharing is enabled. Agent37 nodes use the same HTTPS client.
+Connections & settings → Lean server can host an authenticated verifier on this Mac and optionally share it through ngrok. Search agents submit candidates and poll durable jobs while the host retains Lean dependencies, build caches and verification evidence. New local runs receive the local connection automatically; Daytona and Agent37 workers receive the remote connection when sharing is enabled.
 
 The bundled skill starts with source-pinned QRH CPU certificate screening and reusable Lean/axiom/Comparator plans. The initial server profile is a kernel smoke test; full QRH formalization and other theorem profiles require their prepared, pinned proof projects. See [setup, scope and verification details](docs/lean-search.md).

@@ -84,6 +84,7 @@ final class LiveKernelStarterTests: XCTestCase {
         case .codex: model = settings.codexModel
         case .claude: model = settings.claudeModel
         case .opencode: model = settings.opencodeModel
+        case .antigravity: model = settings.antigravityModel
         }
         var receipt = Receipt(runID: runID, board: board, provider: provider.rawValue,
             model: model, executable: settings.executable(provider), runtime: runtime.path,

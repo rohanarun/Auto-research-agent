@@ -100,6 +100,7 @@ import ResearchCore
         settings = (try? Data(contentsOf: settingsFile)).flatMap { try? JSONDecoder().decode(ResearchCore.Settings.self, from: $0) } ?? defaults
         // Workspaces saved before OpenCode support pick up the detected CLI instead of an empty path.
         if settings.opencodePath.isEmpty { settings.opencodePath = defaults.opencodePath }
+        if settings.antigravityPath.isEmpty { settings.antigravityPath = defaults.antigravityPath }
         let cloudRoot = URL(fileURLWithPath:settings.workspaceRoot)
         let selected = (try? Data(contentsOf:cloudRoot.appendingPathComponent("cloud-provider.json"))).flatMap { try? JSONDecoder().decode(SandboxProvider.self,from:$0) } ?? .daytona
         if let data = try? Data(contentsOf:resourceDirectory.appendingPathComponent(selected.defaultsFile)),let config = try? JSONDecoder().decode(DaytonaConfiguration.self,from:data) { daytona = config }
@@ -330,7 +331,7 @@ import ResearchCore
         let cache = try Workspace.directory(settings.workspaceRoot, "cache")
         let tmp = try Workspace.directory(settings.workspaceRoot, "tmp")
         let inherited = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/bin"
-        let paths = [URL(fileURLWithPath: settings.codexPath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.claudePath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.opencodePath).deletingLastPathComponent().path, "/opt/homebrew/bin", "/usr/local/bin", inherited]
+        let paths = [URL(fileURLWithPath: settings.codexPath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.claudePath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.opencodePath).deletingLastPathComponent().path, URL(fileURLWithPath: settings.antigravityPath).deletingLastPathComponent().path, "/opt/homebrew/bin", "/usr/local/bin", inherited]
         return ["PATH": paths.joined(separator: ":"), "TMPDIR": tmp.path + "/", "XDG_CACHE_HOME": cache.path, "PIP_CACHE_DIR": cache.appendingPathComponent("pip").path, "npm_config_cache": cache.appendingPathComponent("npm").path, "CLANG_MODULE_CACHE_PATH": cache.appendingPathComponent("clang").path, "SWIFT_MODULECACHE_PATH": cache.appendingPathComponent("swift").path]
     }
     func launch(_ id: UUID, project: ResearchProject, request: String?) {
@@ -584,6 +585,7 @@ import ResearchCore
         } catch { /* Connection status already reports a missing CLI. */ }
     }
     func login(_ provider: Provider) {
+        if provider == .antigravity { openAntigravityLogin(); return }
         guard loginRunner == nil else { return }
         loginProvider = provider; loginOutput = "Starting \(provider.title) login. Complete sign-in in your browser.\n"
         let runner = ProcessRunner(); loginRunner = runner
@@ -598,6 +600,26 @@ import ResearchCore
     }
     func sendLoginInput(_ input: String) { loginRunner?.sendInput(input) }
     func cancelLogin() { loginRunner?.stop(); loginProvider = nil }
+    /// Antigravity has no login subcommand and refuses interactive sign-in in
+    /// print mode, so open its terminal UI for the official Google sign-in flow.
+    private func openAntigravityLogin() {
+        let path = settings.antigravityPath
+        guard !path.isEmpty, FileManager.default.isExecutableFile(atPath: path) else {
+            error = "Set the Antigravity CLI executable path in Connections first."
+            return
+        }
+        do {
+            let folder = try Workspace.directory(settings.workspaceRoot, "terminal")
+            let file = folder.appendingPathComponent("antigravity-login-\(UUID().uuidString).command")
+            func quote(_ text: String) -> String { "'" + text.replacingOccurrences(of: "'", with: "'\\''") + "'" }
+            let script = "#!/bin/zsh\ncd -- \(quote(folder.path)) || exit\nexec \(quote(path))\n"
+            try script.write(to: file, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: file.path)
+            NSWorkspace.shared.open(file)
+            loginProvider = .antigravity
+            loginOutput = "Antigravity signs in through its own terminal interface. Complete the Google sign-in in the Terminal window that opened (run /login there if it is not offered automatically), then return here and press Refresh connection status."
+        } catch { self.error = error.localizedDescription }
+    }
     func revealProject() { if session?.cloud != nil { NSWorkspace.shared.open((session?.cloud?.provider ?? daytona.sandboxProvider).dashboardURL);return }; if let path = session?.workingDirectory ?? project?.localPath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
     func revealLogs() {
         guard let id = selectedSessionID else { return }

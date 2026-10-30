@@ -36,12 +36,14 @@ import ResearchCore
         settings.codexPath = executable(.codex)
         settings.claudePath = executable(.claude)
         settings.opencodePath = executable(.opencode)
+        settings.antigravityPath = executable(.antigravity)
         return settings
     }
     private static func executable(_ provider: Provider) -> String {
+        let command = provider == .antigravity ? "agy" : provider.rawValue
         let process = Process(); let output = Pipe()
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        process.arguments = ["-lc", "command -v " + provider.rawValue]
+        process.arguments = ["-lc", "command -v " + command]
         process.standardOutput = output; process.standardError = FileHandle.nullDevice
         do {
             try process.run()
