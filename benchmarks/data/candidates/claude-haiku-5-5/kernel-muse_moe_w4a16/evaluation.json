@@ -1,0 +1,249 @@
+{
+  "source_sha256": "19be0389a7ee3ea6b669937163193d9f0347c0a1c574e1ceb4cac3ee95bd3546",
+  "banks": [
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "failed",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 3.641e-03 (worst row 3.641e-03)",
+          "baseline_us": 84.73920226097107,
+          "candidate_us": 424.4192123413086,
+          "paired_rounds": [
+            {
+              "candidate": 420.2655792236328,
+              "baseline": 84.73920226097107
+            },
+            {
+              "candidate": 424.4192123413086,
+              "baseline": 84.81919765472412
+            },
+            {
+              "candidate": 432.7392101287842,
+              "baseline": 84.54399704933167
+            },
+            {
+              "candidate": 410.96320152282715,
+              "baseline": 84.59200263023376
+            },
+            {
+              "baseline": 84.89599823951721,
+              "candidate": 427.31518745422363
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 3.663e-03 (worst row 3.773e-03)",
+          "baseline_us": 182.1887969970703,
+          "candidate_us": 920.6815719604492,
+          "paired_rounds": [
+            {
+              "baseline": 182.82560110092163,
+              "candidate": 920.6815719604492
+            },
+            {
+              "baseline": 182.64319896697998,
+              "candidate": 919.76318359375
+            },
+            {
+              "baseline": 181.5999984741211,
+              "candidate": 921.132755279541
+            },
+            {
+              "candidate": 919.1200256347656,
+              "baseline": 181.67680501937866
+            },
+            {
+              "baseline": 182.1887969970703,
+              "candidate": 921.0528373718262
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 3.670e-03 (worst row 3.830e-03)",
+          "baseline_us": 204.8640012741089,
+          "candidate_us": 1212.4383926391602,
+          "paired_rounds": [
+            {
+              "candidate": 1212.6367568969727,
+              "baseline": 205.29279708862305
+            },
+            {
+              "candidate": 1212.4383926391602,
+              "baseline": 204.82239723205566
+            },
+            {
+              "baseline": 204.8640012741089,
+              "candidate": 1209.9871635437012
+            },
+            {
+              "candidate": 1210.6207847595215,
+              "baseline": 204.96959686279297
+            },
+            {
+              "candidate": 1215.8592224121094,
+              "baseline": 204.4895887374878
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 3.703e-03 (worst row 3.786e-03)",
+          "baseline_us": 147.67999649047852,
+          "candidate_us": 688.2239818572998,
+          "paired_rounds": [
+            {
+              "candidate": 687.8560066223145,
+              "baseline": 147.75999784469604
+            },
+            {
+              "candidate": 688.2239818572998,
+              "baseline": 147.28000164031982
+            },
+            {
+              "baseline": 147.82400131225586,
+              "candidate": 689.3919944763184
+            },
+            {
+              "candidate": 686.956787109375,
+              "baseline": 147.67999649047852
+            },
+            {
+              "candidate": 688.3872032165527,
+              "baseline": 146.97599411010742
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 3.673e-03 (worst row 3.904e-03)",
+          "baseline_us": 467.89441108703613,
+          "candidate_us": 1924.6112823486328,
+          "paired_rounds": [
+            {
+              "candidate": 1926.348876953125,
+              "baseline": 467.74401664733887
+            },
+            {
+              "baseline": 467.97118186950684,
+              "candidate": 1924.6112823486328
+            },
+            {
+              "baseline": 467.89441108703613,
+              "candidate": 1923.0047225952148
+            },
+            {
+              "baseline": 467.4272060394287,
+              "candidate": 1922.2784042358398
+            },
+            {
+              "candidate": 1925.9904861450195,
+              "baseline": 468.3328151702881
+            }
+          ]
+        }
+      ],
+      "source_sha256": "19be0389a7ee3ea6b669937163193d9f0347c0a1c574e1ceb4cac3ee95bd3546",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30026,
+      "correct": false,
+      "error": "out of resource: shared memory, Required: 262144, Hardware limit: 232448. Reducing block sizes or `num_stages` may help.",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/auto-research-benchmark/jobs/final-13-muse_moe_w4a16-0-20261030T142211Z-f79172/judge.py\", line 65, in <module>\n    output=call(candidate,cd,cp);torch.cuda.synchronize()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/auto-research-benchmark/jobs/final-13-muse_moe_w4a16-0-20261030T142211Z-f79172/judge.py\", line 57, in call\n    def call(mod,inp,w):return mod.kernel_fn(inp,w) if weights is not None else mod.kernel_fn(inp)\n                               ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/auto-research-benchmark/jobs/final-13-muse_moe_w4a16-0-20261030T142211Z-f79172/candidate.py\", line 201, in kernel_fn\n    _route_kernel[(1,)](ids, tok_row, dst, bexp, ls, P=P, PP=PP, PPAD=ppad, NL=NL, BM=BM,\n  File \"/opt/sglang/lib/python3.12/site-packages/triton/runtime/jit.py\", line 374, in <lambda>\n    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)\n                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/sglang/lib/python3.12/site-packages/triton/runtime/jit.py\", line 778, in run\n    launch_metadata = kernel.launch_metadata(grid, stream, *bound_args.values())\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/sglang/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 496, in launch_metadata\n    self._init_handles()\n  File \"/opt/sglang/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 468, in _init_handles\n    raise_(OutOfResources(self.metadata.shared, max_shared, \"shared memory\"))\n  File \"/opt/sglang/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 460, in raise_\n    raise err\ntriton.runtime.errors.OutOfResources: out of resource: shared memory, Required: 262144, Hardware limit: 232448. Reducing block sizes or `num_stages` may help.\n"
+    }
+  ],
+  "source_audit": {
+    "sha256": "19be0389a7ee3ea6b669937163193d9f0347c0a1c574e1ceb4cac3ee95bd3546",
+    "approved": true,
+    "source_rules_passed": true,
+    "reviewer": "Claude (curator session, claude-opus-5-5), automated AST scan + diff review",
+    "rationale": "Triton grouped GEMMs dequantizing NVFP4 (E2M1 x E4M3 block scale x global scale) in-kernel to BF16, FP32 accumulation; no requantization or caching."
+  },
+  "scope": "Two fresh held-out banks after the research clock; final sealed source only."
+}

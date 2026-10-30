@@ -22,9 +22,9 @@ Requires macOS 14 or newer. The app and disk image are Developer ID signed and A
 
 The [benchmark suite](benchmarks/README.md) rewinds open research projects to pinned earlier snapshots and measures whether an offline agent recovers our next improvement within 30 minutes. It includes integer multiplication, all five MUSE kernels, and four additional mathematical tasks, with setup, an isolated command harness, model/API adapters, sealed submissions, scores and reproducible chart code.
 
-The published comparison includes **GPT-6.1 Sol, GPT-6 Astra, GPT-5.6 Sol**, and **Gemini 3.8 Flash (OpenCode)**. Kernel progress means a correct, source-compliant measured speedup **strictly greater than 1.01× over baseline**. The charts show published speedups, timing uncertainty, and research time to the exact evaluated source. These are single-trial observations under the local H200 protocol, not official leaderboard scores or an established model ranking. See the full results for cohort differences, conditional mathematical claims, and pending reviews.
+The published comparison includes **GPT-6.1 Sol, GPT-6 Astra, GPT-5.6 Sol**, **Gemini 3.8 Flash (OpenCode)**, and **Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5** (Claude CLI on a Linux broker, a separate harness version). Kernel progress means a correct, source-compliant measured speedup **strictly greater than 1.01× over baseline**. The charts show published speedups, timing uncertainty, and research time to the exact evaluated source. These are single-trial observations under the local H200 protocol, not official leaderboard scores or an established model ranking. See the full results for cohort differences, conditional mathematical claims, and pending reviews.
 
-![Research progress by task and model, including Gemini 3.8 Flash through OpenCode, with measured speedups and research times](benchmarks/charts/recovery-matrix.png)
+![Research progress by task and model, including Gemini 3.8 Flash through OpenCode and the Claude 5.5 models, with measured speedups and research times](benchmarks/charts/recovery-matrix.png)
 
 ![Kernel speedups versus baseline for all published models, with timing uncertainty and the 1.01x cutoff](benchmarks/charts/kernel-performance.png)
 
