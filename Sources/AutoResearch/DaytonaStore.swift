@@ -5,21 +5,37 @@ import ResearchCore
 extension AppStore {
     func saveDaytona() throws {
         let root = try Workspace.directory(settings.workspaceRoot,"cloud")
-        try Workspace.write(daytona,to:root.deletingLastPathComponent().appendingPathComponent("daytona.json"))
-        try Workspace.write(cloudOwnedIDs,to:root.deletingLastPathComponent().appendingPathComponent("daytona-owned.json"))
+        try Workspace.write(daytona,to:root.deletingLastPathComponent().appendingPathComponent(daytona.sandboxProvider.configurationFile))
+        try Workspace.write(cloudOwnedIDs,to:root.deletingLastPathComponent().appendingPathComponent(daytona.sandboxProvider.rawValue + "-owned.json"))
+    }
+    func selectSandboxProvider(_ provider: SandboxProvider) {
+        guard !hasActiveRuns,provider != daytona.sandboxProvider else { return }
+        do {
+            try saveDaytona()
+            let root = URL(fileURLWithPath:settings.workspaceRoot)
+            let file = root.appendingPathComponent(provider.configurationFile)
+            let defaults = resourceDirectory.appendingPathComponent(provider.defaultsFile)
+            let config = try JSONDecoder().decode(DaytonaConfiguration.self,from:Data(contentsOf:FileManager.default.fileExists(atPath:file.path) ? file : defaults))
+            guard config.sandboxProvider == provider else { throw ResearchError("Saved sandbox provider does not match its settings file.") }
+            let idsFile = root.appendingPathComponent(provider.rawValue + "-owned.json")
+            let ids = FileManager.default.fileExists(atPath:idsFile.path) ? try JSONDecoder().decode(Set<String>.self,from:Data(contentsOf:idsFile)) : []
+            try Workspace.write(provider,to:root.appendingPathComponent("cloud-provider.json"))
+            daytona = config;cloudOwnedIDs = ids;daytonaClient = nil;cloudRuntime = nil
+            daytonaStatus = "Not connected";daytonaLoginOutput = ""
+        } catch { self.error = error.localizedDescription }
     }
     func cloudClient() throws -> DaytonaClient {
         _ = try Workspace.validate(settings.workspaceRoot)
-        if let daytonaClient { return daytonaClient }
-        let client = try DaytonaClient(apiKey:DaytonaKeychain.read(daytona.installID),installID:daytona.installID,knownOwnedIDs:cloudOwnedIDs,apiURL:URL(string:"https://app.daytona.io/api")!,readRetryInterval:daytona.pollSeconds)
+        if let daytonaClient,daytonaClient.provider == daytona.sandboxProvider { return daytonaClient }
+        let client = try DaytonaClient(apiKey:DaytonaKeychain.read(daytona.installID,provider:daytona.sandboxProvider),installID:daytona.installID,knownOwnedIDs:cloudOwnedIDs,apiURL:daytona.sandboxProvider.apiURL,readRetryInterval:daytona.pollSeconds,provider:daytona.sandboxProvider)
         daytonaClient = client;return client
     }
     func saveDaytonaKey(_ value: String) {
-        do { try DaytonaKeychain.save(value,account:daytona.installID);daytonaClient = nil;try saveDaytona();daytonaStatus = "API key saved in Keychain. Connect to prepare cloud Codex." } catch { self.error = error.localizedDescription }
+        do { try DaytonaKeychain.save(value,account:daytona.installID,provider:daytona.sandboxProvider);daytonaClient = nil;try saveDaytona();daytonaStatus = "API key saved in Keychain. Connect to prepare cloud Codex." } catch { self.error = error.localizedDescription }
     }
     func removeDaytonaKey() {
         guard !hasActiveRuns,!daytonaBusy else { return }
-        DaytonaKeychain.remove(daytona.installID);daytonaClient = nil;daytona.enabled = false;try? saveDaytona();daytonaStatus = "Key removed. Existing sandboxes are preserved."
+        DaytonaKeychain.remove(daytona.installID,provider:daytona.sandboxProvider);daytonaClient = nil;daytona.enabled = false;try? saveDaytona();daytonaStatus = "Key removed. Existing sandboxes are preserved."
     }
     func setCloudExecution(_ enabled: Bool) {
         guard !hasActiveRuns else { return };daytona.enabled = enabled
@@ -72,15 +88,15 @@ extension AppStore {
             do {
                 let (client,id) = try await ensureCloudConnection()
                 if signIn {
-                    daytonaLoginOutput = "Complete the official Codex device sign-in below. This connects cloud model access separately from your Daytona key.\n"
-                    let runner = ProcessRunner(backend:DaytonaRunner(client:client,cloud:CloudSession(sandboxID:id,stateID:"login"),configuration:daytona,login:true))
+                    daytonaLoginOutput = "Complete the official Codex device sign-in below. This connects cloud model access separately from your \(daytona.sandboxProvider.title) key.\n"
+                    let runner = ProcessRunner(backend:DaytonaRunner(client:client,cloud:CloudSession(sandboxID:id,stateID:"login",sandboxProvider:daytona.sandboxProvider),configuration:daytona,login:true))
                     daytonaLoginRunner = runner
                     let result = try await runner.run(Command("codex",["login","--device-auth"]),directory:URL(fileURLWithPath:settings.workspaceRoot),onLine:{ line,_ in Task { @MainActor in self.daytonaLoginOutput += line + "\n" } })
                     if daytonaLoginCancelled { daytonaStatus = "Cloud sign-in cancelled";return }
                     guard result.code == 0 else { throw ResearchError("Cloud sign-in ended without completion. Request a new code using Sign in when ready.") }
                 }
                 let auth = try await client.call(id,action:"auth-status")
-                daytonaStatus = auth["authenticated"] as? Bool == true ? "Cloud Codex connected" : "Daytona connected · cloud Codex sign-in required"
+                daytonaStatus = auth["authenticated"] as? Bool == true ? "Cloud Codex connected" : "\(daytona.sandboxProvider.title) connected · cloud Codex sign-in required"
             } catch { daytonaStatus = "Needs attention";self.error = error.localizedDescription }
         }
     }

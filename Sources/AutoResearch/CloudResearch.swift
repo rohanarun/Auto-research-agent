@@ -12,7 +12,10 @@ extension AppStore {
             return
         }
         guard initial.cloud.map({ !cloudCleanup.contains($0.sandboxID) }) ?? true else { error = "Wait for cloud recovery export to finish before resuming this chat.";return }
-        guard initial.provider == .codex else { error = "Daytona currently runs Codex. Select Codex or switch execution back to This Mac.";return }
+        guard initial.cloud.map({ $0.provider == daytona.sandboxProvider }) ?? true else {
+            error = "Select \(initial.cloud!.provider.title) in Connections & settings → Cloud to resume this saved chat.";return
+        }
+        guard initial.provider == .codex else { error = "Cloud execution currently runs Codex. Select Codex or switch execution back to This Mac.";return }
         cloudDrains[id] = false;runners[id] = ProcessRunner();stopped.remove(id);failed.remove(id);completed.remove(id);eventMessages[id] = [:];state(id,"Preparing")
         workerTasks[id] = Task {
             var client: DaytonaClient?;var boxID: String?;var nextDecision: String?
@@ -22,11 +25,11 @@ extension AppStore {
                 if cloud == nil {
                     let (connected,connection) = try await ensureCloudConnection()
                     let auth = try await connected.call(connection,action:"auth-status")
-                    guard auth["authenticated"] as? Bool == true else { throw ResearchError("Sign in to cloud Codex in Connections & settings → Daytona first.") }
+                    guard auth["authenticated"] as? Bool == true else { throw ResearchError("Sign in to cloud Codex in Connections & settings → Cloud first.") }
                     let source = try await cloudSource(project,group:id)
                     let box = try await createCloudBox(c,role:"worker",group:id);boxID = box
                     try await prepareCloudWorker(client:c,connection:connection,id:box,project:project,source:source)
-                    cloud = CloudSession(sandboxID:box,stateID:id.uuidString)
+                    cloud = CloudSession(sandboxID:box,stateID:id.uuidString,sandboxProvider:daytona.sandboxProvider)
                     if let i = sessions.firstIndex(where:{$0.id == id}) { sessions[i].cloud = cloud;persist() }
                     try await cloudPrepared?(project.id,id,[box])
                 }
@@ -46,7 +49,7 @@ extension AppStore {
                     }
                 }
                 let extra = initial.sharedAgent == nil || methodOptions?.enabled == true ? "" : try String(contentsOf:resourceDirectory.appendingPathComponent(initial.sharedAgent?.isIndependent == true ? "IndependentAgentPolicy.md" : "SharedAgentPolicy.md"),encoding:.utf8)
-                var cloudPolicy = policy + "\n\n" + extra + "\n\nExecution environment: your private Linux Daytona sandbox, assigned checkout /workspace/checkout. All commands and generated files stay in this checkout. The external-SSD rule applies to the native Mac controller, whose mount was validated there; do not look for /Volumes inside Linux. No host account files, prior conversations, peer checkouts or host MCP configuration are supplied."
+                var cloudPolicy = policy + "\n\n" + extra + "\n\nExecution environment: your private Linux \(daytona.sandboxProvider.title) sandbox, assigned checkout /workspace/checkout. All commands and generated files stay in this checkout. The external-SSD rule applies to the native Mac controller, whose mount was validated there; do not look for /Volumes inside Linux. No host account files, prior conversations, peer checkouts or host MCP configuration are supplied."
                 let leanRound = "lean-tools-" + UUID().uuidString
                 let leanFiles = try LeanSearch.files(resources: resourceDirectory)
                 let leanConnection = try leanServer.remoteConnectionFiles()
@@ -71,7 +74,7 @@ extension AppStore {
                     _ = try await c.call(cloud.sandboxID, action: "put-context", payload: ["round": name, "files": files.mapValues { $0.base64EncodedString() }])
                     methodDirectory = "/workspace/checkout/SHARED_CONTEXT/" + name; methodFiles = files
                     cloudPolicy += "\n\n" + ResearchMethods.instruction(directory: "/workspace/checkout/SHARED_CONTEXT/" + name)
-                    append(id, role: "status", text: "Optional research methods installed in this Daytona sandbox. Branch workspaces and logs remain inside /workspace/checkout.")
+                    append(id, role: "status", text: "Optional research methods installed in this cloud sandbox. Branch workspaces and logs remain inside /workspace/checkout.")
                 }
                 let command = CLI.chat(provider:.codex,settings:cloudSettings,sessionID:initial.providerSessionID,prompt:prompt,policy:cloudPolicy)
                 append(id,role:"user",text:prompt)
@@ -96,7 +99,7 @@ extension AppStore {
                     guard ResearchMethods.ready(result.stdout, provider: .codex) else { throw ResearchError("The model has not prepared a research-method plan. No branches were launched; review its response.") }
                     _ = try await c.call(cloud.sandboxID, action: "put-context", payload: ["round": URL(fileURLWithPath: folder).lastPathComponent, "files": methodFiles.mapValues { $0.base64EncodedString() }])
                     cloudDrains[id] = false
-                    append(id, role: "status", text: "Plan ready. Running isolated method branches in this Daytona sandbox.")
+                    append(id, role: "status", text: "Plan ready. Running isolated method branches in this cloud sandbox.")
                     let operation = UUID().uuidString
                     let attachment = CloudMethodAttachment(sessionID: id, sandboxID: cloud.sandboxID, operationID: operation, controlDirectory: folder)
                     try JSONEncoder().encode(attachment).write(to: methodAttachmentURL(id), options: .atomic)
@@ -164,7 +167,7 @@ extension AppStore {
     }
 
     func startCloudResearch(_ project: ResearchProject,request: String?) {
-        guard !running(project),provider == .codex else { error = "Stop existing research and select Codex before starting Daytona agents.";return }
+        guard !running(project),provider == .codex else { error = "Stop existing research and select Codex before starting cloud agents.";return }
         runCloudResearch(project, request: request, resume: nil)
     }
 
@@ -185,10 +188,11 @@ extension AppStore {
                 // A start preserves an existing stopped sandbox; no setup, clone, auth fork or creation.
                 // Validate every worker before any resumed model invocation is submitted.
                 for session in resume.sessions {
+                    guard session.cloud?.provider == self.daytona.sandboxProvider else { throw ResearchError("Select the saved group’s cloud provider before resuming.") }
                     try Task.checkCancellation()
                     let cloud = session.cloud!
                     try await c.start(cloud.sandboxID)
-                    let command = "sudo -n python3 -B -c " + DaytonaClient.quote(probe) + " " + DaytonaClient.quote(cloud.stateID) + " " + DaytonaClient.quote(session.providerSessionID!)
+                    let command = c.controlPython + " -B -c " + DaytonaClient.quote(probe) + " " + DaytonaClient.quote(cloud.stateID) + " " + DaytonaClient.quote(session.providerSessionID!)
                     let output = try await c.execute(cloud.sandboxID, command: command)
                     let receipt = try JSONSerialization.jsonObject(with: Data(output.utf8)) as? [String: Any]
                     guard receipt?["status"] as? String == "READY_TO_RESUME_EXISTING_STATE" else {
@@ -200,7 +204,7 @@ extension AppStore {
             }
             let (c,connection) = try await self.ensureCloudConnection();client = c
             let auth = try await c.call(connection,action:"auth-status")
-            guard auth["authenticated"] as? Bool == true else { throw ResearchError("Sign in to cloud Codex in Connections & settings → Daytona first.") }
+            guard auth["authenticated"] as? Bool == true else { throw ResearchError("Sign in to cloud Codex in Connections & settings → Cloud first.") }
             let source = try await self.cloudSource(project,group:group)
             for _ in 0..<options.agentCount { try Task.checkCancellation();boxes.append(try await self.createCloudBox(c,role:"worker",group:group)) }
             try await withThrowingTaskGroup(of:Void.self) { tasks in
@@ -232,11 +236,11 @@ extension AppStore {
             }
             var ids: [UUID] = []
             for (offset,box) in boxes.enumerated() {
-                var session = ResearchSession(projectID:project.id,title:"Agent \(offset + 1) · \(options.enabled ? "round \(generation)" : "independent") · Daytona",provider:.codex)
+                var session = ResearchSession(projectID:project.id,title:"Agent \(offset + 1) · \(options.enabled ? "round \(generation)" : "independent") · \(self.daytona.sandboxProvider.title)",provider:.codex)
                 let old = previous.indices.contains(offset) ? previous[offset] : nil
-                session.cloud = CloudSession(sandboxID:box,stateID:session.id.uuidString,previousStateID:old?.uuidString)
+                session.cloud = CloudSession(sandboxID:box,stateID:session.id.uuidString,previousStateID:old?.uuidString,sandboxProvider:self.daytona.sandboxProvider)
                 session.sharedAgent = SharedAgent(groupID:group,index:offset + 1,generation:generation,previousSessionID:old,contextFile:context?.path,sharesContext:options.enabled,agentCount:options.agentCount)
-                session.messages.append(ChatMessage(role:"status",text:"Private Daytona sandbox \(box). Fresh provider state; only cloud sign-in and this group's published checkpoints are supplied."))
+                session.messages.append(ChatMessage(role:"status",text:"Private \(self.daytona.sandboxProvider.title) sandbox \(box). Fresh provider state; only cloud sign-in and this group's published checkpoints are supplied."))
                 self.sessions.append(session);ids.append(session.id)
             }
             guard self.persist() else { throw ResearchError("Could not save cloud session lineage. No replacement agents were started.") }
@@ -269,7 +273,7 @@ extension AppStore {
                     if let path = try save(encoded,name:"agent-\(a.index)-topics/" + name) { topics.append(path) }
                 }
                 let transcript = folder.appendingPathComponent("agent-\(a.index).json");try Workspace.write(s,to:transcript)
-                agents.append(.init(number:a.index,sessionID:id,transcript:transcript.path,checkout:"Daytona \(cloud.sandboxID):/workspace/checkout",notes:notes,contextFiles:topics.sorted(),checkpoint:checkpoint))
+                agents.append(.init(number:a.index,sessionID:id,transcript:transcript.path,checkout:"\(cloud.provider.title) \(cloud.sandboxID):/workspace/checkout",notes:notes,contextFiles:topics.sorted(),checkpoint:checkpoint))
             }
             let manifest = folder.appendingPathComponent("manifest.json");try Workspace.write(SharedContextManifest(generation:generation,project:project.repository,previousContext:previous?.path,agents:agents),to:manifest);return manifest
         },merge: { manifest in

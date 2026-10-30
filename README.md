@@ -39,9 +39,9 @@ Choose your kernel file (or leave it blank for the public starter), enter a chec
 
 The guides suggest small changes to intermediates, layouts and pointwise work. They include no private tuned kernels, account data or saved competitive results, and make no score or rank guarantee. Official checks, uncertainty and actual scored outcomes remain separate. The prompts live in `Resources/StarterPrompts/`; project metadata lives in `Resources/BuiltinProjects.json`. The downloadable release above predates this source feature.
 
-## Daytona execution
+## Cloud execution: Daytona and Agent37
 
-In **Connections & settings → Daytona**, enter your Daytona API key and click
+In **Connections & settings → Cloud**, select **Daytona**, enter your Daytona API key and click
 **Save key**, then **Connect**. The key is stored in macOS Keychain and is sent only
 to Daytona's management API. Click **Sign in to cloud Codex** and complete the
 separate official device login. The app never uploads your Mac's Codex account
@@ -68,6 +68,50 @@ also reconciles this installation's labeled sandboxes after an interrupted setup
 it never deletes them or touches another installation's workers. Idle stopping is
 configured in `Resources/DaytonaDefaults.json` (60 minutes by default). The app
 must remain open for scheduled checkpoint handoffs.
+
+### Agent37
+
+![Agent37 cloud provider settings](docs/images/agent37-settings.png)
+
+In **Connections & settings → Cloud**, choose **Agent37** as the sandbox provider,
+save your Agent37 API key, then click **Connect** and **Sign in to cloud Codex**.
+Choose **Agent37 sandboxes · Codex** to run new research there. The same single
+agent, parallel sharing, method monitoring, Stop and recovery controls are used.
+Existing chats keep their original provider; select that provider before resuming
+them. Existing Daytona settings and chats remain compatible.
+
+The providers have separate Keychain services, installation identities, connection
+instances and ownership ledgers. The Agent37 workspace key is sent only to
+`https://api.agent37.com/v1`, including its documented control-plane exec endpoint.
+Cloud Codex authentication moves directly between owned instances through a
+single-use listener and a 60-second signed port URL. Neither the API key nor the
+cloud authentication file is sent through a research prompt or copied to the Mac.
+Your Mac's account files are never uploaded.
+
+Agent37 uses the configurable template in `Resources/Agent37Defaults.json`
+(`agent37-base` initially); the app installs the same verified official Codex CLI
+used by Daytona. Durable tools, private state and checkouts live on Agent37's
+`/workspace` mount. On start the app restores links to that disk without replacing
+existing files. Idle instances sleep after the configured timeout. Following a
+verified recovery download, Agent37 workers are **stopped**, retaining their disk;
+Agent37 has no Daytona-style archive operation. Stopped disks still incur storage
+charges until you delete them in Agent37's dashboard. The app never deletes them.
+
+Offline provider tests intercept HTTP calls and cover lifecycle, bridge launch,
+command errors, ownership boundaries, lost creation receipts, settings migration
+and credential transfer. They do not prove a live Agent37 or model run. The live
+smoke test is opt-in and requires an existing funded account:
+
+```sh
+# Set AGENT37_API_KEY securely in the environment first. Never commit it.
+TMPDIR="$PWD/tmp/" RESEARCH_LIVE_AGENT37_TEST=1 swift test --filter testLiveAgent37PersistentBridge
+```
+
+This test creates one instance, uploads the bridge and a file, stops/starts it,
+checks persistence, packs a recovery archive, then stops it with its disk retained.
+It prints the instance ID for dashboard cleanup. It makes no model calls and does
+not establish authenticated Codex research behavior. An optional
+`AGENT37_TEST_TEMPLATE` overrides the smoke test template.
 
 ## Optional research methods and worker chat
 
