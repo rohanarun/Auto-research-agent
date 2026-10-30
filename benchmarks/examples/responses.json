@@ -1,0 +1,6 @@
+{
+  "kind": "responses",
+  "url": "https://api.openai.com/v1/responses",
+  "key_env": "MODEL_API_KEY",
+  "parameters": {}
+}

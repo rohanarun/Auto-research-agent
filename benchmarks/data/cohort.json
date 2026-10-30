@@ -1,0 +1,102 @@
+{
+  "models": [
+    "gpt-6.1-sol",
+    "gpt-6-astra",
+    "gpt-5.6-sol"
+  ],
+  "model_labels": {
+    "gpt-6.1-sol": "GPT-6.1 Sol",
+    "gpt-6-astra": "GPT-6 Astra",
+    "gpt-5.6-sol": "GPT-5.6 Sol"
+  },
+  "core_tasks": [
+    "integer-mult-frame-retiming",
+    "kernel-muse_attention_decode",
+    "kernel-muse_bf16_proj",
+    "kernel-muse_decode_layer",
+    "kernel-muse_moe_w4a16",
+    "kernel-muse_prefill_layer"
+  ],
+  "task_labels": {
+    "integer-mult-frame-retiming": "Integer multiplication",
+    "kernel-muse_attention_decode": "Attention decode",
+    "kernel-muse_bf16_proj": "Dense projections",
+    "kernel-muse_decode_layer": "Decoder layer",
+    "kernel-muse_moe_w4a16": "Routed experts",
+    "kernel-muse_prefill_layer": "Prefill layer"
+  },
+  "reasoning": "high",
+  "budget_seconds": 1800,
+  "trial_count_per_cell": 1,
+  "integer_harness": "codex-cli-broker-v1",
+  "kernel_harness": "codex-cli-broker-v1-gpu-queue",
+  "publication_destination": "rohanarun/Auto-research-agent/benchmarks",
+  "kernel_initial_cohort": {
+    "status": "actors_complete_needs_final_validation",
+    "cohort": "kernels-20261030",
+    "models": [
+      "gpt-6.1-sol",
+      "gpt-6-astra",
+      "gpt-5.6-sol"
+    ],
+    "tasks": [
+      "kernel-muse_attention_decode",
+      "kernel-muse_bf16_proj",
+      "kernel-muse_decode_layer",
+      "kernel-muse_moe_w4a16",
+      "kernel-muse_prefill_layer"
+    ],
+    "budget_seconds": 1800,
+    "harness": "codex-cli-broker-v1-gpu-queue",
+    "started_at": "2026-10-30T02:12:45.876481+00:00",
+    "prompt_sha256": "17e8d5d014f106aa8f6c428a8460c4ac5cfbce816a5d673865f9108da7c2bd70",
+    "concurrency": 15,
+    "shared_gpu": "one at a time; wall-clock includes queue wait",
+    "initial_broker_sha256": "56cb3549ca34f7be85a0de667c88e457c0d0b81ea66982d056b667b49944b605",
+    "driver_sha256": "82c1a663e6873652efe257ba0e2ba285c1366f8efae5e1ed1b1ab6c3dc633c02",
+    "gpu_dispatcher_sha256": "ce50bf1dd2a180704167b105b6d511c3b86600629dcda962df2cfb3871902fce",
+    "finished_at": "2026-10-30T02:42:18.534326+00:00"
+  },
+  "kernel_replacement_cohort": {
+    "status": "actors_complete_needs_final_validation",
+    "started_at": "2026-10-30T02:42:19.310086+00:00",
+    "trial_count": 4,
+    "workers": 3,
+    "harness_transport_revision": "v1.1: diagnostic warnings are not tool calls; transient capacity retries preserve logs and count against the same wall-clock cap",
+    "broker_sha256": "307fb8d2e1d9088ace55725d74f6f0a4841cb4e2e059d0e75748e836746ceb8a",
+    "finished_at": "2026-10-30T03:29:08.647235+00:00"
+  },
+  "integer_cohorts": {
+    "gpt-6.1-sol": {
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "high",
+      "budget_seconds": 1800,
+      "harness": "codex-cli-broker-v1",
+      "cli_version": "codex-cli 0.165.0-alpha.1.2",
+      "harness_sha256": "56cb3549ca34f7be85a0de667c88e457c0d0b81ea66982d056b667b49944b605",
+      "started_at": "2026-10-29T23:55:31.697802+00:00",
+      "selection": "own authored historical improvements; integer first"
+    },
+    "gpt-6-astra": {
+      "model": "gpt-6-astra",
+      "reasoning_effort": "high",
+      "budget_seconds": 1800,
+      "harness": "codex-cli-broker-v1",
+      "cli_version": "codex-cli 0.165.0-alpha.1.2",
+      "harness_sha256": "56cb3549ca34f7be85a0de667c88e457c0d0b81ea66982d056b667b49944b605",
+      "started_at": "2026-10-29T23:55:31.697714+00:00",
+      "selection": "own authored historical improvements; integer first"
+    },
+    "gpt-5.6-sol": {
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "budget_seconds": 1800,
+      "harness": "codex-cli-broker-v1",
+      "cli_version": "codex-cli 0.165.0-alpha.1.2",
+      "harness_sha256": "56cb3549ca34f7be85a0de667c88e457c0d0b81ea66982d056b667b49944b605",
+      "started_at": "2026-10-29T23:55:31.698218+00:00",
+      "selection": "own authored historical improvements; integer first"
+    }
+  },
+  "final_validation_status": "complete"
+}

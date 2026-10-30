@@ -1,0 +1,23 @@
+{
+  "metric": "1/25",
+  "claim": "Conditional on the retained source geometric, affinity, prime, arrangement, and digit-product inputs, there exists K independent of r such that W_r(k) > k^((1/25)*k*floor(log2(r))) for every integer k >= K and every integer r >= 2.",
+  "assumptions": [
+    "Retain the adaptive mesh width, neighborhood, and truncated local-complexity lemmas of source 02-setup.tex, with their unchanged definitions and hypotheses checked in proof.md.",
+    "Retain the source affinity lemma for boxes of coordinate width at most 2H under 2kH<1, and the equality-aware affine hyperplane arrangement bound.",
+    "Retain the elementary prime input k<P<=2k^2 and the arbitrary-base digit-product input; the digit-product argument is reproduced in proof.md.",
+    "No improved balance or entropy region is assumed: disjoint residual-light tests, near-half concentration and LLL, the smaller primary-factor cutoff, anchored counts, affine entropy, and probability bounds are derived in proof.md.",
+    "The conclusion is asymptotic and conditional; finite checks do not constitute a proof or an explicit finite coloring certificate. Detailed source references are in solution/assumptions.md."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python -B solution/run_checks.py",
+  "evidence_files": [
+    "solution/candidate-parameters.json",
+    "solution/assumptions.md",
+    "solution/verification.json",
+    "solution/probability-transfer-checks.json",
+    "solution/baseline-hashes.json",
+    "solution/verify.py",
+    "solution/check_probability_transfer.py",
+    "solution/run_checks.py"
+  ]
+}

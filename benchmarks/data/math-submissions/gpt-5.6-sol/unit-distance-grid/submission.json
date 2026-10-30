@@ -1,0 +1,16 @@
+{
+  "metric": "32",
+  "claim": "Conditional on the same upstream generic-grid, negligible-height, full-rank, and private-valuation hypotheses as the baseline, the full rank-two final algebraic witness can be reduced to an 8-by-4 grid (32 selected edges) by projectivizing the eight additively normalized right-hand differential coefficients.",
+  "assumptions": [
+    "The upstream generic-grid transcendence inequality applies after adjoining the four anchor positions and a coefficient field of transcendence degree at most seven.",
+    "For a left point generic over that coefficient field, the upstream private odd valuations exist for all four radicands.",
+    "The full-rank branch has two nonparallel anchor displacement vectors and all four scalar differences A-A'_ell are nonzero.",
+    "The ambient field has characteristic zero and the anchors used for the additive gauge are distinct."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python3 -B solution/verify.py",
+  "evidence_files": [
+    "solution/verify.py",
+    "solution/verification.txt"
+  ]
+}

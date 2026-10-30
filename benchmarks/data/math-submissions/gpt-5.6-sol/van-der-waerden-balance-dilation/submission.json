@@ -1,0 +1,11 @@
+{
+  "metric": "1/25",
+  "claim": "Conditional on the retained source geometric, affinity, adaptive-mesh, anchored-pattern, prime-power, perturbation, and digit-product lemmas, for all sufficiently large k with threshold independent of every integer r>=2, W_r(k)>k^((1/25)k floor(log_2 r)). The proof derives a logarithmic short-period cutoff, quadratic-dimension entropy, near-half hybrid balance on disjoint sets, multiplicity two, the complete probability/counting transfer, and exact positive margins.",
+  "assumptions": "The pinned source lemmas are retained in their parameter-uniform forms established by their displayed proofs: coordinate affinity and separation; primary-factor dilation for a general cutoff h0; global and anchored local arrangement counts; closest-return, rational-path, regularity, and eligible-block lemmas; independent key perturbations and affine-signature arrangement count; the prime in (k,2k^2]; and digit-product transfer. No improved balance, cutoff region, or entropy estimate is assumed: those are derived in solution/proof.md. The executable check verifies the new exact algebra and elementary dilation property, not the imported geometric lemmas.",
+  "proof_file": "solution/proof.md",
+  "verification_command": "python3 -B solution/verify.py",
+  "evidence_files": [
+    "solution/parameter_certificate.json",
+    "solution/verify.py"
+  ]
+}

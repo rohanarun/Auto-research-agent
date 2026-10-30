@@ -1,0 +1,16 @@
+{
+  "metric": "874809963/1000000000",
+  "claim": "Conditionally on H1-H5 iterated to seven nested affine levels, theta <= 874809963/1000000000; this is an exact arithmetic certificate, not a complete Lean nonvanishing endpoint.",
+  "assumptions": "The structural hypotheses H1-H5 of depth3/PROOF.md, including recursive LOW dispatch, seven-label joint returns, the between-region amplifier-floor treatment, depth-seven re-bracketing, and full loss absorption; the preprint/PR #67 framework inherited there.",
+  "proof_file": "solution/proof.md",
+  "verification_command": "python solution/certify.py",
+  "evidence_files": [
+    "solution/certify.py",
+    "solution/model.py",
+    "solution/interval.py",
+    "solution/certificate_output.txt",
+    "solution/verify.sh"
+  ],
+  "ell": "125570111/750000000",
+  "h": "797221147/1000000000"
+}

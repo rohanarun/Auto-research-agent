@@ -1,0 +1,14 @@
+{
+  "codex-cli-broker-v1": {
+    "inference": "Codex CLI, native tools disabled, structured action output",
+    "context": "Full prior action/observation transcript",
+    "execution": "Seatbelt-isolated command broker",
+    "initial_comparison": true
+  },
+  "codex-cli-notebook-broker-v1": {
+    "inference": "Same Codex CLI and tool restrictions",
+    "context": "Last eight action/observation pairs plus a contestant-maintained research notebook",
+    "execution": "Same Seatbelt-isolated command broker",
+    "initial_comparison": false
+  }
+}

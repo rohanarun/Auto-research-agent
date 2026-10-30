@@ -1,0 +1,37 @@
+{
+  "metric": "874809963/1000000000",
+  "ell": "125570111/750000000",
+  "h": "398610570291347/500000000000000",
+  "claim": "Conditional on H1\u2013H5 of depth3/PROOF.md at depth seven and their incumbent inputs, theta <= 874809963/1000000000. Seven rational stages pass every unchanged frozen arithmetic check and an exact rational interval certificate; the original LOW and width-floor thresholds are retained. No complete Lean nonvanishing endpoint is claimed.",
+  "assumptions": [
+    "All hypotheses H1\u2013H5 in depth3/PROOF.md, instantiated at depth seven, including the incumbent analytic inputs.",
+    "H1 recursive cell-uniform O/R/L/D dispatch and H2 joint source/return and prefix-fibre constraints at every link, with one final zero-density application.",
+    "H3 exceptional-child amplifier-floor handling; no unjustified skipping of intermediate levels.",
+    "H4 re-bracketing of deeper caps, rebases, position rooms and supply constants. The existing width-floor rule, room >= 0.0015, and LOW reserve >= 1e-10 are checked without relaxation.",
+    "H5 absorption of all source/return and rounding allowances into the certified net reserves; a net HIGH allowance budget of 1e-7 is certified at each depth. Structural allowance accounting remains conditional."
+  ],
+  "proof_file": "solution/proof.md",
+  "verification_command": "python solution/verify.py",
+  "evidence_files": [
+    "solution/parameters.json",
+    "solution/certificate.json",
+    "solution/verification.log",
+    "solution/exact_certificate.py",
+    "solution/verify.py",
+    "solution/candidate.log",
+    "solution/search2_results.json"
+  ],
+  "stage_parameters": {
+    "junctions": [
+      "31901/50000",
+      "43592737/62500000",
+      "176457017/250000000",
+      "357161223/500000000",
+      "361483757/500000000",
+      "7317659/10000000",
+      "185180067/250000000"
+    ],
+    "window_top": "2016882571/50000000000",
+    "depth": 7
+  }
+}

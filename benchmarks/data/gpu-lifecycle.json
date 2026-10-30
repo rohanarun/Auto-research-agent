@@ -1,0 +1,180 @@
+{
+  "checked_at": "2026-10-30T04:06:18.289413+00:00",
+  "all_recorded_h200_leases_deleted": true,
+  "recorded_leases": [
+    {
+      "lease_number": 1,
+      "phases": [
+        "setup_preflight"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 286.0
+    },
+    {
+      "lease_number": 2,
+      "phases": [
+        "setup_preflight"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 24.0
+    },
+    {
+      "lease_number": 3,
+      "phases": [
+        "reference_calibration"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 22.0
+    },
+    {
+      "lease_number": 4,
+      "phases": [
+        "reference_calibration"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 2074.0
+    },
+    {
+      "lease_number": 5,
+      "phases": [
+        "reference_calibration",
+        "runner_preflight"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 1365.0
+    },
+    {
+      "lease_number": 6,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 350.0
+    },
+    {
+      "lease_number": 7,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 561.0
+    },
+    {
+      "lease_number": 8,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 34.0
+    },
+    {
+      "lease_number": 9,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 42.0
+    },
+    {
+      "lease_number": 10,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 43.0
+    },
+    {
+      "lease_number": 11,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 155.0
+    },
+    {
+      "lease_number": 12,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 47.0
+    },
+    {
+      "lease_number": 13,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 48.0
+    },
+    {
+      "lease_number": 14,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 43.0
+    },
+    {
+      "lease_number": 15,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 48.0
+    },
+    {
+      "lease_number": 16,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 44.0
+    },
+    {
+      "lease_number": 17,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 39.0
+    },
+    {
+      "lease_number": 18,
+      "phases": [
+        "research_diagnostics"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 55.0
+    },
+    {
+      "lease_number": 19,
+      "phases": [
+        "final_validation"
+      ],
+      "deleted_and_confirmed": true,
+      "confirmation": 404,
+      "observed_control_lifetime_seconds": 1418.0
+    }
+  ],
+  "accounting_scope": "Observed interval between local create receipt and deletion-confirmation receipt. Includes setup, provisioning, compilation and teardown; not billed GPU time or utilization. Provider instance IDs, host names and credentials excluded.",
+  "policy": "Fresh H200 only with ready benchmark work; delete when the work queue empties; no reuse of unrelated existing workers."
+}

@@ -18,6 +18,16 @@ The app also supports **Daytona and Agent37** for private cloud Codex sandboxes.
 
 Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code, OpenCode or Antigravity CLI in **Connections & settings**. Version 1.5.0 includes both Antigravity and Agent37 support. The download contains no account credentials or local chats.
 
+## Auto-research benchmark
+
+The [benchmark suite](benchmarks/README.md) rewinds open research projects to pinned earlier snapshots and measures whether an offline agent recovers our next improvement within 30 minutes. It includes integer multiplication, all five MUSE kernels, and four additional mathematical tasks, with setup, an isolated command harness, model/API adapters, sealed submissions, scores and reproducible chart code.
+
+The first pilot tested **GPT-6.1 Sol, GPT-6 Astra and GPT-5.6 Sol**, each at high reasoning. Sol and Astra recovered the conditional finite integer milestone in **11.64 and 13.86 minutes**; GPT-5.6 reached the cap without a sealed submission. None recovered our calibrated kernel targets. Fourteen kernel candidates passed the public-shape numerical checks; one failed compilation. These are single-trial observations under the documented local H200 protocol, not official Open Kernel leaderboard scores or an established model ranking. Two additional mathematical tasks remain unscored pending review.
+
+![Initial offline research benchmark: recovery by task and model](benchmarks/charts/recovery-matrix.png)
+
+[Full results and charts](benchmarks/RESULTS.md) · [Run your own model or harness](benchmarks/README.md#setup) · [Protocol and limitations](benchmarks/PROTOCOL.md) · [Source data](benchmarks/data/results.json)
+
 ## Built-in MUSE kernel projects
 
 The source build includes all five [MUSE kernel challenges](https://openkernelchallenge.dev/) alongside the GitHub catalog. They remain available when the catalog is offline:

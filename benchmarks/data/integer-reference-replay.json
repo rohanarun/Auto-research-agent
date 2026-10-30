@@ -1,0 +1,39 @@
+{
+  "files": 133,
+  "fresh_stages": [
+    "banks",
+    "bit",
+    "complex",
+    "finite",
+    "math",
+    "primes",
+    "raw",
+    "scalar"
+  ],
+  "inputs_unchanged": true,
+  "kappa": "710436534421701/1000000000000000000",
+  "kappa_scientific": "7.104365344217010e-04",
+  "manifest_sha256": "00119cd179dcc2c837c0c9bf53f32f5131a9c88e278f7aad41e84179be5e2a42",
+  "negative_controls": [
+    "omitted banks stage",
+    "omitted bit stage",
+    "omitted complex stage",
+    "omitted finite stage",
+    "omitted math stage",
+    "omitted primes stage",
+    "omitted raw stage",
+    "omitted scalar stage"
+  ],
+  "seconds": 347.28266687481664,
+  "status": "PASS_IMMUTABLE_PARITY_REGAUGED_DESCENT_SOURCE527_FIVE_STAGE_BANKED_CONSTRUCTION",
+  "timings": {
+    "banks": 28.57257983298041,
+    "bit": 66.80083824996836,
+    "complex": 28.087902292143553,
+    "finite": 0.10579620907083154,
+    "math": 0.42903704196214676,
+    "primes": 9.774467667099088,
+    "raw": 6.544906374998391,
+    "scalar": 189.87665004120208
+  }
+}

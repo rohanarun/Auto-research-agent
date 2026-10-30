@@ -1,0 +1,209 @@
+{
+  "schema_version": 2,
+  "budget_seconds": 1800,
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "harness": "codex-cli-broker-v1",
+  "tasks": [
+    {
+      "id": "integer-mult-frame-retiming",
+      "repo": "CrocSwap/integer-mult-bounds",
+      "base": "2b030c0",
+      "event": "87aa555",
+      "metric": "kappa",
+      "direction": "max",
+      "baseline": "710433687047883/1000000000000000000",
+      "target": "710436534421701/1000000000000000000",
+      "kind": "finite_construction",
+      "owner_evidence": "commit 87aa555 authored by Rohan Arun; extends PR251",
+      "research_subdirectory": "research/five-stage-source527-banks",
+      "goal": "Recover or exceed our next historical conditional finite-construction improvement from this frozen predecessor. The existing source527 five-stage construction certifies kappa = 710433687047883/10^18. Reach kappa >= 710436534421701/10^18, preserving the F2 payload contract, arbitrary dirty/source restoration, both reflected frame ledgers, complete finite accounting and the inherited all-size compiler/analytic assumptions. Optimize the existing construction or its accounting; supply a complete exact finite certificate and reproducible verifier, not just a decimal or a parameter claim. All eight mandatory stages must replay without omitted work or fabricated ledgers. Keep the existing package immutable and work on a copy under solution/. The main package is research/five-stage-source527-banks. Your submission.json must identify the changed construction, its exact histogram, and all charged costs. Do not infer a complete integer-multiplication theorem or practical speedup from finite checks.",
+      "base_sha": "2b030c06a811473ae8ed49dce07bc7ea50b72e9e",
+      "breakthrough_sha": "87aa555a455cca84a3e3296ced2440623d39fc4d",
+      "base_time": "2026-10-09T17:27:31-07:00",
+      "breakthrough_time": "2026-10-09T22:01:02-04:00",
+      "snapshot_sha256": "63ec41389ff2f29854b5aa9120f3d82b63d4ab2cb86b03aeb631e86ed1f9a518"
+    },
+    {
+      "id": "quasi-rh-nested-levels",
+      "repo": "rohanarun/quasi-rh-hillclimb",
+      "base": "8862883",
+      "event": "d5b8163",
+      "reference_pr": 3,
+      "metric": "theta",
+      "direction": "min",
+      "baseline": "874810282/1000000000",
+      "target": "874809963/1000000000",
+      "kind": "exact_interval",
+      "owner_evidence": "PR3 by rohanarun, constrained nested-level reoptimization",
+      "goal": "Recover or exceed our next historical constrained nested-affine-level certificate: theta <= 0.874809963, improving the frozen four-level theta <= 0.874810282. Retain the H1-H5 conditional framework in depth3/PROOF.md, the width-floor tests and all source/return constraints. Supply rational stage parameters and a reproducible exact interval certificate covering the whole continuous domain, including boundary and rounding controls. Numerical optimizers alone do not establish the certificate. Do not claim a complete Lean nonvanishing endpoint or weaken the width-floor conditions.",
+      "base_sha": "8862883d718826b9d0f5e79863f1ddd1c31872b2",
+      "breakthrough_sha": "d5b8163ceac7f86cebfb00f94268ff1cab25aa81",
+      "base_time": "2026-10-21T08:45:34-04:00",
+      "breakthrough_time": "2026-10-21T08:45:39-04:00",
+      "snapshot_sha256": "13120ce84cd74ecbbcb9c3a2e89f2cbac7be1ef985516ba348b9a86b41e1a481"
+    },
+    {
+      "id": "van-der-waerden-balance-dilation",
+      "repo": "rohanarun/van-der-waerden-refinement",
+      "base": "422f388",
+      "event": "54ac971",
+      "reference_pr": 2,
+      "metric": "coefficient_c",
+      "direction": "max",
+      "baseline": "1/193",
+      "target": "1/25",
+      "kind": "proof_review",
+      "owner_evidence": "PR2 by rohanarun, sharpened balance and dilation",
+      "goal": "Recover or exceed our next historical conditional van der Waerden coefficient improvement, from c=1/193 to c>=1/25 in W_r(k)>k^(c*k*floor(log2(r))) for sufficiently large k, threshold independent of integer r>=2. Retain the source geometric lemmas, affinity, prime and digit-product inputs. Derive any improved balance, dilation and entropy estimates fully, give the probability/counting/transfer proof and exact positive parameter margins. Merely changing the numerical parameter checker or assuming the improved sufficient region does not meet the target.",
+      "base_sha": "422f38894e735a7c3ad71b45a15094147edb6750",
+      "breakthrough_sha": "54ac9715fceab938ca77d5980c36ab691765a04d",
+      "base_time": "2026-10-09T11:02:07-04:00",
+      "breakthrough_time": "2026-10-10T08:41:30-04:00",
+      "snapshot_sha256": "157e6bc083f1500a440ce3420e4e0da79f16e77af5378252db3f59125de5bb19"
+    },
+    {
+      "id": "unit-distance-grid",
+      "repo": "rohanarun/unit-distance-grid-refinement",
+      "base": "5075839",
+      "event": "62455a6",
+      "reference_pr": 2,
+      "metric": "full_rank_selected_edges",
+      "direction": "min",
+      "baseline": "36",
+      "target": "32",
+      "kind": "proof_review",
+      "goal": "Reduce the full rank-two final witness from a generic 9-by-4 grid (36 selected edges) to at most 8-by-4 (32 edges), under the same upstream generic-grid and private-valuation hypotheses. Give a full algebraic argument, correct generator accounting, radical independence, and exact symbolic checks with failure controls. A smaller common-line branch alone does not satisfy the full-rank target. Do not claim an improved headline unit-distance exponent.",
+      "base_sha": "507583908e4d1a7f77ae946c1ed5f9813bfadf83",
+      "breakthrough_sha": "62455a6709204f79a3a93c4eace817c3ce0d54ec",
+      "base_time": "2026-10-09T11:01:54-04:00",
+      "breakthrough_time": "2026-10-10T08:41:25-04:00",
+      "prefetched_sources": [
+        "preprints/A-power-saving-for-planar-unit-distances-September-23-2026/build/sections/07-algebra.tex"
+      ],
+      "snapshot_sha256": "417c6284907ff3a48ebbe51a4874a140a9bc146954ffd1eb6267feafb9fc1637"
+    },
+    {
+      "id": "sidorenko-residual",
+      "repo": "rohanarun/sidorenko-template-refinements",
+      "base": "4e1b9b6",
+      "event": "d1df2a5",
+      "reference_pr": 2,
+      "metric": "residual_constant",
+      "direction": "min",
+      "baseline": "978",
+      "target": "189",
+      "kind": "proof_review",
+      "goal": "Reduce the nondirect residual exponent constant from 978 to at most 189, i.e. prove O_D(q^(-D+189)) for this counting step, permitting even D>=190. Keep the finite graph, cuts, activation laws, and upstream dependencies fixed. Give a full dimension-counting argument for all defect strata and exact independent arithmetic checks. Do not claim a smaller global Sidorenko counterexample or a bound for the entire construction.",
+      "base_sha": "4e1b9b60c2d08eb38d92d6e24415f0a724ad8987",
+      "breakthrough_sha": "d1df2a5cc0cb0c9003466b1c7f8ecb77a8e72a7d",
+      "base_time": "2026-10-09T11:01:59-04:00",
+      "breakthrough_time": "2026-10-10T08:41:39-04:00",
+      "prefetched_sources": [
+        "preprints/A-counterexample-to-Sidorenkos-conjecture-September-23-2026/build/sections/complex.tex"
+      ],
+      "snapshot_sha256": "f59c6c1bdbe9e3cbaf7088d04edcea19b332283e58292c18415c280e3be2200b"
+    },
+    {
+      "id": "kernel-muse_attention_decode",
+      "problem": "muse_attention_decode",
+      "kind": "gpu",
+      "metric": "speedup_vs_sglang",
+      "direction": "max",
+      "baseline": "1",
+      "target": "2.28787467520176",
+      "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
+      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_attention_decode implementation from this frozen public starter. Our calibrated reference achieves 2.28787467520176x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "snapshot_sha256": "4ca76d306b41c12457339c4adc2940af0f071e81da3f792a7a7a93a47372712b",
+      "own_reference_sha256": "394f2517ca8eaf69b7d422832edfd59451a9f73103981d13b1059070abb17b4b",
+      "target_status": "calibrated_private_h200_v1",
+      "reference_timing_interval_95": [
+        2.279166508854043,
+        2.292275828893108
+      ],
+      "equivalence_tolerance": 0.02
+    },
+    {
+      "id": "kernel-muse_bf16_proj",
+      "problem": "muse_bf16_proj",
+      "kind": "gpu",
+      "metric": "speedup_vs_sglang",
+      "direction": "max",
+      "baseline": "1",
+      "target": "1.38930054576902",
+      "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
+      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_bf16_proj implementation from this frozen public starter. Our calibrated reference achieves 1.38930054576902x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "snapshot_sha256": "b11e4d76a746a63885233b97b6d566dc5896df33c3aa5d070d39eae5d94f0b20",
+      "own_reference_sha256": "bee34c95ff88d38dbbc47820291e3b325d54ac6512afdf88c1c8c4f63681a91f",
+      "target_status": "calibrated_private_h200_v1",
+      "reference_timing_interval_95": [
+        1.3814702699063157,
+        1.3934409283504345
+      ],
+      "equivalence_tolerance": 0.02
+    },
+    {
+      "id": "kernel-muse_decode_layer",
+      "problem": "muse_decode_layer",
+      "kind": "gpu",
+      "metric": "speedup_vs_sglang",
+      "direction": "max",
+      "baseline": "1",
+      "target": "2.16490883180629",
+      "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
+      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_decode_layer implementation from this frozen public starter. Our calibrated reference achieves 2.16490883180629x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "snapshot_sha256": "9be13c2a031f0d9c832f2f00df664f855e1d818acffdcac792d08e37600e7a7a",
+      "own_reference_sha256": "f0c3f089996637518f774ea6b9cad483b03ce3fe3c828e49e26d7a03ce21e802",
+      "target_status": "calibrated_private_h200_v1",
+      "reference_timing_interval_95": [
+        2.162336844615777,
+        2.1660531504977967
+      ],
+      "equivalence_tolerance": 0.02
+    },
+    {
+      "id": "kernel-muse_moe_w4a16",
+      "problem": "muse_moe_w4a16",
+      "kind": "gpu",
+      "metric": "speedup_vs_sglang",
+      "direction": "max",
+      "baseline": "1",
+      "target": "2.45268331711034",
+      "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
+      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_moe_w4a16 implementation from this frozen public starter. Our calibrated reference achieves 2.45268331711034x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "snapshot_sha256": "924450e520cafd35a109e3a172362c419e1e22afb07661941b529ac3efb1dc62",
+      "own_reference_sha256": "ba3d6b03d451de6d9bb9c3f52b1366dd0e52dec86bcbc2862fe4dd9585973c31",
+      "target_status": "calibrated_private_h200_v1",
+      "reference_timing_interval_95": [
+        2.4479393104183194,
+        2.457822470735713
+      ],
+      "equivalence_tolerance": 0.02
+    },
+    {
+      "id": "kernel-muse_prefill_layer",
+      "problem": "muse_prefill_layer",
+      "kind": "gpu",
+      "metric": "speedup_vs_sglang",
+      "direction": "max",
+      "baseline": "1",
+      "target": "1.56884763920396",
+      "historical_anchor_status": "Frozen public starter to source-hashed own optimized implementation; calibrated pinned-runtime performance, not original leaderboard event.",
+      "goal": "Recover the correctness and paired H200 performance of our own hidden optimized muse_prefill_layer implementation from this frozen public starter. Our calibrated reference achieves 1.56884763920396x the frozen SGLang baseline under the benchmark weighted-aggregate protocol. Final target admission requires all shapes correct on two hidden fresh banks, preserved precision/dtype/shape and task rules, a source audit, and a one-sided 95% paired-timing lower bound >=98% of that calibrated speedup. The timed call must remain dynamic and correct on changed graph replay inputs. This is a local benchmark metric, not an official leaderboard score. Save a self-contained solution/submission.py and solution/submission.json; do not contact OKC, GitHub or the Internet.",
+      "snapshot_sha256": "a0e5f0ba833e5d2bee90592762a571d2752f5118391c71063a6e560326e6ed05",
+      "own_reference_sha256": "655f53db48f88124990788cab482f6b2a462c85a96d6ea81edc99fa03a24a60b",
+      "target_status": "calibrated_private_h200_v1",
+      "reference_timing_interval_95": [
+        1.5259186331122303,
+        1.5920309673301731
+      ],
+      "equivalence_tolerance": 0.02
+    }
+  ],
+  "selection": "Own historical improvements; integer-multiplication first",
+  "models": [
+    "gpt-6.1-sol",
+    "gpt-6-astra",
+    "gpt-5.6-sol"
+  ]
+}

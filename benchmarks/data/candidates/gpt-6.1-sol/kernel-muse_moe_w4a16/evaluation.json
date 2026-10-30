@@ -1,0 +1,577 @@
+{
+  "source_sha256": "a27a9bfe59b81f128c1d3f2539b7d8a997e693ea674c0464b7eb4a003b64a023",
+  "banks": [
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.854e-03 (worst row 5.854e-03)",
+          "baseline_us": 89.30240273475647,
+          "candidate_us": 54.11840081214905,
+          "paired_rounds": [
+            {
+              "baseline": 90.12799859046936,
+              "candidate": 54.11840081214905
+            },
+            {
+              "baseline": 89.18079733848572,
+              "candidate": 54.04160022735596
+            },
+            {
+              "baseline": 89.1871988773346,
+              "candidate": 54.262399673461914
+            },
+            {
+              "candidate": 54.19840216636658,
+              "baseline": 89.31519985198975
+            },
+            {
+              "candidate": 53.968000411987305,
+              "baseline": 89.30240273475647
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.814e-03 (worst row 5.955e-03)",
+          "baseline_us": 172.5119948387146,
+          "candidate_us": 126.62719488143921,
+          "paired_rounds": [
+            {
+              "candidate": 127.40800380706787,
+              "baseline": 172.8127956390381
+            },
+            {
+              "baseline": 172.9024052619934,
+              "candidate": 127.13279724121094
+            },
+            {
+              "baseline": 172.5119948387146,
+              "candidate": 126.45119428634644
+            },
+            {
+              "candidate": 126.62719488143921,
+              "baseline": 172.50880002975464
+            },
+            {
+              "baseline": 172.3039984703064,
+              "candidate": 126.53119564056396
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.780e-03 (worst row 6.010e-03)",
+          "baseline_us": 217.7151918411255,
+          "candidate_us": 195.9231972694397,
+          "paired_rounds": [
+            {
+              "candidate": 197.78560400009155,
+              "baseline": 218.27199459075928
+            },
+            {
+              "candidate": 195.9231972694397,
+              "baseline": 217.7151918411255
+            },
+            {
+              "baseline": 216.68798923492432,
+              "candidate": 195.78880071640015
+            },
+            {
+              "baseline": 217.49119758605957,
+              "candidate": 195.78239917755127
+            },
+            {
+              "candidate": 196.62400484085083,
+              "baseline": 217.83359050750732
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.803e-03 (worst row 5.947e-03)",
+          "baseline_us": 168.34559440612793,
+          "candidate_us": 125.91999769210815,
+          "paired_rounds": [
+            {
+              "candidate": 127.32160091400146,
+              "baseline": 168.76800060272217
+            },
+            {
+              "candidate": 126.39039754867554,
+              "baseline": 168.09920072555542
+            },
+            {
+              "candidate": 125.91999769210815,
+              "baseline": 168.34559440612793
+            },
+            {
+              "baseline": 167.8719997406006,
+              "candidate": 125.48799514770508
+            },
+            {
+              "candidate": 125.6767988204956,
+              "baseline": 168.49600076675415
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.769e-03 (worst row 6.116e-03)",
+          "baseline_us": 478.45120429992676,
+          "candidate_us": 316.5440082550049,
+          "paired_rounds": [
+            {
+              "candidate": 317.6896095275879,
+              "baseline": 478.49278450012207
+            },
+            {
+              "candidate": 315.6320095062256,
+              "baseline": 478.45120429992676
+            },
+            {
+              "baseline": 478.32322120666504,
+              "candidate": 316.5440082550049
+            },
+            {
+              "candidate": 316.3264036178589,
+              "baseline": 478.4575939178467
+            },
+            {
+              "candidate": 316.8031930923462,
+              "baseline": 478.39040756225586
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "bs": 256,
+            "load": "verify 32",
+            "seed": 406,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.780e-03 (worst row 6.329e-03)",
+          "baseline_us": 624.8064041137695,
+          "candidate_us": 412.4415874481201,
+          "paired_rounds": [
+            {
+              "candidate": 414.07999992370605,
+              "baseline": 625.2064228057861
+            },
+            {
+              "candidate": 412.4415874481201,
+              "baseline": 624.8064041137695
+            },
+            {
+              "baseline": 625.1904010772705,
+              "candidate": 412.7903938293457
+            },
+            {
+              "baseline": 623.7215995788574,
+              "candidate": 411.38877868652344
+            },
+            {
+              "candidate": 412.4000072479248,
+              "baseline": 623.6063957214355
+            }
+          ]
+        }
+      ],
+      "source_sha256": "a27a9bfe59b81f128c1d3f2539b7d8a997e693ea674c0464b7eb4a003b64a023",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30018,
+      "correct": true,
+      "weighted_baseline_us": 105067.96753406525,
+      "weighted_candidate_us": 73894.46318149567,
+      "speedup_vs_baseline": 1.4218652252199582,
+      "heldout_seed": 231030922
+    },
+    {
+      "problem": "muse_moe_w4a16",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "bs": 1,
+            "load": "decode 1",
+            "seed": 401,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.793e-03 (worst row 5.793e-03)",
+          "baseline_us": 83.91680121421814,
+          "candidate_us": 48.87680113315582,
+          "paired_rounds": [
+            {
+              "candidate": 50.16639828681946,
+              "baseline": 84.2303991317749
+            },
+            {
+              "candidate": 48.87680113315582,
+              "baseline": 83.43679904937744
+            },
+            {
+              "candidate": 49.09439980983734,
+              "baseline": 83.68639945983887
+            },
+            {
+              "baseline": 83.91680121421814,
+              "candidate": 48.5152006149292
+            },
+            {
+              "baseline": 83.92000198364258,
+              "candidate": 48.84159862995148
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "bs": 16,
+            "load": "decode 16",
+            "seed": 402,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.821e-03 (worst row 6.104e-03)",
+          "baseline_us": 193.05919408798218,
+          "candidate_us": 146.90879583358765,
+          "paired_rounds": [
+            {
+              "baseline": 194.08960342407227,
+              "candidate": 146.87680006027222
+            },
+            {
+              "baseline": 193.05919408798218,
+              "candidate": 146.6912031173706
+            },
+            {
+              "candidate": 147.10079431533813,
+              "baseline": 192.66239404678345
+            },
+            {
+              "candidate": 146.90879583358765,
+              "baseline": 192.7135944366455
+            },
+            {
+              "candidate": 147.63519763946533,
+              "baseline": 194.05440092086792
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "bs": 32,
+            "load": "decode 32",
+            "seed": 403,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.775e-03 (worst row 5.966e-03)",
+          "baseline_us": 249.2192029953003,
+          "candidate_us": 226.63040161132812,
+          "paired_rounds": [
+            {
+              "candidate": 227.5871992111206,
+              "baseline": 249.2192029953003
+            },
+            {
+              "baseline": 249.46880340576172,
+              "candidate": 226.76799297332764
+            },
+            {
+              "baseline": 248.21441173553467,
+              "candidate": 226.4575958251953
+            },
+            {
+              "baseline": 248.6112117767334,
+              "candidate": 226.3040065765381
+            },
+            {
+              "baseline": 249.28960800170898,
+              "candidate": 226.63040161132812
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "bs": 8,
+            "load": "verify 1",
+            "seed": 404,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.792e-03 (worst row 5.944e-03)",
+          "baseline_us": 159.08160209655762,
+          "candidate_us": 117.56800413131714,
+          "paired_rounds": [
+            {
+              "baseline": 160.47040224075317,
+              "candidate": 117.64160394668579
+            },
+            {
+              "candidate": 117.56800413131714,
+              "baseline": 159.08160209655762
+            },
+            {
+              "baseline": 158.7488055229187,
+              "candidate": 117.0591950416565
+            },
+            {
+              "candidate": 117.23840236663818,
+              "baseline": 159.21920537948608
+            },
+            {
+              "baseline": 158.70399475097656,
+              "candidate": 118.16960573196411
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "bs": 128,
+            "load": "verify 16",
+            "seed": 405,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.785e-03 (worst row 6.132e-03)",
+          "baseline_us": 424.9887943267822,
+          "candidate_us": 273.27680587768555,
+          "paired_rounds": [
+            {
+              "baseline": 424.8799800872803,
+              "candidate": 273.2480049133301
+            },
+            {
+              "baseline": 425.19679069519043,
+              "candidate": 273.27680587768555
+            },
+            {
+              "candidate": 273.7056016921997,
+              "baseline": 424.9887943267822
+            },
+            {
+              "candidate": 273.76959323883057,
+              "baseline": 424.92480278015137
+            },
+            {
+              "baseline": 425.1039981842041,
+              "candidate": 272.79679775238037
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "bs": 256,
+            "load": "verify 32",
+            "seed": 406,
+            "sharding": "ep8",
+            "weight": 60
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "hidden_states",
+            "topk_ids",
+            "topk_weights"
+          ],
+          "fresh_routing_replay_checked": true,
+          "timing_uses_original_routing": true,
+          "correctness": "relative L2 error 5.803e-03 (worst row 6.346e-03)",
+          "baseline_us": 674.8127937316895,
+          "candidate_us": 437.9712104797363,
+          "paired_rounds": [
+            {
+              "baseline": 675.3695964813232,
+              "candidate": 437.4720096588135
+            },
+            {
+              "baseline": 674.8127937316895,
+              "candidate": 436.98878288269043
+            },
+            {
+              "candidate": 438.2688045501709,
+              "baseline": 675.0944137573242
+            },
+            {
+              "baseline": 674.6143817901611,
+              "candidate": 437.9712104797363
+            },
+            {
+              "baseline": 674.4639873504639,
+              "candidate": 438.23680877685547
+            }
+          ]
+        }
+      ],
+      "source_sha256": "a27a9bfe59b81f128c1d3f2539b7d8a997e693ea674c0464b7eb4a003b64a023",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30019,
+      "correct": true,
+      "weighted_baseline_us": 107104.7033071518,
+      "weighted_candidate_us": 75073.92114400864,
+      "speedup_vs_baseline": 1.4266565762790107,
+      "heldout_seed": 1018390097
+    }
+  ],
+  "source_audit": {
+    "approved": true,
+    "source_rules_passed": true,
+    "sha256": "a27a9bfe59b81f128c1d3f2539b7d8a997e693ea674c0464b7eb4a003b64a023",
+    "reviewer": "benchmark curator model, full source review",
+    "notes": "Full source reviewed: unchanged lossless NVFP4 bank and FP32 Marlin reductions; current-route single/multi-token alignment and fused norm/sum. Per-expert route capacity relies on the top-k distinct-expert input contract. Weight-first norm multiplication explicitly rounds to BF16. No output/input caching, precision flags, hidden-source access, checker or timing mutation."
+  },
+  "scope": "Full public-shape, fresh-seed local benchmark; not an official OKC score."
+}

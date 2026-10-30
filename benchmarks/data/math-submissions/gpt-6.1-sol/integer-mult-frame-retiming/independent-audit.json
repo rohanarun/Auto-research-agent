@@ -1,0 +1,22 @@
+{
+  "checkpoint": "0038",
+  "at_seconds": 698.493,
+  "status": "PASS_CONDITIONAL_FINITE_WITNESS",
+  "method": "Exact rational row-space equivalence at every bound scalar record to the independently replayed complete construction. Candidate verifier output is not trusted.",
+  "witness": "construction/post-retiming-selection.json",
+  "witness_sha256": "a8309c6f47ec12970dcbff5dd85b26944b5ce97d8f64bb2f6c3c78b95e9ae7cf",
+  "trusted_reference_manifest_sha256": "00119cd179dcc2c837c0c9bf53f32f5131a9c88e278f7aad41e84179be5e2a42",
+  "trusted_reference_seconds": 349.0536615829915,
+  "fresh_reference_stages": [
+    "banks",
+    "bit",
+    "complex",
+    "finite",
+    "math",
+    "primes",
+    "raw",
+    "scalar"
+  ],
+  "kappa": "710436534421701/1000000000000000000",
+  "scope": "Conditional finite construction; retained all-size compiler and analytic interfaces are not proved by this evaluation."
+}

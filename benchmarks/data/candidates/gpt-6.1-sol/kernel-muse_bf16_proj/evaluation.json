@@ -1,0 +1,2569 @@
+{
+  "source_sha256": "d00bc0da70382c141e022ff17b9021150a35b2dea62e228133b9455351fe77fe",
+  "banks": [
+    {
+      "problem": "muse_bf16_proj",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 201,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00)",
+          "baseline_us": 13.580800592899323,
+          "candidate_us": 9.804800152778625,
+          "paired_rounds": [
+            {
+              "baseline": 14.560000598430634,
+              "candidate": 10.00320017337799
+            },
+            {
+              "baseline": 13.513599336147308,
+              "candidate": 9.705600142478943
+            },
+            {
+              "baseline": 13.48160058259964,
+              "candidate": 9.804800152778625
+            },
+            {
+              "candidate": 9.79520007967949,
+              "baseline": 13.580800592899323
+            },
+            {
+              "candidate": 9.824000298976898,
+              "baseline": 13.635200262069702
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "layer": "o",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 202,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00)",
+          "baseline_us": 7.03359991312027,
+          "candidate_us": 5.942400172352791,
+          "paired_rounds": [
+            {
+              "baseline": 7.999999821186066,
+              "candidate": 6.150399893522263
+            },
+            {
+              "candidate": 5.939200147986412,
+              "baseline": 7.03359991312027
+            },
+            {
+              "baseline": 7.08480030298233,
+              "candidate": 5.942400172352791
+            },
+            {
+              "baseline": 6.9888003170490265,
+              "candidate": 5.897599831223488
+            },
+            {
+              "baseline": 6.982400268316269,
+              "candidate": 6.032000109553337
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "layer": "pooler",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 203,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00)",
+          "baseline_us": 23.315200209617615,
+          "candidate_us": 19.77279931306839,
+          "paired_rounds": [
+            {
+              "baseline": 23.99359941482544,
+              "candidate": 19.964799284934998
+            },
+            {
+              "candidate": 19.670400023460388,
+              "baseline": 23.286400735378265
+            },
+            {
+              "baseline": 23.360000550746918,
+              "candidate": 19.69600021839142
+            },
+            {
+              "baseline": 23.203200101852417,
+              "candidate": 19.817599654197693
+            },
+            {
+              "candidate": 19.77279931306839,
+              "baseline": 23.315200209617615
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "layer": "unpooler",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 204,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00)",
+          "baseline_us": 7.3632001876831055,
+          "candidate_us": 4.495999962091446,
+          "paired_rounds": [
+            {
+              "baseline": 8.326400071382523,
+              "candidate": 4.739199951291084
+            },
+            {
+              "baseline": 7.3632001876831055,
+              "candidate": 4.585599899291992
+            },
+            {
+              "candidate": 4.495999962091446,
+              "baseline": 7.337599992752075
+            },
+            {
+              "candidate": 4.476799815893173,
+              "baseline": 7.334399968385696
+            },
+            {
+              "baseline": 7.366400212049484,
+              "candidate": 4.48639988899231
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "layer": "router",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 205,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.115e-07 (worst row 1.115e-07)",
+          "baseline_us": 10.143999755382538,
+          "candidate_us": 4.783999919891357,
+          "paired_rounds": [
+            {
+              "baseline": 11.052799969911575,
+              "candidate": 4.912000149488449
+            },
+            {
+              "candidate": 4.720000177621841,
+              "baseline": 10.127999633550644
+            },
+            {
+              "baseline": 10.18880009651184,
+              "candidate": 4.783999919891357
+            },
+            {
+              "candidate": 4.700800031423569,
+              "baseline": 10.143999755382538
+            },
+            {
+              "baseline": 10.124800354242325,
+              "candidate": 4.783999919891357
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 206,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 7.083e-05 (worst row 1.647e-04); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 12.758399546146393,
+          "candidate_us": 12.33920007944107,
+          "paired_rounds": [
+            {
+              "candidate": 13.094399869441986,
+              "baseline": 12.992000579833984
+            },
+            {
+              "baseline": 12.681600451469421,
+              "candidate": 12.28799968957901
+            },
+            {
+              "baseline": 12.758399546146393,
+              "candidate": 12.319999933242798
+            },
+            {
+              "baseline": 12.755200266838074,
+              "candidate": 12.33920007944107
+            },
+            {
+              "baseline": 12.81919926404953,
+              "candidate": 12.345600128173828
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "config": {
+            "layer": "o",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 207,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 6.587e-05 (worst row 1.221e-04); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 6.521599739789963,
+          "candidate_us": 6.480000168085098,
+          "paired_rounds": [
+            {
+              "candidate": 7.443200051784515,
+              "baseline": 6.729599833488464
+            },
+            {
+              "baseline": 6.521599739789963,
+              "candidate": 6.467200070619583
+            },
+            {
+              "baseline": 6.643199920654297,
+              "candidate": 6.403200328350067
+            },
+            {
+              "candidate": 6.5247997641563416,
+              "baseline": 6.467200070619583
+            },
+            {
+              "baseline": 6.441599875688553,
+              "candidate": 6.480000168085098
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "config": {
+            "layer": "pooler",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 208,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 4.226e-05 (worst row 1.261e-04); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 23.334400355815887,
+          "candidate_us": 23.535999655723572,
+          "paired_rounds": [
+            {
+              "candidate": 24.633599817752838,
+              "baseline": 23.580799996852875
+            },
+            {
+              "candidate": 23.520000278949738,
+              "baseline": 23.308800160884857
+            },
+            {
+              "baseline": 23.296000063419342,
+              "candidate": 23.520000278949738
+            },
+            {
+              "candidate": 23.769600689411163,
+              "baseline": 23.38239997625351
+            },
+            {
+              "baseline": 23.334400355815887,
+              "candidate": 23.535999655723572
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "config": {
+            "layer": "unpooler",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 209,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.427e-04 (worst row 1.852e-04); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 21.251200139522552,
+          "candidate_us": 21.25760018825531,
+          "paired_rounds": [
+            {
+              "candidate": 22.176000475883484,
+              "baseline": 21.481600403785706
+            },
+            {
+              "candidate": 20.934399962425232,
+              "baseline": 21.190400421619415
+            },
+            {
+              "baseline": 21.529600024223328,
+              "candidate": 21.276800334453583
+            },
+            {
+              "baseline": 21.18079960346222,
+              "candidate": 21.216000616550446
+            },
+            {
+              "candidate": 21.25760018825531,
+              "baseline": 21.251200139522552
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "config": {
+            "layer": "router",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 210,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.523e-06 (worst row 2.887e-06); 2 probe rows exact to 2.6e-06",
+          "baseline_us": 15.961599349975586,
+          "candidate_us": 6.831999868154526,
+          "paired_rounds": [
+            {
+              "baseline": 16.969600319862366,
+              "candidate": 7.017599791288376
+            },
+            {
+              "baseline": 15.961599349975586,
+              "candidate": 6.831999868154526
+            },
+            {
+              "candidate": 6.825599819421768,
+              "baseline": 15.884800255298615
+            },
+            {
+              "baseline": 15.855999290943146,
+              "candidate": 6.819199770689011
+            },
+            {
+              "candidate": 6.976000219583511,
+              "baseline": 16.03199988603592
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 211,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.498e-04 (worst row 3.931e-04); 6 probe rows exact to 0.0e+00",
+          "baseline_us": 13.3760005235672,
+          "candidate_us": 13.196800649166107,
+          "paired_rounds": [
+            {
+              "baseline": 14.428800344467163,
+              "candidate": 13.5903999209404
+            },
+            {
+              "baseline": 13.379199802875519,
+              "candidate": 13.113600015640259
+            },
+            {
+              "candidate": 13.196800649166107,
+              "baseline": 13.3760005235672
+            },
+            {
+              "baseline": 13.337600231170654,
+              "candidate": 13.139200210571289
+            },
+            {
+              "baseline": 13.235199451446533,
+              "candidate": 13.232000172138214
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "config": {
+            "layer": "o",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 212,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 4.857e-05 (worst row 1.248e-04); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 6.652799993753433,
+          "candidate_us": 6.761600077152252,
+          "paired_rounds": [
+            {
+              "baseline": 7.548800110816956,
+              "candidate": 6.825599819421768
+            },
+            {
+              "baseline": 6.774400174617767,
+              "candidate": 6.710399687290192
+            },
+            {
+              "candidate": 6.790400296449661,
+              "baseline": 6.5696001052856445
+            },
+            {
+              "baseline": 6.592000275850296,
+              "candidate": 6.761600077152252
+            },
+            {
+              "baseline": 6.652799993753433,
+              "candidate": 6.745599955320358
+            }
+          ]
+        },
+        {
+          "index": 12,
+          "config": {
+            "layer": "pooler",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 213,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 9.235e-05 (worst row 2.445e-04); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 24.217599630355835,
+          "candidate_us": 24.01919960975647,
+          "paired_rounds": [
+            {
+              "baseline": 25.094398856163025,
+              "candidate": 24.031999707221985
+            },
+            {
+              "baseline": 24.41920042037964,
+              "candidate": 24.01919960975647
+            },
+            {
+              "baseline": 24.217599630355835,
+              "candidate": 23.932799696922302
+            },
+            {
+              "candidate": 23.788799345493317,
+              "baseline": 24.182400107383728
+            },
+            {
+              "candidate": 24.105599522590637,
+              "baseline": 24.217599630355835
+            }
+          ]
+        },
+        {
+          "index": 13,
+          "config": {
+            "layer": "unpooler",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 214,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.575e-04 (worst row 2.785e-04); 5 probe rows exact to 0.0e+00",
+          "baseline_us": 21.350400149822235,
+          "candidate_us": 21.398399770259857,
+          "paired_rounds": [
+            {
+              "candidate": 22.188800573349,
+              "baseline": 21.46880030632019
+            },
+            {
+              "baseline": 21.350400149822235,
+              "candidate": 21.31199985742569
+            },
+            {
+              "baseline": 21.31199985742569,
+              "candidate": 21.302400529384613
+            },
+            {
+              "baseline": 21.46880030632019,
+              "candidate": 21.398399770259857
+            },
+            {
+              "candidate": 21.449600160121918,
+              "baseline": 21.315200626850128
+            }
+          ]
+        },
+        {
+          "index": 14,
+          "config": {
+            "layer": "router",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 215,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.473e-06 (worst row 2.745e-06); 4 probe rows exact to 2.6e-06",
+          "baseline_us": 16.37119948863983,
+          "candidate_us": 9.087999910116196,
+          "paired_rounds": [
+            {
+              "candidate": 9.920000284910202,
+              "baseline": 16.547200083732605
+            },
+            {
+              "candidate": 9.087999910116196,
+              "baseline": 16.329599916934967
+            },
+            {
+              "baseline": 16.37119948863983,
+              "candidate": 9.110400080680847
+            },
+            {
+              "baseline": 16.303999722003937,
+              "candidate": 8.991999924182892
+            },
+            {
+              "candidate": 9.036800265312195,
+              "baseline": 16.37759953737259
+            }
+          ]
+        },
+        {
+          "index": 15,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 216,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.838e-05 (worst row 8.023e-05); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 13.072000443935394,
+          "candidate_us": 12.25920021533966,
+          "paired_rounds": [
+            {
+              "baseline": 14.643199741840363,
+              "candidate": 12.39359974861145
+            },
+            {
+              "candidate": 12.25920021533966,
+              "baseline": 12.963199615478516
+            },
+            {
+              "baseline": 13.19040060043335,
+              "candidate": 12.326399981975555
+            },
+            {
+              "candidate": 12.220799922943115,
+              "baseline": 13.072000443935394
+            },
+            {
+              "baseline": 12.947200238704681,
+              "candidate": 12.220799922943115
+            }
+          ]
+        },
+        {
+          "index": 16,
+          "config": {
+            "layer": "o",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 217,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 6.271e-05 (worst row 1.370e-04); 1 probe rows exact to 0.0e+00",
+          "baseline_us": 6.364800035953522,
+          "candidate_us": 6.310400366783142,
+          "paired_rounds": [
+            {
+              "candidate": 7.171200215816498,
+              "baseline": 6.425599753856659
+            },
+            {
+              "baseline": 6.371200084686279,
+              "candidate": 6.310400366783142
+            },
+            {
+              "baseline": 6.291200220584869,
+              "candidate": 6.204799935221672
+            },
+            {
+              "baseline": 6.361600011587143,
+              "candidate": 6.255999952554703
+            },
+            {
+              "candidate": 6.617599725723267,
+              "baseline": 6.364800035953522
+            }
+          ]
+        },
+        {
+          "index": 17,
+          "config": {
+            "layer": "pooler",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 218,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 3.998e-05 (worst row 8.549e-05); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 23.398399353027344,
+          "candidate_us": 22.921599447727203,
+          "paired_rounds": [
+            {
+              "baseline": 24.300800263881683,
+              "candidate": 23.1455996632576
+            },
+            {
+              "baseline": 23.363199830055237,
+              "candidate": 22.89920002222061
+            },
+            {
+              "baseline": 23.414400219917297,
+              "candidate": 22.835199534893036
+            },
+            {
+              "candidate": 23.13919961452484,
+              "baseline": 23.311999440193176
+            },
+            {
+              "baseline": 23.398399353027344,
+              "candidate": 22.921599447727203
+            }
+          ]
+        },
+        {
+          "index": 18,
+          "config": {
+            "layer": "unpooler",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 219,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.061e-08 (worst row 5.722e-08); 1 probe rows exact to 0.0e+00",
+          "baseline_us": 7.69599974155426,
+          "candidate_us": 6.627199798822403,
+          "paired_rounds": [
+            {
+              "candidate": 7.51039981842041,
+              "baseline": 7.910399883985519
+            },
+            {
+              "baseline": 7.69599974155426,
+              "candidate": 6.627199798822403
+            },
+            {
+              "candidate": 6.547199934720993,
+              "baseline": 7.660800218582153
+            },
+            {
+              "candidate": 6.576000154018402,
+              "baseline": 7.7215999364852905
+            },
+            {
+              "candidate": 6.646399945020676,
+              "baseline": 7.6576001942157745
+            }
+          ]
+        },
+        {
+          "index": 19,
+          "config": {
+            "layer": "router",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 220,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.391e-06 (worst row 2.724e-06); 2 probe rows exact to 2.3e-06",
+          "baseline_us": 23.00480008125305,
+          "candidate_us": 6.844799965620041,
+          "paired_rounds": [
+            {
+              "baseline": 23.75040054321289,
+              "candidate": 7.03359991312027
+            },
+            {
+              "baseline": 23.097600042819977,
+              "candidate": 6.860800087451935
+            },
+            {
+              "candidate": 6.831999868154526,
+              "baseline": 23.00480008125305
+            },
+            {
+              "baseline": 22.95359969139099,
+              "candidate": 6.800000369548798
+            },
+            {
+              "baseline": 22.85120040178299,
+              "candidate": 6.844799965620041
+            }
+          ]
+        },
+        {
+          "index": 20,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 221,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.443e-04 (worst row 3.824e-04); 14 probe rows exact to 0.0e+00",
+          "baseline_us": 17.99039989709854,
+          "candidate_us": 17.747199535369873,
+          "paired_rounds": [
+            {
+              "candidate": 18.425600230693817,
+              "baseline": 18.223999440670013
+            },
+            {
+              "candidate": 17.53920018672943,
+              "baseline": 17.99039989709854
+            },
+            {
+              "candidate": 17.747199535369873,
+              "baseline": 17.897599935531616
+            },
+            {
+              "candidate": 17.747199535369873,
+              "baseline": 18.003199994564056
+            },
+            {
+              "candidate": 17.580799758434296,
+              "baseline": 17.977599799633026
+            }
+          ]
+        },
+        {
+          "index": 21,
+          "config": {
+            "layer": "o",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 222,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 6.591e-05 (worst row 2.116e-04); 19 probe rows exact to 0.0e+00",
+          "baseline_us": 7.40479975938797,
+          "candidate_us": 7.372800260782242,
+          "paired_rounds": [
+            {
+              "baseline": 8.198399841785431,
+              "candidate": 7.5648002326488495
+            },
+            {
+              "candidate": 7.407999783754349,
+              "baseline": 7.40479975938797
+            },
+            {
+              "baseline": 7.4271999299526215,
+              "candidate": 7.337599992752075
+            },
+            {
+              "baseline": 7.379200309514999,
+              "candidate": 7.372800260782242
+            },
+            {
+              "baseline": 7.321599870920181,
+              "candidate": 7.3183998465538025
+            }
+          ]
+        },
+        {
+          "index": 22,
+          "config": {
+            "layer": "pooler",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 223,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.015e-04 (worst row 4.122e-04); 18 probe rows exact to 0.0e+00",
+          "baseline_us": 27.900800108909607,
+          "candidate_us": 28.380799293518066,
+          "paired_rounds": [
+            {
+              "baseline": 28.707200288772583,
+              "candidate": 28.595200181007385
+            },
+            {
+              "candidate": 28.58879864215851,
+              "baseline": 27.900800108909607
+            },
+            {
+              "baseline": 27.849599719047546,
+              "candidate": 28.380799293518066
+            },
+            {
+              "candidate": 28.278398513793945,
+              "baseline": 28.780800104141235
+            },
+            {
+              "baseline": 27.606400847434998,
+              "candidate": 27.500799298286438
+            }
+          ]
+        },
+        {
+          "index": 23,
+          "config": {
+            "layer": "unpooler",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 224,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.301e-04 (worst row 2.847e-04); 23 probe rows exact to 0.0e+00",
+          "baseline_us": 23.29919934272766,
+          "candidate_us": 22.918400168418884,
+          "paired_rounds": [
+            {
+              "candidate": 23.635199666023254,
+              "baseline": 23.315200209617615
+            },
+            {
+              "candidate": 22.921599447727203,
+              "baseline": 23.241600394248962
+            },
+            {
+              "candidate": 22.918400168418884,
+              "baseline": 23.29919934272766
+            },
+            {
+              "baseline": 23.16800057888031,
+              "candidate": 22.80000001192093
+            },
+            {
+              "baseline": 23.56480062007904,
+              "candidate": 22.58239984512329
+            }
+          ]
+        },
+        {
+          "index": 24,
+          "config": {
+            "layer": "router",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 225,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.500e-06 (worst row 2.954e-06); 19 probe rows exact to 2.9e-06",
+          "baseline_us": 17.100800573825836,
+          "candidate_us": 13.471999764442444,
+          "paired_rounds": [
+            {
+              "candidate": 14.428800344467163,
+              "baseline": 17.235200107097626
+            },
+            {
+              "baseline": 17.11360067129135,
+              "candidate": 13.48160058259964
+            },
+            {
+              "baseline": 17.100800573825836,
+              "candidate": 13.42719942331314
+            },
+            {
+              "baseline": 17.06559956073761,
+              "candidate": 13.417600095272064
+            },
+            {
+              "baseline": 17.03680008649826,
+              "candidate": 13.471999764442444
+            }
+          ]
+        },
+        {
+          "index": 25,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 226,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.024e-04 (worst row 4.233e-04); 38 probe rows exact to 0.0e+00",
+          "baseline_us": 21.04959934949875,
+          "candidate_us": 20.94080001115799,
+          "paired_rounds": [
+            {
+              "baseline": 22.31999933719635,
+              "candidate": 21.084800362586975
+            },
+            {
+              "baseline": 21.50080054998398,
+              "candidate": 20.94080001115799
+            },
+            {
+              "baseline": 20.956799387931824,
+              "candidate": 20.947200059890747
+            },
+            {
+              "baseline": 21.04959934949875,
+              "candidate": 20.927999913692474
+            },
+            {
+              "baseline": 21.033599972724915,
+              "candidate": 20.918400585651398
+            }
+          ]
+        },
+        {
+          "index": 26,
+          "config": {
+            "layer": "o",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 227,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 5.016e-05 (worst row 1.888e-04); 31 probe rows exact to 0.0e+00",
+          "baseline_us": 9.756799787282944,
+          "candidate_us": 9.907200187444687,
+          "paired_rounds": [
+            {
+              "baseline": 10.793600231409073,
+              "candidate": 10.121600329875946
+            },
+            {
+              "candidate": 9.907200187444687,
+              "baseline": 9.756799787282944
+            },
+            {
+              "candidate": 9.942399710416794,
+              "baseline": 9.756799787282944
+            },
+            {
+              "baseline": 9.750399738550186,
+              "candidate": 9.852799773216248
+            },
+            {
+              "baseline": 9.81760025024414,
+              "candidate": 9.878399968147278
+            }
+          ]
+        },
+        {
+          "index": 27,
+          "config": {
+            "layer": "pooler",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 228,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.157e-04 (worst row 4.471e-04); 44 probe rows exact to 0.0e+00",
+          "baseline_us": 34.03199911117554,
+          "candidate_us": 30.432000756263733,
+          "paired_rounds": [
+            {
+              "candidate": 31.417599320411682,
+              "baseline": 35.75679957866669
+            },
+            {
+              "baseline": 31.702399253845215,
+              "candidate": 32.047998905181885
+            },
+            {
+              "candidate": 30.368000268936157,
+              "baseline": 30.62720000743866
+            },
+            {
+              "baseline": 34.20160114765167,
+              "candidate": 30.432000756263733
+            },
+            {
+              "candidate": 30.294400453567505,
+              "baseline": 34.03199911117554
+            }
+          ]
+        },
+        {
+          "index": 28,
+          "config": {
+            "layer": "unpooler",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 229,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.427e-04 (worst row 2.989e-04); 26 probe rows exact to 0.0e+00",
+          "baseline_us": 28.089600801467896,
+          "candidate_us": 27.715200185775757,
+          "paired_rounds": [
+            {
+              "baseline": 28.944000601768494,
+              "candidate": 27.753600478172302
+            },
+            {
+              "candidate": 27.715200185775757,
+              "baseline": 27.94559895992279
+            },
+            {
+              "baseline": 28.217598795890808,
+              "candidate": 27.54879891872406
+            },
+            {
+              "candidate": 27.57759988307953,
+              "baseline": 28.089600801467896
+            },
+            {
+              "baseline": 28.05440127849579,
+              "candidate": 28.118398785591125
+            }
+          ]
+        },
+        {
+          "index": 29,
+          "config": {
+            "layer": "router",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 230,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 3.178e-06 (worst row 3.703e-06); 34 probe rows exact to 2.9e-06",
+          "baseline_us": 17.875200510025024,
+          "candidate_us": 17.369599640369415,
+          "paired_rounds": [
+            {
+              "baseline": 18.742400407791138,
+              "candidate": 17.48480051755905
+            },
+            {
+              "baseline": 17.875200510025024,
+              "candidate": 17.430399358272552
+            },
+            {
+              "baseline": 17.8847998380661,
+              "candidate": 17.321600019931793
+            },
+            {
+              "candidate": 17.369599640369415,
+              "baseline": 17.83040016889572
+            },
+            {
+              "baseline": 17.83680021762848,
+              "candidate": 17.30560064315796
+            }
+          ]
+        }
+      ],
+      "source_sha256": "d00bc0da70382c141e022ff17b9021150a35b2dea62e228133b9455351fe77fe",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30006,
+      "correct": true,
+      "weighted_baseline_us": 31078.566305339336,
+      "weighted_candidate_us": 27337.535943835974,
+      "speedup_vs_baseline": 1.136845923831218,
+      "heldout_seed": 1060115853
+    },
+    {
+      "problem": "muse_bf16_proj",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 201,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00)",
+          "baseline_us": 13.45600038766861,
+          "candidate_us": 9.79200005531311,
+          "paired_rounds": [
+            {
+              "baseline": 14.7039994597435,
+              "candidate": 10.00640019774437
+            },
+            {
+              "baseline": 13.571199774742126,
+              "candidate": 9.692800045013428
+            },
+            {
+              "candidate": 9.884800016880035,
+              "baseline": 13.43040019273758
+            },
+            {
+              "baseline": 13.45600038766861,
+              "candidate": 9.79200005531311
+            },
+            {
+              "baseline": 13.452799618244171,
+              "candidate": 9.743999689817429
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "layer": "o",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 202,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 4.339e-08 (worst row 4.339e-08)",
+          "baseline_us": 7.049600034952164,
+          "candidate_us": 5.974400043487549,
+          "paired_rounds": [
+            {
+              "baseline": 8.048000186681747,
+              "candidate": 6.204799935221672
+            },
+            {
+              "baseline": 7.049600034952164,
+              "candidate": 5.974400043487549
+            },
+            {
+              "candidate": 6.006399914622307,
+              "baseline": 6.985600292682648
+            },
+            {
+              "candidate": 5.9647999703884125,
+              "baseline": 7.062400132417679
+            },
+            {
+              "candidate": 5.9487998485565186,
+              "baseline": 6.963200122117996
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "layer": "pooler",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 203,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00)",
+          "baseline_us": 23.254400491714478,
+          "candidate_us": 19.811199605464935,
+          "paired_rounds": [
+            {
+              "baseline": 24.035200476646423,
+              "candidate": 19.95840072631836
+            },
+            {
+              "candidate": 19.811199605464935,
+              "baseline": 23.209600150585175
+            },
+            {
+              "baseline": 23.071999847888947,
+              "candidate": 19.728000462055206
+            },
+            {
+              "baseline": 23.254400491714478,
+              "candidate": 19.702400267124176
+            },
+            {
+              "candidate": 19.84959989786148,
+              "baseline": 23.27360063791275
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "layer": "unpooler",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 204,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00); 1 probe rows exact to 0.0e+00",
+          "baseline_us": 7.443200051784515,
+          "candidate_us": 4.61760014295578,
+          "paired_rounds": [
+            {
+              "baseline": 8.607999980449677,
+              "candidate": 4.889599978923798
+            },
+            {
+              "candidate": 4.588799923658371,
+              "baseline": 7.443200051784515
+            },
+            {
+              "baseline": 7.481600344181061,
+              "candidate": 4.5951999723911285
+            },
+            {
+              "candidate": 4.636799916625023,
+              "baseline": 7.436800003051758
+            },
+            {
+              "baseline": 7.436800003051758,
+              "candidate": 4.61760014295578
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "layer": "router",
+            "load": "decode 1",
+            "m": 1,
+            "seed": 205,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.034e-07 (worst row 1.034e-07)",
+          "baseline_us": 10.233599692583084,
+          "candidate_us": 4.783999919891357,
+          "paired_rounds": [
+            {
+              "baseline": 11.1455999314785,
+              "candidate": 4.944000020623207
+            },
+            {
+              "baseline": 10.233599692583084,
+              "candidate": 4.7359999269247055
+            },
+            {
+              "baseline": 10.300800204277039,
+              "candidate": 4.783999919891357
+            },
+            {
+              "candidate": 4.739199951291084,
+              "baseline": 10.208000242710114
+            },
+            {
+              "baseline": 10.16639992594719,
+              "candidate": 4.819199815392494
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 206,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 4.777e-05 (worst row 1.625e-04); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 12.825599312782288,
+          "candidate_us": 12.348800152540207,
+          "paired_rounds": [
+            {
+              "candidate": 13.219200074672699,
+              "baseline": 12.97599971294403
+            },
+            {
+              "candidate": 12.284799665212631,
+              "baseline": 12.825599312782288
+            },
+            {
+              "baseline": 12.716799974441528,
+              "candidate": 12.348800152540207
+            },
+            {
+              "baseline": 12.703999876976013,
+              "candidate": 12.307199835777283
+            },
+            {
+              "candidate": 12.380799651145935,
+              "baseline": 12.87039965391159
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "config": {
+            "layer": "o",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 207,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 5.302e-05 (worst row 1.701e-04); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 6.496000289916992,
+          "candidate_us": 6.454399973154068,
+          "paired_rounds": [
+            {
+              "baseline": 7.4560001492500305,
+              "candidate": 6.563200056552887
+            },
+            {
+              "baseline": 6.508799642324448,
+              "candidate": 6.438399851322174
+            },
+            {
+              "baseline": 6.486400216817856,
+              "candidate": 6.406400352716446
+            },
+            {
+              "baseline": 6.457599997520447,
+              "candidate": 6.454399973154068
+            },
+            {
+              "baseline": 6.496000289916992,
+              "candidate": 6.454399973154068
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "config": {
+            "layer": "pooler",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 208,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.399e-04 (worst row 2.840e-04); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 23.340800404548645,
+          "candidate_us": 23.587200045585632,
+          "paired_rounds": [
+            {
+              "baseline": 24.160000681877136,
+              "candidate": 23.635199666023254
+            },
+            {
+              "candidate": 23.507200181484222,
+              "baseline": 23.340800404548645
+            },
+            {
+              "baseline": 23.414400219917297,
+              "candidate": 23.69920015335083
+            },
+            {
+              "baseline": 23.180800676345825,
+              "candidate": 23.552000522613525
+            },
+            {
+              "baseline": 23.161600530147552,
+              "candidate": 23.587200045585632
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "config": {
+            "layer": "unpooler",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 209,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.480e-04 (worst row 2.511e-04); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 21.209600567817688,
+          "candidate_us": 21.161599457263947,
+          "paired_rounds": [
+            {
+              "candidate": 22.275200486183167,
+              "baseline": 21.583999693393707
+            },
+            {
+              "candidate": 21.247999370098114,
+              "baseline": 21.17439955472946
+            },
+            {
+              "baseline": 21.209600567817688,
+              "candidate": 21.161599457263947
+            },
+            {
+              "baseline": 21.315200626850128,
+              "candidate": 21.084800362586975
+            },
+            {
+              "baseline": 20.96319943666458,
+              "candidate": 21.055999398231506
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "config": {
+            "layer": "router",
+            "load": "decode 16",
+            "m": 16,
+            "seed": 210,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.469e-06 (worst row 2.999e-06); 2 probe rows exact to 2.3e-06",
+          "baseline_us": 16.073599457740784,
+          "candidate_us": 6.825599819421768,
+          "paired_rounds": [
+            {
+              "candidate": 8.003199845552444,
+              "baseline": 16.195200383663177
+            },
+            {
+              "baseline": 16.073599457740784,
+              "candidate": 6.815999746322632
+            },
+            {
+              "candidate": 6.844799965620041,
+              "baseline": 16.096000373363495
+            },
+            {
+              "baseline": 15.980799496173859,
+              "candidate": 6.825599819421768
+            },
+            {
+              "candidate": 6.812799721956253,
+              "baseline": 15.887999534606934
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 211,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.440e-04 (worst row 3.675e-04); 6 probe rows exact to 0.0e+00",
+          "baseline_us": 12.995199859142303,
+          "candidate_us": 13.113600015640259,
+          "paired_rounds": [
+            {
+              "baseline": 13.916799426078796,
+              "candidate": 13.27040046453476
+            },
+            {
+              "baseline": 12.880000472068787,
+              "candidate": 13.113600015640259
+            },
+            {
+              "baseline": 13.072000443935394,
+              "candidate": 13.087999820709229
+            },
+            {
+              "candidate": 12.988799810409546,
+              "baseline": 12.838399410247803
+            },
+            {
+              "candidate": 13.148799538612366,
+              "baseline": 12.995199859142303
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "config": {
+            "layer": "o",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 212,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 4.962e-05 (worst row 1.732e-04); 6 probe rows exact to 0.0e+00",
+          "baseline_us": 6.572800129652023,
+          "candidate_us": 6.684800237417221,
+          "paired_rounds": [
+            {
+              "baseline": 7.532799988985062,
+              "candidate": 6.809599697589874
+            },
+            {
+              "candidate": 6.697600334882736,
+              "baseline": 6.508799642324448
+            },
+            {
+              "baseline": 6.572800129652023,
+              "candidate": 6.684800237417221
+            },
+            {
+              "candidate": 6.66240006685257,
+              "baseline": 6.58240020275116
+            },
+            {
+              "candidate": 6.627199798822403,
+              "baseline": 6.550399959087372
+            }
+          ]
+        },
+        {
+          "index": 12,
+          "config": {
+            "layer": "pooler",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 213,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.222e-04 (worst row 2.771e-04); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 24.25599992275238,
+          "candidate_us": 23.88159930706024,
+          "paired_rounds": [
+            {
+              "baseline": 25.155198574066162,
+              "candidate": 23.88159930706024
+            },
+            {
+              "candidate": 24.038399755954742,
+              "baseline": 24.268800020217896
+            },
+            {
+              "baseline": 24.240000545978546,
+              "candidate": 24.057599902153015
+            },
+            {
+              "baseline": 24.25599992275238,
+              "candidate": 23.772799968719482
+            },
+            {
+              "candidate": 23.580799996852875,
+              "baseline": 24.09600019454956
+            }
+          ]
+        },
+        {
+          "index": 13,
+          "config": {
+            "layer": "unpooler",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 214,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.474e-04 (worst row 2.798e-04); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 21.209600567817688,
+          "candidate_us": 21.369600296020508,
+          "paired_rounds": [
+            {
+              "baseline": 22.259199619293213,
+              "candidate": 21.542400121688843
+            },
+            {
+              "baseline": 21.26079946756363,
+              "candidate": 21.024000644683838
+            },
+            {
+              "candidate": 21.369600296020508,
+              "baseline": 21.107199788093567
+            },
+            {
+              "candidate": 21.299199759960175,
+              "baseline": 21.209600567817688
+            },
+            {
+              "baseline": 21.193599700927734,
+              "candidate": 21.382400393486023
+            }
+          ]
+        },
+        {
+          "index": 14,
+          "config": {
+            "layer": "router",
+            "load": "decode 32",
+            "m": 32,
+            "seed": 215,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.478e-06 (worst row 2.714e-06); 5 probe rows exact to 2.5e-06",
+          "baseline_us": 16.37440025806427,
+          "candidate_us": 8.966399729251862,
+          "paired_rounds": [
+            {
+              "baseline": 17.36000031232834,
+              "candidate": 9.219200164079666
+            },
+            {
+              "baseline": 16.364799439907074,
+              "candidate": 8.950400352478027
+            },
+            {
+              "candidate": 8.982399851083755,
+              "baseline": 16.339200735092163
+            },
+            {
+              "baseline": 16.419200599193573,
+              "candidate": 8.966399729251862
+            },
+            {
+              "candidate": 8.947200328111649,
+              "baseline": 16.37440025806427
+            }
+          ]
+        },
+        {
+          "index": 15,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 216,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 5.942e-05 (worst row 1.644e-04); 1 probe rows exact to 0.0e+00",
+          "baseline_us": 12.928000092506409,
+          "candidate_us": 12.220799922943115,
+          "paired_rounds": [
+            {
+              "baseline": 13.782399892807007,
+              "candidate": 12.412799894809723
+            },
+            {
+              "baseline": 13.139200210571289,
+              "candidate": 12.220799922943115
+            },
+            {
+              "baseline": 12.928000092506409,
+              "candidate": 12.176000326871872
+            },
+            {
+              "candidate": 12.140800058841705,
+              "baseline": 12.912000715732574
+            },
+            {
+              "candidate": 12.284799665212631,
+              "baseline": 12.777599692344666
+            }
+          ]
+        },
+        {
+          "index": 16,
+          "config": {
+            "layer": "o",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 217,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 7.586e-06 (worst row 2.368e-05); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 6.204799935221672,
+          "candidate_us": 6.086400151252747,
+          "paired_rounds": [
+            {
+              "baseline": 7.152000069618225,
+              "candidate": 6.2752000987529755
+            },
+            {
+              "candidate": 6.089600175619125,
+              "baseline": 6.204799935221672
+            },
+            {
+              "baseline": 6.255999952554703,
+              "candidate": 6.063999980688095
+            },
+            {
+              "baseline": 6.1344001442193985,
+              "candidate": 6.0736000537872314
+            },
+            {
+              "candidate": 6.086400151252747,
+              "baseline": 6.201599910855293
+            }
+          ]
+        },
+        {
+          "index": 17,
+          "config": {
+            "layer": "pooler",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 218,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.696e-05 (worst row 6.127e-05); 2 probe rows exact to 0.0e+00",
+          "baseline_us": 23.24479967355728,
+          "candidate_us": 22.966399788856506,
+          "paired_rounds": [
+            {
+              "candidate": 23.91040027141571,
+              "baseline": 23.334400355815887
+            },
+            {
+              "baseline": 23.340800404548645,
+              "candidate": 23.06240051984787
+            },
+            {
+              "candidate": 22.966399788856506,
+              "baseline": 23.11359941959381
+            },
+            {
+              "baseline": 23.056000471115112,
+              "candidate": 22.6623997092247
+            },
+            {
+              "candidate": 22.752000391483307,
+              "baseline": 23.24479967355728
+            }
+          ]
+        },
+        {
+          "index": 18,
+          "config": {
+            "layer": "unpooler",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 219,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 0.000e+00 (worst row 0.000e+00); 3 probe rows exact to 0.0e+00",
+          "baseline_us": 7.7215999364852905,
+          "candidate_us": 6.592000275850296,
+          "paired_rounds": [
+            {
+              "baseline": 8.65280032157898,
+              "candidate": 6.7423999309539795
+            },
+            {
+              "baseline": 7.664000242948532,
+              "candidate": 6.6047996282577515
+            },
+            {
+              "baseline": 7.7215999364852905,
+              "candidate": 6.531199812889099
+            },
+            {
+              "candidate": 6.592000275850296,
+              "baseline": 7.7504001557827
+            },
+            {
+              "baseline": 7.6736003160476685,
+              "candidate": 6.592000275850296
+            }
+          ]
+        },
+        {
+          "index": 19,
+          "config": {
+            "layer": "router",
+            "load": "verify 1",
+            "m": 8,
+            "seed": 220,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.369e-06 (worst row 2.736e-06); 2 probe rows exact to 2.7e-06",
+          "baseline_us": 22.92799949645996,
+          "candidate_us": 6.8512000143527985,
+          "paired_rounds": [
+            {
+              "candidate": 7.93600007891655,
+              "baseline": 23.01439940929413
+            },
+            {
+              "baseline": 22.95680046081543,
+              "candidate": 6.8512000143527985
+            },
+            {
+              "baseline": 22.838400304317474,
+              "candidate": 6.796800345182419
+            },
+            {
+              "candidate": 6.867200136184692,
+              "baseline": 22.92799949645996
+            },
+            {
+              "candidate": 6.828799843788147,
+              "baseline": 22.89920002222061
+            }
+          ]
+        },
+        {
+          "index": 20,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 221,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.292e-04 (worst row 3.898e-04); 21 probe rows exact to 0.0e+00",
+          "baseline_us": 18.454399704933167,
+          "candidate_us": 17.37920045852661,
+          "paired_rounds": [
+            {
+              "candidate": 18.15679967403412,
+              "baseline": 18.454399704933167
+            },
+            {
+              "candidate": 17.52000004053116,
+              "baseline": 18.41920018196106
+            },
+            {
+              "baseline": 18.432000279426575,
+              "candidate": 17.136000096797943
+            },
+            {
+              "baseline": 18.479999899864197,
+              "candidate": 17.37920045852661
+            },
+            {
+              "baseline": 18.479999899864197,
+              "candidate": 17.28000044822693
+            }
+          ]
+        },
+        {
+          "index": 21,
+          "config": {
+            "layer": "o",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 222,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 5.706e-05 (worst row 1.933e-04); 12 probe rows exact to 0.0e+00",
+          "baseline_us": 7.264000177383423,
+          "candidate_us": 7.225599884986877,
+          "paired_rounds": [
+            {
+              "baseline": 8.220800012350082,
+              "candidate": 7.446400076150894
+            },
+            {
+              "baseline": 7.337599992752075,
+              "candidate": 7.315199822187424
+            },
+            {
+              "baseline": 7.241600006818771,
+              "candidate": 7.225599884986877
+            },
+            {
+              "candidate": 7.148800045251846,
+              "baseline": 7.264000177383423
+            },
+            {
+              "candidate": 7.19359964132309,
+              "baseline": 7.225599884986877
+            }
+          ]
+        },
+        {
+          "index": 22,
+          "config": {
+            "layer": "pooler",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 223,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.111e-04 (worst row 4.003e-04); 19 probe rows exact to 0.0e+00",
+          "baseline_us": 28.355199098587036,
+          "candidate_us": 28.24000120162964,
+          "paired_rounds": [
+            {
+              "baseline": 28.29119861125946,
+              "candidate": 28.464001417160034
+            },
+            {
+              "baseline": 28.751999139785767,
+              "candidate": 27.616000175476074
+            },
+            {
+              "candidate": 28.303998708724976,
+              "baseline": 28.65920066833496
+            },
+            {
+              "baseline": 28.355199098587036,
+              "candidate": 27.535998821258545
+            },
+            {
+              "candidate": 28.24000120162964,
+              "baseline": 27.881601452827454
+            }
+          ]
+        },
+        {
+          "index": 23,
+          "config": {
+            "layer": "unpooler",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 224,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.292e-04 (worst row 2.800e-04); 26 probe rows exact to 0.0e+00",
+          "baseline_us": 23.216000199317932,
+          "candidate_us": 22.74239957332611,
+          "paired_rounds": [
+            {
+              "baseline": 24.166400730609894,
+              "candidate": 22.835199534893036
+            },
+            {
+              "baseline": 23.08479994535446,
+              "candidate": 22.467200458049774
+            },
+            {
+              "candidate": 22.944000363349915,
+              "baseline": 23.16800057888031
+            },
+            {
+              "candidate": 22.655999660491943,
+              "baseline": 23.216000199317932
+            },
+            {
+              "baseline": 23.241600394248962,
+              "candidate": 22.74239957332611
+            }
+          ]
+        },
+        {
+          "index": 24,
+          "config": {
+            "layer": "router",
+            "load": "verify 16",
+            "m": 128,
+            "seed": 225,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.491e-06 (worst row 2.845e-06); 16 probe rows exact to 2.7e-06",
+          "baseline_us": 17.071999609470367,
+          "candidate_us": 13.391999900341034,
+          "paired_rounds": [
+            {
+              "candidate": 14.220799505710602,
+              "baseline": 17.21920073032379
+            },
+            {
+              "candidate": 13.468800485134125,
+              "baseline": 17.14880019426346
+            },
+            {
+              "baseline": 17.01440066099167,
+              "candidate": 13.340799510478973
+            },
+            {
+              "candidate": 13.391999900341034,
+              "baseline": 16.95680022239685
+            },
+            {
+              "baseline": 17.071999609470367,
+              "candidate": 13.366399705410004
+            }
+          ]
+        },
+        {
+          "index": 25,
+          "config": {
+            "layer": "qkv_gate",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 226,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.111e-04 (worst row 4.717e-04); 44 probe rows exact to 0.0e+00",
+          "baseline_us": 21.25760018825531,
+          "candidate_us": 20.870399475097656,
+          "paired_rounds": [
+            {
+              "candidate": 22.0768004655838,
+              "baseline": 21.481600403785706
+            },
+            {
+              "baseline": 21.34079933166504,
+              "candidate": 20.870399475097656
+            },
+            {
+              "candidate": 20.892800390720367,
+              "baseline": 21.104000508785248
+            },
+            {
+              "candidate": 20.78399956226349,
+              "baseline": 21.23199999332428
+            },
+            {
+              "candidate": 20.681600272655487,
+              "baseline": 21.25760018825531
+            }
+          ]
+        },
+        {
+          "index": 26,
+          "config": {
+            "layer": "o",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 227,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 6.107e-05 (worst row 2.090e-04); 33 probe rows exact to 0.0e+00",
+          "baseline_us": 9.58079993724823,
+          "candidate_us": 9.843199700117111,
+          "paired_rounds": [
+            {
+              "candidate": 10.812799632549286,
+              "baseline": 9.734400361776352
+            },
+            {
+              "candidate": 9.84639972448349,
+              "baseline": 9.577599912881851
+            },
+            {
+              "candidate": 9.843199700117111,
+              "baseline": 9.689600020647049
+            },
+            {
+              "baseline": 9.567999839782715,
+              "candidate": 9.788800030946732
+            },
+            {
+              "baseline": 9.58079993724823,
+              "candidate": 9.775999933481216
+            }
+          ]
+        },
+        {
+          "index": 27,
+          "config": {
+            "layer": "pooler",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 228,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 2.170e-04 (worst row 4.619e-04); 41 probe rows exact to 0.0e+00",
+          "baseline_us": 30.831998586654663,
+          "candidate_us": 31.90400004386902,
+          "paired_rounds": [
+            {
+              "candidate": 31.18720054626465,
+              "baseline": 35.40799915790558
+            },
+            {
+              "candidate": 33.59679877758026,
+              "baseline": 35.29919981956482
+            },
+            {
+              "baseline": 30.345600843429565,
+              "candidate": 31.90400004386902
+            },
+            {
+              "candidate": 30.166399478912354,
+              "baseline": 30.831998586654663
+            },
+            {
+              "candidate": 32.12159872055054,
+              "baseline": 30.633598566055298
+            }
+          ]
+        },
+        {
+          "index": 28,
+          "config": {
+            "layer": "unpooler",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 229,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 1.360e-04 (worst row 2.862e-04); 26 probe rows exact to 0.0e+00",
+          "baseline_us": 27.964800596237183,
+          "candidate_us": 27.57439911365509,
+          "paired_rounds": [
+            {
+              "candidate": 28.908801078796387,
+              "baseline": 27.977600693702698
+            },
+            {
+              "candidate": 27.584001421928406,
+              "baseline": 27.964800596237183
+            },
+            {
+              "candidate": 27.57439911365509,
+              "baseline": 27.804800868034363
+            },
+            {
+              "baseline": 27.8656005859375,
+              "candidate": 27.52319872379303
+            },
+            {
+              "baseline": 28.099200129508972,
+              "candidate": 27.475199103355408
+            }
+          ]
+        },
+        {
+          "index": 29,
+          "config": {
+            "layer": "router",
+            "load": "verify 32",
+            "m": 256,
+            "seed": 230,
+            "weight": 62
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "changed_input_fields": [
+            "x"
+          ],
+          "fresh_routing_replay_checked": false,
+          "timing_uses_original_routing": false,
+          "correctness": "relative L2 error 3.138e-06 (worst row 3.612e-06); 43 probe rows exact to 3.0e-06",
+          "baseline_us": 17.795200645923615,
+          "candidate_us": 21.42080068588257,
+          "paired_rounds": [
+            {
+              "candidate": 22.579200565814972,
+              "baseline": 17.88800060749054
+            },
+            {
+              "candidate": 21.42080068588257,
+              "baseline": 17.83040016889572
+            },
+            {
+              "candidate": 21.516799926757812,
+              "baseline": 17.715199291706085
+            },
+            {
+              "baseline": 17.795200645923615,
+              "candidate": 21.347199380397797
+            },
+            {
+              "baseline": 17.737600207328796,
+              "candidate": 21.296000480651855
+            }
+          ]
+        }
+      ],
+      "source_sha256": "d00bc0da70382c141e022ff17b9021150a35b2dea62e228133b9455351fe77fe",
+      "judge_sha256": "528b120956217112cde5f7ec7d5e9d86205df27168dfbd6378509402093f5bd8",
+      "role": "contestant",
+      "execution_uid": 30007,
+      "correct": true,
+      "weighted_baseline_us": 30851.795157045126,
+      "weighted_candidate_us": 27570.25913745165,
+      "speedup_vs_baseline": 1.1190244895136228,
+      "heldout_seed": 861812054
+    }
+  ],
+  "source_audit": {
+    "approved": true,
+    "source_rules_passed": true,
+    "sha256": "d00bc0da70382c141e022ff17b9021150a35b2dea62e228133b9455351fe77fe",
+    "reviewer": "benchmark curator model, complete source/diff review",
+    "notes": "Complete source reviewed. Original BF16/FP32 weights retained; optional 12-bit grouping is lossless bit reconstruction with original-weight fallback for unrepresentable groups. Router hi/lo split is explicitly permitted. Kernel configurations are selected in prepare using bounded synthetic, data-independent activations and private CUDA events, without patching the evaluator or its timing. Timed kernels read every current activation and preserve output dtypes. Compilation and all-shape correctness still require full evaluation."
+  },
+  "scope": "Full public-shape, fresh-seed local benchmark; not an official OKC score."
+}
