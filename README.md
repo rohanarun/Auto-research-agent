@@ -8,15 +8,15 @@ Auto-research agent is a native macOS app with a Codex-style project sidebar and
 
 It runs the Codex, Claude Code, OpenCode or Antigravity CLI under the hood, using your own account. If your chosen CLI is already installed and logged in, you can start immediately after the app's initial workspace setup, with no separate login needed.
 
-Source builds also support **Daytona and Agent37** for private cloud Codex sandboxes. Choose either provider with your own API key in **Connections & settings → Cloud**; see the [cloud setup guide](docs/cloud-execution.md).
+The app also supports **Daytona and Agent37** for private cloud Codex sandboxes. Choose either provider with your own API key in **Connections & settings → Cloud**; see the [cloud setup guide](docs/cloud-execution.md).
 
 ![Auto-research agent on macOS, showing the research project sidebar, native backend chart, latest claim, and recent pull requests](docs/images/auto-research-agent-charts.png)
 
 ## Download
 
-[Download for macOS — Apple Silicon (.dmg)](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg) · [SHA-256 checksum](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.4.0/Auto-research-agent-1.4.0-arm64.dmg.sha256)
+[Download for macOS — Apple Silicon (.dmg)](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.5.0/Auto-research-agent-1.5.0-arm64.dmg) · [SHA-256 checksum](https://github.com/rohanarun/Auto-research-agent/releases/download/v1.5.0/Auto-research-agent-1.5.0-arm64.dmg.sha256)
 
-Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code or OpenCode CLI in **Connections & settings**. Antigravity and Agent37 support are available in current source builds; the linked release predates these additions. The download contains no account credentials or local chats.
+Requires macOS 14 or newer. The app and disk image are Developer ID signed and Apple notarized. Open the DMG, drag **Auto Research** into Applications, and launch it. On first launch, choose a folder on a mounted external drive for research files, then connect your installed Codex, Claude Code, OpenCode or Antigravity CLI in **Connections & settings**. Version 1.5.0 includes both Antigravity and Agent37 support. The download contains no account credentials or local chats.
 
 ## Built-in MUSE kernel projects
 
@@ -41,7 +41,7 @@ Choose your kernel file (or leave it blank for the public starter), enter a chec
 
 > Inspect the public starter and propose one basic improvement without spending checks. Then use the check budget I provide to test it. Submit the unchanged candidate only if its official check supports an improvement over my current scored best under my stated criterion and it fits my authorized scored budget.
 
-The guides suggest small changes to intermediates, layouts and pointwise work. They include no private tuned kernels, account data or saved competitive results, and make no score or rank guarantee. Official checks, uncertainty and actual scored outcomes remain separate. The prompts live in `Resources/StarterPrompts/`; project metadata lives in `Resources/BuiltinProjects.json`. The downloadable release above predates this source feature.
+The guides suggest small changes to intermediates, layouts and pointwise work. They include no private tuned kernels, account data or saved competitive results, and make no score or rank guarantee. Official checks, uncertainty and actual scored outcomes remain separate. The prompts live in `Resources/StarterPrompts/`; project metadata lives in `Resources/BuiltinProjects.json`.
 
 ## Cloud execution: Daytona and Agent37
 
@@ -161,7 +161,7 @@ An observation failure preserves the remote operation; pressing Play reconnects
 the saved operation. Explicit Stop still cancels owned work.
 
 These workflows and their mechanical tests do not establish a research-quality
-or speedup advantage. The downloadable release above predates these source changes.
+or speedup advantage. These workflows are included in version 1.5.0.
 
 The opt-in `scripts/benchmark_methods.py` compares ordinary continuation,
 fork-and-flush, RSI and their combination on two paired finite graph-cut instances
