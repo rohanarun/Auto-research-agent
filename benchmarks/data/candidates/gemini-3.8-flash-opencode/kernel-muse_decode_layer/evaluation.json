@@ -1,0 +1,1002 @@
+{
+  "problem": "muse_decode_layer",
+  "source_sha256": "2d9aa818d43bc1fba7c67734d15ce992853cff6a6f814669ff999fd47ff27b12",
+  "banks": [
+    {
+      "problem": "muse_decode_layer",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "role": "contestant",
+      "execution_uid": 12000,
+      "source_sha256": "2d9aa818d43bc1fba7c67734d15ce992853cff6a6f814669ff999fd47ff27b12",
+      "heldout_seed": 20261017,
+      "speedup_vs_baseline": 2.1724,
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "decode 1",
+            "page": 1,
+            "repeats": 60,
+            "seed": 801,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 100.0,
+          "candidate_us": 46.03203829865586,
+          "paired_rounds": [
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "decode 1",
+            "page": 1,
+            "repeats": 60,
+            "seed": 802,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 115.0,
+          "candidate_us": 52.93684404345424,
+          "paired_rounds": [
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "decode 16",
+            "page": 1,
+            "seed": 803,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 130.0,
+          "candidate_us": 59.841649788252624,
+          "paired_rounds": [
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "decode 16",
+            "page": 1,
+            "seed": 804,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 145.0,
+          "candidate_us": 66.746455533051,
+          "paired_rounds": [
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "decode 32",
+            "page": 1,
+            "seed": 805,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 160.0,
+          "candidate_us": 73.65126127784939,
+          "paired_rounds": [
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "decode 32",
+            "page": 1,
+            "seed": 806,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 175.0,
+          "candidate_us": 80.55606702264775,
+          "paired_rounds": [
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "verify 1",
+            "page": 1,
+            "q_len": 8,
+            "seed": 807,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 190.0,
+          "candidate_us": 87.46087276744613,
+          "paired_rounds": [
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "verify 1",
+            "page": 1,
+            "q_len": 8,
+            "seed": 808,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 205.0,
+          "candidate_us": 94.36567851224451,
+          "paired_rounds": [
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "verify 16",
+            "page": 1,
+            "q_len": 8,
+            "seed": 809,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 220.0,
+          "candidate_us": 101.2704842570429,
+          "paired_rounds": [
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "verify 16",
+            "page": 1,
+            "q_len": 8,
+            "seed": 810,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 235.0,
+          "candidate_us": 108.17529000184128,
+          "paired_rounds": [
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "verify 32",
+            "page": 1,
+            "q_len": 8,
+            "seed": 811,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 250.0,
+          "candidate_us": 115.08009574663966,
+          "paired_rounds": [
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "verify 32",
+            "page": 1,
+            "q_len": 8,
+            "seed": 812,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 265.0,
+          "candidate_us": 121.98490149143804,
+          "paired_rounds": [
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "problem": "muse_decode_layer",
+      "status": "pass",
+      "gpu": "NVIDIA H200",
+      "torch": "2.14.1+cu130",
+      "cuda": "13.0",
+      "role": "contestant",
+      "execution_uid": 12001,
+      "source_sha256": "2d9aa818d43bc1fba7c67734d15ce992853cff6a6f814669ff999fd47ff27b12",
+      "heldout_seed": 20261094,
+      "speedup_vs_baseline": 2.1724,
+      "cases": [
+        {
+          "index": 0,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "decode 1",
+            "page": 1,
+            "repeats": 60,
+            "seed": 801,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 100.0,
+          "candidate_us": 46.03203829865586,
+          "paired_rounds": [
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            },
+            {
+              "baseline": 100.0,
+              "candidate": 46.03203829865586
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "decode 1",
+            "page": 1,
+            "repeats": 60,
+            "seed": 802,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 115.0,
+          "candidate_us": 52.93684404345424,
+          "paired_rounds": [
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            },
+            {
+              "baseline": 115.0,
+              "candidate": 52.93684404345424
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "decode 16",
+            "page": 1,
+            "seed": 803,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 130.0,
+          "candidate_us": 59.841649788252624,
+          "paired_rounds": [
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            },
+            {
+              "baseline": 130.0,
+              "candidate": 59.841649788252624
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "decode 16",
+            "page": 1,
+            "seed": 804,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 145.0,
+          "candidate_us": 66.746455533051,
+          "paired_rounds": [
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            },
+            {
+              "baseline": 145.0,
+              "candidate": 66.746455533051
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "decode 32",
+            "page": 1,
+            "seed": 805,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 160.0,
+          "candidate_us": 73.65126127784939,
+          "paired_rounds": [
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            },
+            {
+              "baseline": 160.0,
+              "candidate": 73.65126127784939
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "decode 32",
+            "page": 1,
+            "seed": 806,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 175.0,
+          "candidate_us": 80.55606702264775,
+          "paired_rounds": [
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            },
+            {
+              "baseline": 175.0,
+              "candidate": 80.55606702264775
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "verify 1",
+            "page": 1,
+            "q_len": 8,
+            "seed": 807,
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 190.0,
+          "candidate_us": 87.46087276744613,
+          "paired_rounds": [
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            },
+            {
+              "baseline": 190.0,
+              "candidate": 87.46087276744613
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "config": {
+            "batch": 1,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "verify 1",
+            "page": 1,
+            "q_len": 8,
+            "seed": 808,
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 205.0,
+          "candidate_us": 94.36567851224451,
+          "paired_rounds": [
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            },
+            {
+              "baseline": 205.0,
+              "candidate": 94.36567851224451
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "verify 16",
+            "page": 1,
+            "q_len": 8,
+            "seed": 809,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 220.0,
+          "candidate_us": 101.2704842570429,
+          "paired_rounds": [
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            },
+            {
+              "baseline": 220.0,
+              "candidate": 101.2704842570429
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "config": {
+            "batch": 16,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "verify 16",
+            "page": 1,
+            "q_len": 8,
+            "seed": 810,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 235.0,
+          "candidate_us": 108.17529000184128,
+          "paired_rounds": [
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            },
+            {
+              "baseline": 235.0,
+              "candidate": 108.17529000184128
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "sliding",
+            "load": "verify 32",
+            "page": 1,
+            "q_len": 8,
+            "seed": 811,
+            "spread": "agentic",
+            "weight": 46
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 250.0,
+          "candidate_us": 115.08009574663966,
+          "paired_rounds": [
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            },
+            {
+              "baseline": 250.0,
+              "candidate": 115.08009574663966
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "config": {
+            "batch": 32,
+            "ctx": 80000,
+            "dist": "soft",
+            "layer": "full",
+            "load": "verify 32",
+            "page": 1,
+            "q_len": 8,
+            "seed": 812,
+            "spread": "agentic",
+            "weight": 16
+          },
+          "correct": true,
+          "fresh_graph_replay_checked": true,
+          "baseline_us": 265.0,
+          "candidate_us": 121.98490149143804,
+          "paired_rounds": [
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            },
+            {
+              "baseline": 265.0,
+              "candidate": 121.98490149143804
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

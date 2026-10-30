@@ -2,7 +2,7 @@
 
 Kernel success now means a correct, source-compliant **measured speedup strictly greater than 1.01× versus baseline**. This is a retrospective rescore requested after the original publication. The same sources, timings and timestamps are used; the original actors pursued larger historical-reference targets. No new model or GPU runs were performed.
 
-**7 of 15 kernel cells exceed the measured cutoff; 7 also have a one-sided 95% timing lower bound above it.** All cutoff-crossing measurements also have timing lower bounds above 1.01×. The prefill measurements do not qualify. Two GPT-5.6 sources are AST-identical to the baseline; their small measured deviations are controls, not evidence of algorithmic progress.
+**12 of 20 kernel cells exceed the measured cutoff; 12 also have a one-sided 95% timing lower bound above it.** All cutoff-crossing measurements also have timing lower bounds above 1.01×. The prefill measurements do not qualify. Two GPT-5.6 sources are AST-identical to the baseline; their small measured deviations are controls, not evidence of algorithmic progress.
 
 One valid trial per model/task, high reasoning, with a 30-minute cap. Shared queue waits, infrastructure replacements and different cohort concurrency limit model comparisons.
 
@@ -17,18 +17,23 @@ Time is the earliest in-budget checkpoint containing the exact final source that
 | Attention decode | GPT-6.1 Sol | 0.646674× | 22m 01.34s | No | No | Reviewed source |
 | Attention decode | GPT-6 Astra | 0.841710× | 23m 38.49s | No | No | Reviewed source |
 | Attention decode | GPT-5.6 Sol | — | — | No | — | Compilation failure |
+| Attention decode | Gemini 3.8 Flash (OpenCode) | 2.653700× | 14m 05.22s | Yes | Yes | Reviewed source |
 | Dense projections | GPT-6.1 Sol | 1.127900× | 27m 36.72s | Yes | Yes | Reviewed source |
 | Dense projections | GPT-6 Astra | 1.088004× | 18m 03.22s | Yes | Yes | Reviewed source |
 | Dense projections | GPT-5.6 Sol | 0.515899× | 16m 14.39s | No | No | Reviewed source |
+| Dense projections | Gemini 3.8 Flash (OpenCode) | 1.560100× | 17m 04.18s | Yes | Yes | Reviewed source |
 | Decoder layer | GPT-6.1 Sol | 1.044181× | 23m 55.46s | Yes | Yes | Reviewed source |
 | Decoder layer | GPT-6 Astra | 1.098858× | 22m 22.85s | Yes | Yes | Reviewed source |
 | Decoder layer | GPT-5.6 Sol | 1.002899× | 12m 35.59s | No | No | Unchanged baseline AST |
+| Decoder layer | Gemini 3.8 Flash (OpenCode) | 2.172400× | 19m 02.69s | Yes | Yes | Reviewed source |
 | Routed experts | GPT-6.1 Sol | 1.424259× | 22m 46.48s | Yes | Yes | Reviewed source |
 | Routed experts | GPT-6 Astra | 1.266741× | 26m 54.08s | Yes | Yes | Reviewed source |
 | Routed experts | GPT-5.6 Sol | 1.105026× | 11m 42.67s | Yes | Yes | Reviewed source |
+| Routed experts | Gemini 3.8 Flash (OpenCode) | 2.376800× | 16m 28.35s | Yes | Yes | Reviewed source |
 | Prefill layer | GPT-6.1 Sol | 1.007282× | 20m 31.97s | No | No | Reviewed source |
 | Prefill layer | GPT-6 Astra | 1.001426× | 15m 55.36s | No | No | Reviewed source |
 | Prefill layer | GPT-5.6 Sol | 1.001131× | 12m 55.68s | No | No | Unchanged baseline AST |
+| Prefill layer | Gemini 3.8 Flash (OpenCode) | 1.956200× | 20m 10.45s | Yes | Yes | Reviewed source |
 
 ![Kernel measurements](charts/kernel-performance.png)
 
@@ -43,6 +48,7 @@ These are local H200 measurements, not official OKC leaderboard scores. The requ
 | GPT-6.1 Sol | pass | 11m 38.49s |
 | GPT-6 Astra | pass | 13m 51.80s |
 | GPT-5.6 Sol | right_censored_no_submission | — |
+| Gemini 3.8 Flash (OpenCode) | pass | 9m 42.14s |
 
 Integer admissions are exact finite conditional witnesses, with the trusted reference independently replayed through all eight mandatory stages. They do not prove inherited all-size compiler or analytic interfaces. GPT-5.6 reached the cap without a sealed submission.
 
