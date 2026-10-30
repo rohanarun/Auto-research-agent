@@ -10,5 +10,11 @@
     "context": "Last eight action/observation pairs plus a contestant-maintained research notebook",
     "execution": "Same Seatbelt-isolated command broker",
     "initial_comparison": false
+  },
+  "claude-cli-broker-linux-v1": {
+    "inference": "Claude Code CLI print mode; all built-in tools and MCP disabled; structured action output via --json-schema",
+    "context": "Full prior action/observation transcript",
+    "execution": "Linux namespace broker (uid 65534; private mount/net/pid/ipc/uts namespaces; workspace-only writes; no network)",
+    "initial_comparison": false
   }
 }

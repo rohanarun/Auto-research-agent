@@ -14,7 +14,7 @@ The scored core is integer multiplication and the five MUSE/Open Kernel challeng
 
 ## Setup
 
-The verified local command backend requires macOS, Python 3.12 and Xcode Command Line Tools. Linux is used inside the isolated H200 evaluator; a Linux research-shell backend is not shipped. Keep the workspace on a mounted, writable external volume outside Documents, Desktop and iCloud. Clone this repository onto that volume, enter its `benchmarks` folder, and set paths for your own machine:
+The verified local command backend requires macOS, Python 3.12 and Xcode Command Line Tools. Linux is used inside the isolated H200 evaluator. A separate Linux backend with a Claude CLI transport, `linux_claude.py` (harness `claude-cli-broker-linux-v1`; root required for namespaces), produced the Claude rows; it is a distinct harness version, not the verified macOS backend. Keep the workspace on a mounted, writable external volume outside Documents, Desktop and iCloud. Clone this repository onto that volume, enter its `benchmarks` folder, and set paths for your own machine:
 
 ```sh
 export AUTO_RESEARCH_WORKSPACE="/your/mounted/volume/auto-research-benchmark-workspace"
