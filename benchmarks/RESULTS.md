@@ -6,7 +6,24 @@ Kernel success now means a correct, source-compliant **measured speedup strictly
 
 One valid trial per model/task, high reasoning, with a 30-minute cap. Shared queue waits, infrastructure replacements, different cohort concurrency and different harnesses limit model comparisons.
 
+
 ![Progress matrix](charts/recovery-matrix.png)
+
+## Cost vs Speed Pareto Frontier
+
+![Pareto frontier](charts/pareto-frontier.png)
+
+*Inference costs computed from token usage logs with provider API pricing. Kernel speedups evaluate 5 Muse kernels on NVIDIA H200.*
+
+| Model | Total Cohort Cost ($) | GPU Kernel GeoMean Speedup | Peak Kernel Speedup | Integer Milestone Time |
+|---|---:|---:|---:|---:|
+| **Claude Haiku 5.5** | **$0.27** | 0.22× (failed 2 kernels) | 1.09× | Stopped early (no submission) |
+| **Claude Sonnet 5.5** | **$5.22** | 1.05× | 1.09× | Stopped early (no submission) |
+| **Gemini 3.8 Flash (OpenCode)** | **$6.95** | **2.11× (Dominates all)** | **2.65×** | **9m 42s (Fastest Witness)** |
+| **GPT-5.6 Sol** | **$13.15** | 0.78× | 1.11× | 30m timeout (no submission) |
+| **Claude Opus 5.5** | **$13.90** | 1.10× | 1.21× | Stopped early (no submission) |
+| **GPT-6.1 Sol** | **$26.53** | 1.02× | 1.42× | 11m 38s |
+| **GPT-6 Astra** | **$101.23** | 1.05× | 1.27× | 13m 52s |
 
 ## Kernel speedup and research time
 

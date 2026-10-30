@@ -61,5 +61,65 @@ def main():
  fields=['model','task_id','benchmark_outcome','elapsed_seconds','time_to_validated_breakthrough_seconds','speedup_vs_baseline','reference_speedup','budget_seconds','time_to_measured_speedup_seconds','timing_supported_above_threshold','source_equals_baseline_ast','historical_benchmark_outcome','scoring_policy_version']
  with (CODE/'data/results.csv').open('w',newline='') as f:
   writer=csv.DictWriter(f,fieldnames=fields,extrasaction='ignore',lineterminator='\n');writer.writeheader();writer.writerows(rows)
+
+ # --- Figure 4: Cost/Speed Pareto Frontier ---
+ pr_pricing = {
+  'claude-haiku-5-5': {'in': 0.10, 'out': 0.50, 'cch': 0.01, 'color': '#be185d'},
+  'claude-sonnet-5-5': {'in': 2.0, 'out': 10.0, 'cch': 0.10, 'color': '#0f766e'},
+  'gemini-3.8-flash-opencode': {'in': 0.75, 'out': 3.75, 'cch': 0.075, 'color': '#10b981'},
+  'claude-opus-5-5': {'in': 4.0, 'out': 20.0, 'cch': 0.20, 'color': '#b45309'},
+  'gpt-5.6-sol': {'in': 1.5, 'out': 7.5, 'cch': 0.075, 'color': '#ea580c'},
+  'gpt-6.1-sol': {'in': 2.0, 'out': 10.0, 'cch': 0.10, 'color': '#2563eb'},
+  'gpt-6-astra': {'in': 10.0, 'out': 50.0, 'cch': 1.0, 'color': '#8b5cf6'}
+ }
+ m_data = []
+ for m in models:
+  p = pr_pricing.get(m, {'in': 2.0, 'out': 10.0, 'cch': 0.1, 'color': '#334155'})
+  m_runs = [r for r in rows if r['model'] == m and r['task_id'] in tasks]
+  tot_c = sum(((max(0, r.get('usage', {}).get('input_tokens', 0) - r.get('usage', {}).get('cached_input_tokens', 0)) * p['in'] + r.get('usage', {}).get('cached_input_tokens', 0) * p['cch'] + r.get('usage', {}).get('output_tokens', 0) * p['out']) / 1e6) for r in m_runs)
+  k_sp = [r.get('speedup_vs_baseline') or 0.5 for r in m_runs if r['task_id'].startswith('kernel-')]
+  g_sp = math.exp(sum(math.log(max(0.01, s)) for s in k_sp) / len(k_sp)) if k_sp else 1.0
+  ir = next((r for r in m_runs if r['task_id'] == 'integer-mult-frame-retiming'), {})
+  it = (ir.get('time_to_validated_breakthrough_seconds') or ir.get('elapsed_seconds')) / 60.0 if ir.get('benchmark_outcome') == 'pass' else None
+  m_data.append({'id': m, 'name': model_labels[m], 'cost': tot_c, 'spd': g_sp, 'int_t': it, 'color': p['color']})
+ fig, (a1, a2) = plt.subplots(1, 2, figsize=(16, 6.8))
+ s_c = sorted(m_data, key=lambda x: x['cost'])
+ pf_s, max_s = [], -1
+ for m in s_c:
+  if m['spd'] > max_s: pf_s.append(m); max_s = m['spd']
+ a1.plot([m['cost'] for m in pf_s], [m['spd'] for m in pf_s], '--', color='#059669', linewidth=2.2, alpha=0.9, zorder=3, label='Pareto Frontier (Optimal Tradeoff)')
+ a1.fill_between([m['cost'] for m in pf_s], [m['spd'] for m in pf_s], 0.05, color='#10b981', alpha=0.08, zorder=1)
+ ann1 = {'claude-haiku-5-5': (0.33, 0.28, 'left'), 'claude-sonnet-5-5': (2.3, 0.96, 'right'), 'gemini-3.8-flash-opencode': (8.5, 2.18, 'left'), 'claude-opus-5-5': (16.0, 1.15, 'left'), 'gpt-5.6-sol': (15.5, 0.72, 'left'), 'gpt-6.1-sol': (31.0, 0.98, 'left'), 'gpt-6-astra': (118.0, 1.08, 'left')}
+ for m in m_data:
+  a1.scatter(m['cost'], m['spd'], color=m['color'], s=140, zorder=5, edgecolors='black', linewidth=1.2)
+  tx, ty, al = ann1.get(m['id'], (m['cost'] * 1.15, m['spd'], 'left'))
+  a1.text(tx, ty, f"{m['name']}\n({m['spd']:.2f}x, ${m['cost']:.2f})", fontsize=9.5, fontweight='bold' if m in pf_s else 'normal', color=m['color'], ha=al, va='center')
+ a1.set_xscale('log'); a1.set_xlim(0.15, 220); a1.set_ylim(0.05, 2.45); a1.set_xlabel('Total Cohort Inference Cost (USD, Log Scale)', fontsize=12, fontweight='bold', labelpad=10)
+ a1.set_ylabel('GPU Kernel GeoMean Speedup vs Baseline (x)', fontsize=12, fontweight='bold', labelpad=10); a1.set_title('Kernel Performance vs Inference Cost\n(Geometric Mean across 5 GPU Kernels)', fontsize=14, fontweight='bold', pad=15)
+ a1.grid(True, linestyle=':', alpha=0.4, which='both'); a1.axhline(1.01, color='#64748b', linestyle=':', linewidth=1.2, label='1.01x Speedup Cutoff'); a1.legend(loc='lower right', frameon=True, fontsize=9.5)
+ p_int = [m for m in m_data if m['int_t'] is not None]; f_int = [m for m in m_data if m['int_t'] is None]
+ pf_t, min_t = [], 999
+ for m in sorted(p_int, key=lambda x: x['cost']):
+  if m['int_t'] < min_t: pf_t.append(m); min_t = m['int_t']
+ a2.plot([m['cost'] for m in pf_t], [m['int_t'] for m in pf_t], '--', color='#2563eb', linewidth=2.2, alpha=0.9, zorder=3, label='Pareto Frontier (Fastest Witness)')
+ for m in p_int:
+  a2.scatter(m['cost'], m['int_t'], color=m['color'], s=140, zorder=5, edgecolors='black', linewidth=1.2)
+  ha = 'right' if m['id'] == 'gpt-6-astra' else 'left'
+  ox = 0.85 if m['id'] == 'gpt-6-astra' else 1.15
+  oy = 1.2 if m['id'] == 'gpt-6-astra' else -0.2
+  a2.annotate(f"{m['name']}\n({m['int_t']:.1f}m, ${m['cost']:.2f})", (m['cost'], m['int_t']), xytext=(m['cost'] * ox, m['int_t'] + oy), fontsize=9.5, fontweight='bold', color=m['color'], ha=ha)
+ stag_y = [29.2, 31.0, 27.5, 32.5]
+ for i, m in enumerate(sorted(f_int, key=lambda x: x['cost'])):
+  y_p = stag_y[i % len(stag_y)]
+  a2.scatter(m['cost'], 30.0, color='#94a3b8', s=100, marker='X', zorder=5, linewidth=1.5)
+  a2.plot([m['cost'], m['cost']], [30.0, y_p], color='#cbd5e1', linestyle='-', linewidth=0.8, zorder=2)
+  a2.text(m['cost'] * 1.12, y_p, f"{m['name']}\n(No submission)", fontsize=8.5, color='#475569', va='center')
+ a2.set_xscale('log'); a2.set_xlim(0.15, 220); a2.set_ylim(6, 34); a2.set_xlabel('Total Cohort Inference Cost (USD, Log Scale)', fontsize=12, fontweight='bold', labelpad=10)
+ a2.set_ylabel('Research Minutes to Validated Witness (Minutes)', fontsize=12, fontweight='bold', labelpad=10); a2.set_title('Research Velocity vs Inference Cost\n(Integer Retiming Exact Milestone)', fontsize=14, fontweight='bold', pad=15)
+ a2.grid(True, linestyle=':', alpha=0.4, which='both'); a2.axhline(30.0, color='#ef4444', linestyle=':', linewidth=1.2, label='30-Minute Budget Cap (Timeout)'); a2.legend(loc='lower left', frameon=True, fontsize=9.5)
+ fig.suptitle('Cost/Speed Pareto Frontier: Autonomous Research Benchmark', fontsize=17, fontweight='bold', y=0.99)
+ fig.text(0.01, 0.01, 'Inference costs computed from token usage logs with provider API pricing. Kernel speedups evaluate 5 Muse kernels on NVIDIA H200.', fontsize=9, color='#64748b')
+ fig.tight_layout(rect=[0, 0.03, 1, 0.95]); fig.savefig(out/'pareto-frontier.png', dpi=200); fig.savefig(out/'pareto-frontier.svg'); plt.close(fig)
+
  for path in out.glob('*.svg'):path.write_text('\n'.join(line.rstrip() for line in path.read_text().splitlines())+'\n')
 if __name__=='__main__':main()
