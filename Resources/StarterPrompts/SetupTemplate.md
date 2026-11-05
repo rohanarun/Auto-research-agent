@@ -11,6 +11,40 @@ Use only the account named by expectedAccount. Locate `okc` in PATH or `~/.okc/b
 Read current `okc show <projectID>`, the initialized task instructions and official rules. Use the supplied source path when present, preserving the original and working on a copy in this project's workspace. If no source path was supplied, initialize the public starter only when one does not already exist. Use only the source explicitly supplied by the user and public task material. Do not search unrelated workspaces for private research code, other users' kernels, or account secrets. Keep supplied private source and receipts private unless the user explicitly authorizes publishing them. Do not provision or rent a GPU. The official judge provides remote GPU evaluation.
 
 
+Advice for new competitors
+
+These notes come from running a full challenge cycle. They are working habits, not kernel recipes.
+
+Read the judge before you write a kernel
+
+Read the reference implementation, the input generator, and every correctness check all the way through. The shapes, seeds and data the judge uses are often different from the starter harness defaults. Benchmark against what the judge actually generates.
+Work out how the final score is combined: geometric means, per-shape weights, repeated layers. A big win on a lightly weighted case can be worth less than a small win on the dominant one.
+
+Measure honestly
+
+Build a local harness that matches the judge: same inputs, warmup, cache state and graph capture. If your local numbers don’t predict official scores, fix the harness before you tune anything else.
+Official scores vary by about ±1% from run to run. Don’t trust one run for a small gain. Use repeated, interleaved A/B timings locally.
+Work out a speed-of-light floor for each kernel (bytes moved ÷ memory bandwidth, and FLOPs ÷ peak). Spend your time where the gap to that floor is biggest. Small-batch work is usually limited by latency and launch overhead, not bandwidth.
+
+Treat correctness as a hard gate
+
+Tolerances can be tight, and some checks look at more than numeric closeness. Stress every candidate across many seeds and the hardest inputs you can build, not just the few the check command runs.
+A candidate that passes once can still fail on an unlucky official draw. Look at the worst-case margin across seeds, not the average.
+Test combined changes as one candidate. Two changes that each pass on their own can fail together.
+
+Spend the budget deliberately
+
+Scored runs and checks are limited per day. Use checks to filter, and save scored runs for candidates that already won locally.
+Log every submission: file, hash, what changed, and the score. With this much noise, memory isn’t reliable.
+Stay under the rate limit. Have your submit script wait for each job ID before sending the next one, and retry on errors. Run scripts as bash script.sh so file permissions on a new machine don’t break them.
+Submit early on the last day. Queues get long after the daily reset and near the deadline.
+
+Keep the workspace healthy
+
+Watch disk space during long searches, because a full disk can kill a run without warning. Keep scratch files out of synced folders.
+If you run an automated search (a GA or parameter sweeps), give it one coordinator, a harness that matches the judge, and a pinned control it has to beat. A search scored on the wrong harness will confidently find the wrong answer.
+
+
 ## High-Speed GPU Pre-Flight & Ablations (Super Experiments)
 
 When `useSuperExperiments` is enabled in inputs (default: true):
