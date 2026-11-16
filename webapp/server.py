@@ -157,9 +157,11 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/projects/refresh":
                 return self._json(200, store.refresh_catalog())
             if path == "/api/projects/add":
-                project = store.add_project(repository=body.get("repository") or "",
-                                            local_path=body.get("localPath") or "")
-                return self._json(200, {"ok": True, "project": project.to_json()})
+                project, seeded = store.add_project(repository=body.get("repository") or "",
+                                                    local_path=body.get("localPath") or "",
+                                                    instructions=body.get("instructions") or "")
+                return self._json(200, {"ok": True, "project": project.to_json(),
+                                        "seeded": seeded})
             if path == "/api/projects/edit":
                 project = store.edit_project(body.get("projectID") or "", body)
                 return self._json(200, {"ok": True, "project": project.to_json()})

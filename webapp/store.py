@@ -5,6 +5,7 @@ per running chat, with the same lifecycle states and event handling.
 import copy
 import json
 import os
+import re
 import shutil
 import subprocess
 import threading
@@ -41,6 +42,16 @@ def _read_json(path: Path):
         return None
     except (json.JSONDecodeError, UnicodeDecodeError):
         return None
+
+
+INSTRUCTIONS_TEMPLATE = """# Research instructions
+
+(Describe this project's research goal, constraints, budgets, and expected
+behavior. The research agent reads this file before every run and follows
+it; record failures and expected results here to improve future runs.)
+"""
+
+REPOSITORY_PATTERN = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 
 
 class Store:
@@ -235,23 +246,77 @@ class Store:
         self.persist()
         return {"status": self.catalog_status, "projects": len(merged)}
 
-    def add_project(self, repository: str = "", local_path: str = "") -> ResearchProject:
+    def _checkout(self, project: ResearchProject) -> Path:
+        """The project's working checkout: a local folder, or the managed
+        clone under ``projects/``, cloned on demand exactly where a research
+        run would clone it."""
+        if project.local_path:
+            directory = Path(project.local_path)
+        else:
+            directory = Path(self.workspace_root) / "projects" / project.repository
+            if not directory.exists():
+                parent = workspace_module.directory(
+                    self.workspace_root,
+                    "projects/" + project.repository.split("/", 1)[0])
+                command, _url = workspace_module.git_command(project.repository,
+                                                             directory)
+                code, output, _ = workspace_module.clone(command, parent,
+                                                         self.environment())
+                if code != 0:
+                    raise ResearchError("Clone failed. " + output.strip())
+        return workspace_module.validate(str(directory))
+
+    @staticmethod
+    def _parse_repository(text: str) -> str:
+        """Mirror the native addRepository parsing: accept full GitHub URLs,
+        strip .git, validate owner/name, and reject traversal."""
+        repo = (text or "").strip()
+        repo = re.sub(r"^https?://(www\.)?github\.com/", "", repo, flags=re.I)
+        repo = re.sub(r"^github\.com/", "", repo, flags=re.I)
+        repo = re.sub(r"\.git\Z", "", repo, flags=re.I)
+        repo = repo.strip("/")
+        if not REPOSITORY_PATTERN.match(repo) or ".." in repo.split("/"):
+            raise ResearchError("Enter a GitHub URL or owner/repository.")
+        return repo
+
+    def add_project(self, repository: str = "", local_path: str = "",
+                    instructions: str = "") -> tuple[ResearchProject, bool]:
+        """Save a project entry (mirroring the native add flows: an existing
+        entry is selected, not duplicated). When the user pasted research
+        instructions, seed the checkout's ``auto-research.md`` now — the
+        checkout is cloned on demand for repository projects. An existing
+        guide is never overwritten; returns ``(project, seeded)``."""
         if local_path:
             if not Path(local_path).exists():
                 raise ResearchError("The folder does not exist.")
             project = ResearchProject(repository="", local_path=str(Path(local_path)),
                                       is_custom=True)
         else:
-            repository = repository.strip()
-            if not repository or "/" not in repository:
-                raise ResearchError("Enter a public GitHub repository as owner/name.")
+            repository = self._parse_repository(repository)
             project = ResearchProject(repository=repository, is_custom=True)
         with self._lock:
-            if not any(p.id == project.id for p in self.state.projects):
+            existing = next((p for p in self.state.projects if p.id == project.id), None)
+            if existing is not None:
+                project = existing
+            else:
                 self.state.projects.append(project)
             self.state.selected_project_id = project.id
         self.persist()
-        return project
+        seeded = False
+        text = (instructions or "").strip()
+        if text:
+            directory = self._checkout(project)
+            guide = directory / "auto-research.md"
+            if not guide.exists():
+                workspace_module.reject_symlink(guide)
+                guide.write_text(text.rstrip() + "\n", encoding="utf-8")
+                try:
+                    guide.chmod(0o600)
+                except OSError:
+                    pass
+                self.bump()
+                seeded = True
+        return project, seeded
 
     # ---------- kernel setup drafts ----------
 
@@ -421,25 +486,30 @@ class Store:
         self.bump()
 
     def instructions(self, project_id: str) -> tuple[Path, str]:
-        """The checkout's editable research instructions, prepared when it
-        does not exist yet for built-in starters."""
+        """The checkout's editable research instructions. Built-in starters
+        are seeded once by their definition; other projects get their
+        checkout (cloned on demand) and, when no ``auto-research.md`` exists
+        there, a template file to fill in — a new project can be given its
+        instructions right away, like the native builtin guide flow."""
         project = self._project(project_id)
         if project is None:
             raise ResearchError("Select a project first.")
         if project.builtin_id:
             directory = self._builtin(project.builtin_id).prepare(self.workspace_root)
         else:
-            directory = (Path(project.local_path) if project.local_path
-                         else Path(self.workspace_root) / "projects" / project.repository)
-            if not directory.exists():
-                raise ResearchError("This project has no local checkout yet. Start a research "
-                                    "run once to clone it, then edit its instructions.")
-            directory = workspace_module.validate(str(directory))
+            directory = self._checkout(project)
         tracked = workspace_module.tracked_files(directory, self.environment())
         file = workspace_module.instruction_file(directory, tracked)
         if file is None:
-            raise ResearchError("No auto-research.md was found in this checkout. Create one at "
-                                + str(directory / "auto-research.md") + " to add instructions.")
+            file = directory / "auto-research.md"
+            if not file.exists():
+                workspace_module.reject_symlink(file)
+                file.write_text(INSTRUCTIONS_TEMPLATE, encoding="utf-8")
+                try:
+                    file.chmod(0o600)
+                except OSError:
+                    pass
+                self.bump()
         return file, file.read_text(encoding="utf-8")
 
     def save_instructions(self, project_id: str, text: str):
@@ -477,9 +547,7 @@ class Store:
                 project.local_path = local
                 project.id = project.local_path
             elif updates.get("repository"):
-                repository = str(updates["repository"]).strip()
-                if "/" not in repository:
-                    raise ResearchError("Enter a public GitHub repository as owner/name.")
+                repository = self._parse_repository(str(updates["repository"]))
                 project.repository = repository
                 project.id = repository.lower()
             self.state.selected_project_id = self.state.selected_project_id or project.id
@@ -493,10 +561,11 @@ class Store:
         if project.builtin_id:
             raise ResearchError("Built-in projects stay in the starter catalog.")
         with self._lock:
-            sessions = [s for s in self.state.sessions if s.project_id == project_id]
-            if sessions:
-                raise ResearchError("Close this project's chats before removing it; its "
-                                    "history is preserved.")
+            open_sessions = [s for s in self.state.sessions
+                             if s.project_id == project_id and s.closed_at is None]
+            if open_sessions:
+                raise ResearchError("Close this project's open chats before removing it; "
+                                    "closed history is preserved.")
             self.state.projects = [p for p in self.state.projects if p.id != project_id]
             if self.state.selected_project_id == project_id:
                 self.state.selected_project_id = None

@@ -996,5 +996,102 @@ class TriageFixTests(unittest.TestCase):
                 s.shutdown()
 
 
+    # ---------- removal and first-time instructions ----------
+
+    def test_remove_allows_after_chats_closed_and_preserves_history(self):
+        from webapp.models import ResearchSession
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                # An open chat blocks removal.
+                open_session = ResearchSession(project_id="octocat/research-demo",
+                                               title="t", provider="codex")
+                s.state.sessions.append(open_session)
+                with self.assertRaisesRegex(store.ResearchError, "open chats"):
+                    s.remove_project("octocat/research-demo")
+                # A closed chat does not block; its history stays in state.
+                open_session.closed_at = 123.0
+                s.remove_project("octocat/research-demo")
+                self.assertFalse(any(p.id == "octocat/research-demo"
+                                     for p in s.state.projects))
+                self.assertTrue(any(x.id == open_session.id for x in s.state.sessions))
+            finally:
+                s.shutdown()
+
+    def test_instructions_creates_template_when_missing(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                file_path, text = s.instructions("octocat/research-demo")
+                self.assertEqual(file_path.name, "auto-research.md")
+                self.assertIn("Research instructions", text)
+                # A later call must not rewrite the user's edits.
+                file_path.write_text("MY EDITS", encoding="utf-8")
+                _path, again = s.instructions("octocat/research-demo")
+                self.assertEqual(again, "MY EDITS")
+            finally:
+                s.shutdown()
+
+    def test_add_project_seeds_pasted_instructions(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                # Repository project whose checkout already exists: seeded in place.
+                project, seeded = s.add_project("octocat/research-demo",
+                                                instructions="MY GUIDE")
+                self.assertTrue(seeded)
+                guide = (root / "projects" / "octocat" / "research-demo"
+                         / "auto-research.md")
+                self.assertEqual(guide.read_text(encoding="utf-8"), "MY GUIDE\n")
+                # Re-adding selects the existing entry and never overwrites.
+                project2, seeded2 = s.add_project("octocat/research-demo",
+                                                  instructions="OTHER")
+                self.assertIs(project2, project)
+                self.assertFalse(seeded2)
+                self.assertEqual(guide.read_text(encoding="utf-8"), "MY GUIDE\n")
+                self.assertEqual(len([p for p in s.state.projects
+                                      if p.id == "octocat/research-demo"]), 1)
+                # A local folder project gets the file written directly.
+                folder = tmp / "local-proj"
+                folder.mkdir()
+                _p3, seeded3 = s.add_project(local_path=str(folder),
+                                             instructions="LOCAL GUIDE")
+                self.assertTrue(seeded3)
+                self.assertEqual((folder / "auto-research.md").read_text(encoding="utf-8"),
+                                 "LOCAL GUIDE\n")
+            finally:
+                s.shutdown()
+
+
+    def test_git_command_keeps_the_repository_slash(self):
+        from webapp import workspace
+        command, url = workspace.git_command("mw00/project-maya", Path("dest"))
+        self.assertIn("https://github.com/mw00/project-maya.git", command)
+        self.assertEqual(url, "https://github.com/mw00/project-maya.git")
+
+    def test_repository_parsing_mirrors_native_add(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                self.assertEqual(s._parse_repository("https://github.com/owner/repo.git"),
+                                 "owner/repo")
+                self.assertEqual(s._parse_repository("github.com/owner/repo"), "owner/repo")
+                self.assertEqual(s._parse_repository("owner/repo"), "owner/repo")
+                with self.assertRaisesRegex(store.ResearchError, "GitHub URL"):
+                    s._parse_repository("../etc/passwd")
+                with self.assertRaisesRegex(store.ResearchError, "GitHub URL"):
+                    s._parse_repository("owner/repo/extra")
+            finally:
+                s.shutdown()
+
+
 if __name__ == "__main__":
     unittest.main()

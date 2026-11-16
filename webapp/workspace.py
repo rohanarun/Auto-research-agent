@@ -107,10 +107,10 @@ def resolve_executable(path: str, settings_key: str = "") -> str:
 
 
 def git_command(repository: str, destination: pathlib.Path) -> tuple[list[str], str]:
-    """`git clone -- https://github.com/<repo>.git <destination>` like the app."""
-    repo = urllib.parse.quote(repository, safe="A-Za-z0-9_.-")
-    return (["git", "clone", "--", f"https://github.com/{repo}.git", str(destination)],
-            f"https://github.com/{repo}.git")
+    """`git clone -- https://github.com/<owner>/<repo>.git <destination>`
+    like the app: the repository's slash is part of the URL, never encoded."""
+    return (["git", "clone", "--", f"https://github.com/{repository}.git", str(destination)],
+            f"https://github.com/{repository}.git")
 
 
 def clone(command: list[str], parent: pathlib.Path, environment: dict,

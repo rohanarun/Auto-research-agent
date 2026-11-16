@@ -543,7 +543,7 @@ function refreshCatalog() {
 }
 
 // Adds "owner/name" (or a full GitHub URL) as a repository, otherwise as a local folder path.
-function addProjectFromInput(raw) {
+function addProjectFromInput(raw, instructions) {
   var input = (raw || '').trim();
   if (!input) return Promise.reject(new ApiError(0, 'Enter a repository or folder path'));
   input = input.replace(/^github\.com\//i, '').replace(/^https?:\/\/(www\.)?github\.com\//i, '').replace(/\.git$/i, '');
@@ -555,6 +555,7 @@ function addProjectFromInput(raw) {
   } else {
     body = { localPath: input };
   }
+  if (instructions && instructions.trim()) body.instructions = instructions;
   return apiPost('/api/projects/add', body);
 }
 
@@ -2397,6 +2398,8 @@ function openAddSheet() {
         '<p class="section-note" style="margin-top:0">Add a GitHub repository or connect an existing project on the workspace drive.</p>' +
         '<div class="field"><label for="addRepoField">Repository or local folder</label>' +
           '<input id="addRepoField" placeholder="https://github.com/owner/repository" autocomplete="off" spellcheck="false"></div>' +
+        '<div class="field"><label for="addInstructionsField">Research instructions (auto-research.md)</label>' +
+          '<textarea id="addInstructionsField" rows="6" placeholder="Optional. Paste the project\u2019s research goal, constraints, budgets and expected behavior here; it is saved as the checkout\u2019s auto-research.md. Repository projects are cloned now when instructions are provided."></textarea></div>' +
       '</div>' +
       '<div class="sheet-foot"><span class="spacer"></span>' +
         '<button class="sheet-secondary" id="addCancel">Cancel</button>' +
@@ -2409,6 +2412,7 @@ function openAddSheet() {
     if (e.target === backdrop) closeSheet();
   });
   var field = $('#addRepoField', backdrop);
+  var guide = $('#addInstructionsField', backdrop);
   var confirm = $('#addConfirm', backdrop);
   field.addEventListener('input', function () { confirm.disabled = field.value.trim().length === 0; });
   field.addEventListener('keydown', function (e) {
@@ -2420,9 +2424,9 @@ function openAddSheet() {
 
   function submitAdd() {
     confirm.disabled = true;
-    addProjectFromInput(field.value).then(function () {
+    addProjectFromInput(field.value, guide.value).then(function (res) {
       closeSheet();
-      toast('Project added');
+      toast(res && res.seeded ? 'Project added · instructions saved' : 'Project added');
     }).catch(function (err) {
       confirm.disabled = false;
       apiFail(err);
@@ -2446,7 +2450,7 @@ function openInstructionsSheet(projectID) {
       '<div class="sheet-body">' +
         '<p class="section-note" id="instrPath">Loading…</p>' +
         '<textarea id="instrEditor" class="mono-editor" rows="16" spellcheck="false" aria-label="auto-research.md"></textarea>' +
-        '<p class="section-note">The starter guide is seeded once and never overwritten, so your edits survive every run and every new chat.</p>' +
+        '<p class="section-note">The guide is created with a template when it does not exist yet and is never overwritten by a run, so your edits survive every run and every new chat.</p>' +
       '</div>' +
       '<div class="sheet-foot"><span class="sheet-note" id="instrNote"></span><span class="spacer"></span>' +
         '<button class="sheet-secondary" id="instrCancel">Cancel</button>' +
@@ -2565,7 +2569,7 @@ function openRemoveProjectSheet(projectID) {
     '<div class="sheet sheet-add" role="dialog" aria-label="Remove project">' +
       '<div class="sheet-head"><span class="sheet-title" style="font-size:24px">Remove ' + esc(projectName(project)) + '?</span></div>' +
       '<div class="sheet-body" style="padding-top:12px">' +
-        '<p class="section-note" style="margin-top:0">The saved project entry is removed from this workspace. Files on disk and your CLI data are not touched. Close this project’s chats first; their history is preserved.</p>' +
+        '<p class="section-note" style="margin-top:0">The saved project entry is removed from this workspace. Files on disk and your CLI data are not touched. Close this project’s open chats first; their closed history is preserved.</p>' +
       '</div>' +
       '<div class="sheet-foot"><span class="spacer"></span>' +
         '<button class="sheet-secondary" id="rmCancel">Cancel</button>' +
