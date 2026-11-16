@@ -16,8 +16,10 @@ from pathlib import Path
 from . import builtin as builtin_module
 from . import catalog as catalog_module
 from . import cli_runner
+from . import cloud as cloud_module
 from . import dashboard as dashboard_module
 from . import kernel as kernel_module
+from . import lean as lean_module
 from . import workspace as workspace_module
 from .models import (ChatMessage, ResearchError, ResearchProject,
                      ResearchSession, SavedState, Settings, dump_swift_json,
@@ -86,6 +88,8 @@ class Store:
         self._shared_groups: dict[str, dict] = {}
         self.auth: dict[str, str] = {}
         self._dashboard_cache: dict[str, tuple[float, dict]] = {}
+        self.cloud: cloud_module.CloudStore | None = None
+        self.lean: lean_module.LeanStore | None = None
         self._port = 8765
         self._access = "local"
         self.started_at = time.time()
@@ -114,6 +118,8 @@ class Store:
                 self._policy = resource.read_text(encoding="utf-8") if resource.is_file() else ""
             self._load_builtin_drafts(root)
             self._load_mcp_selection(root)
+            self.cloud = cloud_module.CloudStore(self.workspace_root)
+            self.lean = lean_module.LeanStore(self.workspace_root, self.resources_dir)
             if not self.state.projects:
                 self.state.projects = [b.project for b in self.builtins]
                 self.state.selected_project_id = (self.state.projects[0].id
@@ -143,6 +149,8 @@ class Store:
             ids = list(self._runners.keys())
         for session_id in ids:
             self.stop(session_id)
+        if self.lean is not None:
+            self.lean.shutdown()
 
     # ---------- helpers ----------
 
@@ -1418,6 +1426,110 @@ class Store:
                     f"{result.code}. " + result.stderr)
         finally:
             threading.Thread(target=self.refresh_auth, daemon=True).start()
+
+    # ---------- cloud + lean (native Cloud / Lean server tabs) ----------
+
+    def _cloud(self) -> cloud_module.CloudStore:
+        if self.cloud is None:
+            raise ResearchError("Load a workspace before using cloud settings.")
+        return self.cloud
+
+    def _lean(self) -> lean_module.LeanStore:
+        if self.lean is None:
+            raise ResearchError("Load a workspace before using the Lean server.")
+        return self.lean
+
+    def cloud_status(self) -> dict:
+        return self._cloud().view()
+
+    def cloud_set_provider(self, provider: str) -> dict:
+        return self._cloud().set_provider(provider)
+
+    def cloud_set_run_target(self, target: str) -> dict:
+        return self._cloud().set_run_target(target)
+
+    def cloud_save_key(self, provider: str, key: str) -> dict:
+        return self._cloud().save_key(provider, key)
+
+    def cloud_remove_key(self, provider: str) -> dict:
+        return self._cloud().remove_key(provider)
+
+    def cloud_connect(self, provider: str) -> dict:
+        return self._cloud().connect(provider)
+
+    def cloud_stop(self, provider: str) -> dict:
+        return self._cloud().stop_owned(provider)
+
+    def codex_device_login_script(self) -> Path:
+        """A visible-terminal launcher for `codex login --device-auth`.
+
+        Native parity: the separate cloud Codex device login. This edition
+        runs it on the device that serves the dashboard, never inside a
+        sandbox, and never uploads account files."""
+        with self._lock:
+            settings = copy.copy(self.settings)
+        executable = settings.codexPath or "codex"
+        if not workspace_module.executable_check(executable):
+            raise ResearchError("The Codex CLI is not installed at the configured path. "
+                                "Open Connections to locate it or view installation instructions.")
+        folder = workspace_module.directory(self.workspace_root, "terminal")
+        name = "cloud-codex-login-" + str(uuid.uuid4()).upper()
+        if os.name == "nt":
+            file = folder / (name + ".cmd")
+            file.write_text("@echo off\r\n"
+                            "echo Cloud Codex device sign-in with the official CLI.\r\n"
+                            "echo Credentials stay with the CLI; this window does not copy"
+                            " or store them.\r\n"
+                            f"cd /d {self.workspace_root}\r\n"
+                            f'"{executable}" login --device-auth\r\n', encoding="utf-8")
+        else:
+            file = folder / (name + ".command")
+            file.write_text("#!/bin/zsh\n"
+                            "echo 'Cloud Codex device sign-in with the official CLI.'\n"
+                            "echo 'Credentials stay with the CLI; this window does not copy or"
+                            " store them.'\n"
+                            f"cd -- '{self.workspace_root}' || exit 1\n"
+                            f"'{executable}' login --device-auth\n", encoding="utf-8")
+            try:
+                file.chmod(0o700)
+            except OSError:
+                pass
+        return file
+
+    def open_workspace_folder(self) -> None:
+        root = Path(self.workspace_root)
+        if not root.is_dir():
+            raise ResearchError("The workspace folder does not exist yet.")
+        if os.name == "nt":
+            os.startfile(str(root))  # noqa: S606 — opens Explorer on the host
+        elif os.uname().sysname == "Darwin":
+            subprocess.Popen(["open", str(root)])
+        else:
+            subprocess.Popen(["xdg-open", str(root)])
+
+    def lean_view(self) -> dict:
+        return self._lean().view()
+
+    def lean_save(self, updates: dict) -> dict:
+        return self._lean().save_updates(updates)
+
+    def lean_start(self) -> dict:
+        return self._lean().start()
+
+    def lean_stop(self) -> dict:
+        return self._lean().stop()
+
+    def lean_share(self) -> dict:
+        return self._lean().share()
+
+    def lean_stop_sharing(self) -> dict:
+        return self._lean().stop_sharing()
+
+    def lean_token(self) -> str:
+        return self._lean().token_text()
+
+    def lean_open_logs(self) -> None:
+        self._lean().open_folder()
 
     # ---------- dashboard ----------
 

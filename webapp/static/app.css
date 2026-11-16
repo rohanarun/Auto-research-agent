@@ -1277,7 +1277,7 @@ a:hover { text-decoration: underline; }
 .seg-tabs button[aria-pressed="true"] { background: #ffffff; }
 
 .sheet-settings .sheet-body { max-height: 64vh; overflow: hidden; padding: 18px 22px; }
-.sheet-settings [data-pane] { display: flex; flex-direction: column; gap: 12px; max-height: 58vh; overflow-y: auto; padding-right: 6px; }
+.sheet-settings [data-pane]:not([hidden]) { display: flex; flex-direction: column; gap: 12px; max-height: 58vh; overflow-y: auto; padding-right: 6px; }
 .pane-scroll { display: flex; flex-direction: column; gap: 14px; }
 .pane-heading { font-size: 15px; font-weight: 600; margin: 4px 0 0; }
 

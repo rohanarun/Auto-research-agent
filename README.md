@@ -224,6 +224,25 @@ python scripts/setup_webapp.py
 python -m webapp.server --access lan
 ```
 
+The dashboard's **Connections & settings** sheet mirrors the native app's
+seven tabs — Connections, Cloud, Lean server, MCP tools, Research policy and
+Workspace — 1:1. Connections keeps the provider cards with Sign in, Install
+CLI, CLI paths, model overrides and the same permission pickers; the sheet
+scrolls, so every tab is reachable. The **Cloud** tab stores your Daytona or
+Agent37 API key in workspace storage on the serving device (the native app
+uses macOS Keychain), validates it against that provider's management API,
+lists the sandboxes or instances this installation owns, and stops them on
+demand — the same ownership label and stop calls as the native app. It never
+creates billable resources and never uploads account files. **Sign in to
+cloud Codex** runs `codex login --device-auth` in a visible terminal on the
+serving device. One honest boundary: the sandbox bridge that *runs research
+inside* cloud sandboxes is native-app only — in this web edition Play stays
+on the device that serves the dashboard. The **Lean server** tab configures
+and starts the shared Lean verification server (`init-server` then `serve`
+via `Resources/LeanSearch/cli.py`), health-checks it, shares it through
+ngrok, and copies its bearer access token; where the LeanSearch tools cannot
+run (their server module is POSIX-only), the real error is reported.
+
 See [docs/windows.md](docs/windows.md) for the Windows install and the
 Tailscale dashboard guide, including the built-in kernel setup form, the
 policy/instruction/project editors, parallel agents with per-agent checkouts,

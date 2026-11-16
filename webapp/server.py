@@ -135,6 +135,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, store.setup_overview(params.get("projectID") or ""))
             if path == "/api/mcp":
                 return self._json(200, store.mcp_servers())
+            if path == "/api/cloud/status":
+                return self._json(200, store.cloud_status())
+            if path == "/api/lean/settings":
+                return self._json(200, store.lean_view())
+            if path == "/api/lean/token":
+                return self._json(200, {"token": store.lean_token()})
             return self._error(404, "No such endpoint: " + path)
         except ResearchError as error:
             return self._error(400, str(error))
@@ -224,6 +230,38 @@ class Handler(BaseHTTPRequestHandler):
                     except ResearchError:
                         raise
                 return self._json(200, {"instructions": store.login(body.get("provider") or "")})
+            if path == "/api/cloud/provider":
+                return self._json(200, store.cloud_set_provider(body.get("provider") or ""))
+            if path == "/api/cloud/run-target":
+                return self._json(200, store.cloud_set_run_target(body.get("target") or ""))
+            if path == "/api/cloud/key":
+                return self._json(200, store.cloud_save_key(body.get("provider") or "",
+                                                            body.get("key") or ""))
+            if path == "/api/cloud/remove-key":
+                return self._json(200, store.cloud_remove_key(body.get("provider") or ""))
+            if path == "/api/cloud/connect":
+                return self._json(200, store.cloud_connect(body.get("provider") or ""))
+            if path == "/api/cloud/stop":
+                return self._json(200, store.cloud_stop(body.get("provider") or ""))
+            if path == "/api/cloud/codex-login":
+                script = store.codex_device_login_script()
+                return self._json(200, store.spawn_terminal(script))
+            if path == "/api/lean/settings":
+                return self._json(200, store.lean_save(body))
+            if path == "/api/lean/start":
+                return self._json(200, store.lean_start())
+            if path == "/api/lean/stop":
+                return self._json(200, store.lean_stop())
+            if path == "/api/lean/share":
+                return self._json(200, store.lean_share())
+            if path == "/api/lean/stop-share":
+                return self._json(200, store.lean_stop_sharing())
+            if path == "/api/lean/open-logs":
+                store.lean_open_logs()
+                return self._json(200, {"ok": True})
+            if path == "/api/workspace/open":
+                store.open_workspace_folder()
+                return self._json(200, {"ok": True})
             return self._error(404, "No such endpoint: " + path)
         except ResearchError as error:
             return self._error(400, str(error))

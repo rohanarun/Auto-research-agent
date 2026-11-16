@@ -8,6 +8,12 @@
 var EPOCH_OFFSET = 978307200; // seconds between the Apple (2001) and Unix (1970) epochs
 var PROVIDERS = ['codex', 'claude', 'opencode', 'antigravity'];
 var PROVIDER_TITLES = { codex: 'Codex', claude: 'Claude', opencode: 'OpenCode', antigravity: 'Antigravity' };
+var INSTALL_URLS = {
+  codex: 'https://developers.openai.com/codex/cli',
+  claude: 'https://code.claude.com/docs/en/overview',
+  opencode: 'https://opencode.ai/docs',
+  antigravity: 'https://antigravity.google/docs/cli/reference'
+};
 var TOKEN_KEY = 'auto-research-token';
 var PROVIDER_KEY = 'auto-research-provider';
 var SHARE_KEY = 'auto-research-share';
@@ -198,6 +204,8 @@ var store = {
   expandedMessages: {}, // messageID -> true (tool / instructions disclosures)
   settingsDraft: null,
   settingsTab: 'Connections',
+  cloud: { provider: 'daytona', runTarget: 'mac', keySaved: {}, connected: {}, status: {}, owned: {}, busy: '' },
+  lean: { status: 'Stopped', localURL: '', publicURL: '', busy: '' },
   loginProvider: null,
   loginOutput: '',
   loginSpawn: null,
@@ -2001,19 +2009,62 @@ function buildSettingsBody() {
     '<div id="loginBlock"></div>' +
   '</div>');
 
-  // Cloud — native-only; the web edition states its scope honestly.
+  // Cloud — 1:1 with the native Cloud tab (ConnectionsView.swift).
   panes.push('<div data-pane="Cloud">' +
     '<div class="field-row"><span class="field-label">Run research</span>' +
-      '<div class="segmented run-picker"><button class="active" aria-pressed="true">This device</button>' +
-      '<button disabled title="Cloud sandboxes run in the native app">Daytona sandboxes · Codex</button></div></div>' +
+      '<div class="segmented run-picker" id="cloudRunPicker">' +
+        '<button data-target="mac" aria-pressed="true">This device</button>' +
+        '<button data-target="cloud" aria-pressed="false"><span id="cloudRunCloudLabel">Daytona sandboxes · Codex</span></button>' +
+      '</div></div>' +
+    '<p class="section-note" id="cloudRunNote" hidden></p>' +
+    '<div class="field"><label for="cloudProvider">Sandbox provider</label>' +
+      '<select id="cloudProvider"><option value="daytona">Daytona</option><option value="agent37">Agent37</option></select></div>' +
     '<h3 class="pane-heading">Private parallel sandboxes</h3>' +
-    '<p class="section-note">Each agent has its own checkout on this device. Share context uses live-written checkpoint files, combines them directly, then supplies the bundle to fresh sessions.</p>' +
-    '<p class="section-note"><b>Native-app only:</b> cloud sandboxes (Daytona and Agent37) run research on rented Linux boxes from the macOS app. The web edition always runs research on the device that serves this dashboard, with each parallel agent in its own checkout.</p>' +
+    '<p class="section-note">Each agent has its own Linux checkout. Share context uses live-written checkpoint files, combines them directly, then supplies the bundle to fresh sessions. Your account files are never uploaded.</p>' +
+    '<div class="field-row">' +
+      '<div class="field"><label for="cloudKey" id="cloudKeyLabel">Daytona API key</label>' +
+        '<input id="cloudKey" type="password" placeholder="Daytona API key" autocomplete="off"></div>' +
+      '<div class="field narrow"><button class="sheet-secondary" id="cloudSaveKey">Save key</button></div>' +
+    '</div>' +
+    '<p class="section-note" id="cloudStatus">Not connected</p>' +
+    '<div class="field-row">' +
+      '<button class="sheet-secondary" id="cloudConnect">Connect</button>' +
+      '<button class="sheet-secondary" id="cloudSignIn">Sign in to cloud Codex</button>' +
+    '</div>' +
+    '<p class="section-note" id="cloudNote"></p>' +
+    '<p class="section-note" id="cloudLoginNote" hidden></p>' +
+    '<div class="field-row">' +
+      '<button class="sheet-secondary" id="cloudStop">Stop owned cloud compute</button>' +
+      '<button class="sheet-secondary" id="cloudRemoveKey">Remove saved key</button>' +
+    '</div>' +
+    '<p class="section-note" id="cloudBusyNote" hidden></p>' +
   '</div>');
 
   panes.push('<div data-pane="Lean server">' +
-    '<h3 class="pane-heading">Lean server</h3>' +
-    '<p class="section-note"><b>Native-app only:</b> the Lean server connects to a Lean theorem-proving backend configured in the macOS app. The web edition runs without it; repositories that need Lean keep their own tools.</p>' +
+    '<h3 class="pane-heading">Shared Lean verification</h3>' +
+    '<p class="section-note">Search on your agents; compile and verify on this device. The server retains its dependency cache, candidate sources, failed checks and receipts.</p>' +
+    '<div class="field"><label for="leanStorage">Server folder</label>' +
+      '<input id="leanStorage" placeholder="A dedicated folder outside Documents, Desktop and iCloud" spellcheck="false"></div>' +
+    '<div class="field"><label for="leanPath">Installed Lean executable</label>' +
+      '<input id="leanPath" placeholder="Installed Lean executable" spellcheck="false"></div>' +
+    '<div class="field-row">' +
+      '<button class="sheet-secondary" id="leanStart">Start server</button>' +
+      '<button class="sheet-secondary" id="leanStop">Stop server</button>' +
+      '<button class="sheet-secondary" id="leanOpenLogs">Open profiles and logs</button>' +
+    '</div>' +
+    '<p class="section-note" id="leanStatus">Stopped</p>' +
+    '<p class="section-note" id="leanLocalURL" hidden></p>' +
+    '<p class="section-note">Local research runs receive the connection automatically. The initial kernel-check profile tests the service; full QRH verification needs its prepared proof project and pinned challenge in server-config.json. Stop the server before editing profiles.</p>' +
+    '<h3 class="pane-heading">Allow other nodes to connect</h3>' +
+    '<div class="field"><label for="leanNgrok">ngrok executable</label>' +
+      '<input id="leanNgrok" placeholder="ngrok" spellcheck="false"></div>' +
+    '<div class="field-row">' +
+      '<button class="sheet-secondary" id="leanShare">Share with ngrok</button>' +
+      '<button class="sheet-secondary" id="leanStopShare">Stop sharing</button>' +
+      '<button class="sheet-secondary" id="leanCopyToken">Copy access token</button>' +
+    '</div>' +
+    '<p class="section-note" id="leanPublicURL" hidden></p>' +
+    '<p class="section-note">Uses your existing ngrok login. Share the HTTPS address and access token only with intended nodes. Requests are authenticated; submitted source runs in a restricted process. Stopping sharing closes public access while local verification stays available.</p>' +
   '</div>');
 
   panes.push('<div data-pane="MCP tools">' +
@@ -2028,11 +2079,15 @@ function buildSettingsBody() {
   '</div>');
 
   panes.push('<div data-pane="Workspace">' +
+    '<h3 class="pane-heading">External SSD workspace</h3>' +
     '<div class="field"><label for="setWorkspaceRoot">Workspace root</label>' +
       '<input id="setWorkspaceRoot" data-key="workspaceRoot" placeholder="Projects, chats, logs and caches"></div>' +
-    '<div class="field"><label for="setCatalogURL">Live research catalog URL</label>' +
+    '<p class="section-note">Projects, chat history, raw run logs, caches and temporary files stay here. The app stops new writes if the volume disappears. Your CLI keeps its own account configuration in its normal location.</p>' +
+    '<button class="sheet-secondary" id="showWorkspaceFolder">Show workspace folder</button>' +
+    '<h3 class="pane-heading">Live research catalog</h3>' +
+    '<div class="field"><label for="setCatalogURL">HTTPS catalog URL</label>' +
       '<input id="setCatalogURL" data-key="catalogURL" placeholder="https://…/auto-research"></div>' +
-    '<p class="section-note">The catalog is refreshed on launch and when you press Refresh in the sidebar. Your existing chats are preserved.</p>' +
+    '<p class="section-note">The catalog is refreshed on launch and when you press Refresh in the sidebar. Your existing chats are preserved. New repositories can also be added manually.</p>' +
     '<div class="section-title">Dashboard server</div><div id="serverBox"></div>' +
   '</div>');
 
@@ -2063,6 +2118,16 @@ function buildSettingsBody() {
   wireProviderCards();
   fillSettingsValues(store.settingsDraft);
   renderServerBox();
+  wireCloudPane();
+  wireLeanPane();
+  loadCloudStatus();
+  loadLeanSettings();
+  var workspaceBtn = $('#showWorkspaceFolder', sheetEl);
+  if (workspaceBtn) workspaceBtn.addEventListener('click', function () {
+    apiPost('/api/workspace/open', {}).then(function () {
+      toast('Opened the workspace folder');
+    }).catch(apiFail);
+  });
   var policyEditor = $('#policyEditor', sheetEl);
   if (policyEditor) policyEditor.addEventListener('input', function () { policyEditor.dirty = true; });
   showSettingsTab(store.settingsTab || 'Connections');
@@ -2074,25 +2139,6 @@ function draftSettings() {
 
 function detectedPaths() {
   return (store.settingsDraft && store.settingsDraft.detectedPaths) || {};
-}
-
-function buildSettingsBody() {
-  var body = $('#settingsBody', sheetEl);
-  if (!body) return;
-  var parts = ['<div class="section-title">Connections</div>'];
-  PROVIDERS.forEach(function (p) { parts.push(providerCardHTML(p)); });
-  parts.push('<div id="loginBlock"></div>');
-  parts.push('<div class="section-title">Workspace</div>');
-  parts.push('<div class="field"><label for="setWorkspaceRoot">Workspace root</label>' +
-    '<input id="setWorkspaceRoot" data-key="workspaceRoot" placeholder="Projects, chats, logs and caches"></div>');
-  parts.push('<div class="field"><label for="setCatalogURL">Live research catalog URL</label>' +
-    '<input id="setCatalogURL" data-key="catalogURL" placeholder="https://…/catalog.json"></div>');
-  parts.push('<p class="section-note">The catalog is refreshed on launch and when you press Refresh in the sidebar. Your existing chats are preserved.</p>');
-  parts.push('<div class="section-title">Dashboard server</div><div id="serverBox"></div>');
-  body.innerHTML = parts.join('');
-  wireProviderCards();
-  fillSettingsValues(store.settingsDraft);
-  renderServerBox();
 }
 
 function loadSettingsDraft() {
@@ -2160,8 +2206,7 @@ var PERMS = {
   claude: [{ key: 'claudePermissionMode', label: 'Permissions', options: [['auto', 'Automatic review'], ['acceptEdits', 'Accept edits'], ['plan', 'Plan only'], ['dontAsk', 'Deny unapproved']] }],
   opencode: [{ key: 'opencodePermission', label: 'Permissions', options: [['reject', 'Reject prompts'], ['auto', 'Auto-approve']] }],
   antigravity: [
-    { key: 'antigravityMode', label: 'Mode', options: [['accept-edits', 'Accept edits'], ['plan', 'Plan only'], ['auto', 'Auto']] },
-    { key: 'antigravityPermission', label: 'Approvals', options: [['review', 'Review each step'], ['auto', 'Auto-approve']] }
+    { key: 'antigravityAccess', label: 'Access', options: [['accept-edits', 'Accept edits'], ['auto', 'Auto'], ['plan', 'Plan only'], ['unrestricted', 'Auto-approve all']] }
   ]
 };
 
@@ -2183,8 +2228,8 @@ function providerCardHTML(p) {
       '<div><div class="provider-name">' + esc(title) + '</div>' +
       '<div class="provider-status" id="pstat-' + p + '">' + esc(authStatus(p)) + '</div></div>' +
       '<span class="spacer"></span>' +
-      '<button class="p-btn" data-refresh="' + p + '">Refresh account</button>' +
       '<button class="p-btn" data-signin="' + p + '">Sign in</button>' +
+      '<a class="p-btn" href="' + INSTALL_URLS[p] + '" target="_blank" rel="noreferrer">Install CLI</a>' +
     '</div>' +
     '<div class="field"><label for="path-' + p + '">CLI executable path</label>' +
       '<input id="path-' + p + '" data-key="' + p + 'Path" placeholder="CLI executable path"></div>' +
@@ -2211,6 +2256,12 @@ function fillSettingsValues(draft) {
   var detected = detectedPaths();
   $all('[data-key]', sheetEl).forEach(function (input) {
     var key = input.getAttribute('data-key');
+    if (key === 'antigravityAccess') {
+      input.value = (settings.antigravityPermission === 'auto' ? 'unrestricted'
+        : settings.antigravityMode === 'plan' ? 'plan'
+        : settings.antigravityMode === 'auto' ? 'auto' : 'accept-edits');
+      return;
+    }
     if (key.indexOf('Path') !== -1) {
       var p = key.replace(/Path$/, '');
       var placeholder = detected[p] || 'CLI executable path';
@@ -2332,12 +2383,304 @@ function renderLoginBlock() {
   });
 }
 
+// ===== Cloud pane (the native Cloud tab) ====================================
+
+var CLOUD_TITLES = { daytona: 'Daytona', agent37: 'Agent37' };
+
+function cloudNoteText(provider) {
+  if (provider === 'agent37') {
+    return 'The API key is stored in this workspace. Cloud model access uses the official device login separately. Cloud compute is billed to your Agent37 account. Completed work is downloaded and verified before workers are stopped with their disks retained; failed exports preserve the sandbox. Idle sandboxes sleep after 60 minutes.';
+  }
+  return 'The API key is stored in this workspace. Cloud model access uses the official device login separately. Cloud compute is billed to your Daytona account. Completed work is downloaded and verified before workers are archived; failed exports preserve the sandbox. Idle sandboxes stop after 60 minutes.';
+}
+
+function renderCloudPane() {
+  if (!sheetEl) return;
+  var cloud = store.cloud || {};
+  var title = CLOUD_TITLES[cloud.provider] || 'Daytona';
+  var cloudLabel = $('#cloudRunCloudLabel', sheetEl);
+  if (cloudLabel) cloudLabel.textContent = title + ' sandboxes · Codex';
+  var macBtn = $('#cloudRunPicker [data-target="mac"]', sheetEl);
+  var cloudBtn = $('#cloudRunPicker [data-target="cloud"]', sheetEl);
+  if (macBtn) {
+    macBtn.classList.toggle('active', cloud.runTarget !== 'cloud');
+    macBtn.setAttribute('aria-pressed', cloud.runTarget === 'cloud' ? 'false' : 'true');
+  }
+  if (cloudBtn) {
+    cloudBtn.classList.toggle('active', cloud.runTarget === 'cloud');
+    cloudBtn.setAttribute('aria-pressed', cloud.runTarget === 'cloud' ? 'true' : 'false');
+  }
+  var runNote = $('#cloudRunNote', sheetEl);
+  if (runNote) {
+    runNote.hidden = cloud.runTarget !== 'cloud';
+    runNote.textContent = 'Cloud sandbox execution needs the desktop edition\u2019s sandbox '
+      + 'bridge, arriving in a later release. Play stays on this device in this edition; '
+      + 'Connect still validates the saved key and lists the compute this installation owns.';
+  }
+  var select = $('#cloudProvider', sheetEl);
+  if (select) select.value = cloud.provider || 'daytona';
+  var keyLabel = $('#cloudKeyLabel', sheetEl);
+  if (keyLabel) keyLabel.textContent = title + ' API key';
+  var keyInput = $('#cloudKey', sheetEl);
+  if (keyInput) keyInput.placeholder = title + ' API key';
+  var status = $('#cloudStatus', sheetEl);
+  if (status) status.textContent = (cloud.status && cloud.status[cloud.provider]) || 'Not connected';
+  var note = $('#cloudNote', sheetEl);
+  if (note) note.textContent = cloudNoteText(cloud.provider || 'daytona');
+  var busy = !!cloud.busy;
+  ['cloudConnect', 'cloudSignIn', 'cloudStop', 'cloudRemoveKey', 'cloudSaveKey'].forEach(function (id) {
+    var button = $('#' + id, sheetEl);
+    if (button) button.disabled = busy;
+  });
+  var busyNote = $('#cloudBusyNote', sheetEl);
+  if (busyNote) {
+    busyNote.hidden = !busy;
+    busyNote.textContent = busy === 'stopping'
+      ? 'Verifying and stopping this installation\u2019s compute…'
+      : 'Preparing private cloud connection…';
+  }
+}
+
+function loadCloudStatus() {
+  apiGet('/api/cloud/status').then(function (res) {
+    if (res) store.cloud = Object.assign({}, store.cloud, res);
+    renderCloudPane();
+  }).catch(function () { renderCloudPane(); });
+}
+
+function cloudSaveKey() {
+  var input = $('#cloudKey', sheetEl);
+  var key = (input && input.value || '').trim();
+  var title = CLOUD_TITLES[store.cloud.provider] || 'Daytona';
+  if (!key) { toast('Enter a ' + title + ' API key first.'); return; }
+  apiPost('/api/cloud/key', { provider: store.cloud.provider, key: key }).then(function (res) {
+    if (input) input.value = '';
+    store.cloud = Object.assign({}, store.cloud, res);
+    renderCloudPane();
+  }).catch(apiFail);
+}
+
+function cloudConnect() {
+  store.cloud.busy = 'connecting';
+  renderCloudPane();
+  apiPost('/api/cloud/connect', { provider: store.cloud.provider }).then(function (res) {
+    store.cloud = Object.assign({}, store.cloud, res);
+    renderCloudPane();
+  }).catch(function (err) {
+    store.cloud.busy = '';
+    renderCloudPane();
+    apiFail(err);
+  });
+}
+
+function cloudStop() {
+  store.cloud.busy = 'stopping';
+  renderCloudPane();
+  apiPost('/api/cloud/stop', { provider: store.cloud.provider }).then(function (res) {
+    store.cloud = Object.assign({}, store.cloud, res);
+    renderCloudPane();
+  }).catch(function (err) {
+    store.cloud.busy = '';
+    renderCloudPane();
+    apiFail(err);
+  });
+}
+
+function cloudRemoveKey() {
+  apiPost('/api/cloud/remove-key', { provider: store.cloud.provider }).then(function (res) {
+    store.cloud = Object.assign({}, store.cloud, res);
+    renderCloudPane();
+  }).catch(apiFail);
+}
+
+function cloudSignIn() {
+  apiPost('/api/cloud/codex-login', { provider: store.cloud.provider }).then(function (res) {
+    var block = $('#cloudLoginNote', sheetEl);
+    if (block) {
+      block.hidden = false;
+      block.innerHTML = esc((res && res.note)
+        || 'A terminal window opened on the device that serves this dashboard.')
+        + ' Complete the device login there, or open <a href="https://auth.openai.com/codex/device"'
+        + ' target="_blank" rel="noreferrer">Codex device sign-in</a>.';
+    }
+  }).catch(apiFail);
+}
+
+function wireCloudPane() {
+  if (!sheetEl) return;
+  var picker = $('#cloudRunPicker', sheetEl);
+  if (picker) $all('button', picker).forEach(function (button) {
+    button.addEventListener('click', function () {
+      var target = button.getAttribute('data-target');
+      if (store.cloud.runTarget === target) return;
+      apiPost('/api/cloud/run-target', { target: target }).then(function (res) {
+        store.cloud = Object.assign({}, store.cloud, res);
+        renderCloudPane();
+      }).catch(apiFail);
+    });
+  });
+  var select = $('#cloudProvider', sheetEl);
+  if (select) select.addEventListener('change', function () {
+    apiPost('/api/cloud/provider', { provider: select.value }).then(function (res) {
+      store.cloud = Object.assign({}, store.cloud, res);
+      var keyInput = $('#cloudKey', sheetEl);
+      if (keyInput) keyInput.value = '';
+      renderCloudPane();
+    }).catch(apiFail);
+  });
+  var pairs = { cloudSaveKey: cloudSaveKey, cloudConnect: cloudConnect,
+                cloudSignIn: cloudSignIn, cloudStop: cloudStop,
+                cloudRemoveKey: cloudRemoveKey };
+  Object.keys(pairs).forEach(function (id) {
+    var button = $('#' + id, sheetEl);
+    if (button) button.addEventListener('click', pairs[id]);
+  });
+  renderCloudPane();
+}
+
+// ===== Lean server pane =====================================================
+
+function renderLeanPane() {
+  if (!sheetEl) return;
+  var lean = store.lean || {};
+  var status = $('#leanStatus', sheetEl);
+  if (status) status.textContent = lean.status || 'Stopped';
+  var local = $('#leanLocalURL', sheetEl);
+  if (local) { local.hidden = !lean.localURL; local.textContent = lean.localURL || ''; }
+  var pub = $('#leanPublicURL', sheetEl);
+  if (pub) { pub.hidden = !lean.publicURL; pub.textContent = lean.publicURL || ''; }
+  var busy = !!lean.busy;
+  ['leanStart', 'leanStop', 'leanOpenLogs', 'leanShare', 'leanStopShare', 'leanCopyToken']
+    .forEach(function (id) {
+      var button = $('#' + id, sheetEl);
+      if (button) button.disabled = busy;
+    });
+}
+
+function fillLeanFields() {
+  if (!sheetEl) return;
+  var lean = store.lean || {};
+  var storage = $('#leanStorage', sheetEl);
+  if (storage) storage.value = lean.storagePath || '';
+  var path = $('#leanPath', sheetEl);
+  if (path) path.value = lean.leanPath || '';
+  var ngrok = $('#leanNgrok', sheetEl);
+  if (ngrok) ngrok.value = lean.ngrokPath || '';
+}
+
+function leanDraftBody() {
+  var storage = $('#leanStorage', sheetEl), path = $('#leanPath', sheetEl),
+      ngrok = $('#leanNgrok', sheetEl);
+  return { storagePath: storage ? storage.value : '', leanPath: path ? path.value : '',
+           ngrokPath: ngrok ? ngrok.value : '' };
+}
+
+function leanSave() {
+  return apiPost('/api/lean/settings', leanDraftBody()).then(function (res) {
+    if (res) store.lean = Object.assign({}, store.lean, res);
+    renderLeanPane();
+    return null;
+  });
+}
+
+function loadLeanSettings() {
+  apiGet('/api/lean/settings').then(function (res) {
+    if (res) store.lean = Object.assign({}, store.lean, res);
+    fillLeanFields();
+    renderLeanPane();
+  }).catch(function () { renderLeanPane(); });
+}
+
+function leanStart() {
+  leanSave().then(function () {
+    apiPost('/api/lean/start', {}).then(function (res) {
+      store.lean = Object.assign({}, store.lean, res);
+      renderLeanPane();
+    }).catch(function (err) { loadLeanSettings(); apiFail(err); });
+  }).catch(apiFail);
+}
+
+function leanStop() {
+  apiPost('/api/lean/stop', {}).then(function (res) {
+    store.lean = Object.assign({}, store.lean, res);
+    renderLeanPane();
+  }).catch(apiFail);
+}
+
+function leanShare() {
+  leanSave().then(function () {
+    apiPost('/api/lean/share', {}).then(function (res) {
+      store.lean = Object.assign({}, store.lean, res);
+      renderLeanPane();
+    }).catch(function (err) { loadLeanSettings(); apiFail(err); });
+  }).catch(apiFail);
+}
+
+function leanStopShare() {
+  apiPost('/api/lean/stop-share', {}).then(function (res) {
+    store.lean = Object.assign({}, store.lean, res);
+    renderLeanPane();
+  }).catch(apiFail);
+}
+
+function leanCopyToken() {
+  apiGet('/api/lean/token').then(function (res) {
+    var token = (res && res.token) || '';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(token).then(function () {
+        toast('Access token copied');
+      }, function () { toast('The token file is server-token in the server folder'); });
+    } else {
+      toast('The token file is server-token in the server folder');
+    }
+  }).catch(apiFail);
+}
+
+function leanOpenLogs() {
+  apiPost('/api/lean/open-logs', {}).then(function () {
+    toast('Opened the server folder');
+  }).catch(apiFail);
+}
+
+function wireLeanPane() {
+  if (!sheetEl) return;
+  ['leanStorage', 'leanPath', 'leanNgrok'].forEach(function (id) {
+    var input = $('#' + id, sheetEl);
+    if (input) input.addEventListener('change', leanSave);
+  });
+  var pairs = { leanStart: leanStart, leanStop: leanStop, leanOpenLogs: leanOpenLogs,
+                leanShare: leanShare, leanStopShare: leanStopShare,
+                leanCopyToken: leanCopyToken };
+  Object.keys(pairs).forEach(function (id) {
+    var button = $('#' + id, sheetEl);
+    if (button) button.addEventListener('click', pairs[id]);
+  });
+  renderLeanPane();
+}
+
+function antigravityAccessMapping(value) {
+  if (value === 'unrestricted') return { antigravityPermission: 'auto', antigravityMode: 'accept-edits' };
+  if (value === 'plan') return { antigravityPermission: 'review', antigravityMode: 'plan' };
+  if (value === 'auto') return { antigravityPermission: 'review', antigravityMode: 'auto' };
+  return { antigravityPermission: 'review', antigravityMode: 'accept-edits' };
+}
+
 function saveSettings() {
   var settings = draftSettings();
   var body = {};
   $all('[data-key]', sheetEl).forEach(function (input) {
     var key = input.getAttribute('data-key');
     var value = input.value.trim();
+    if (key === 'antigravityAccess') {
+      var mapped = antigravityAccessMapping(value);
+      var changed = Object.keys(mapped).some(function (k) {
+        return String(settings[k] != null ? settings[k] : '') !== mapped[k];
+      });
+      if (changed) {
+        Object.keys(mapped).forEach(function (k) { body[k] = mapped[k]; settings[k] = mapped[k]; });
+      }
+      return;
+    }
     if (String(settings[key] != null ? settings[key] : '') !== value) {
       body[key] = value;
       settings[key] = value;
