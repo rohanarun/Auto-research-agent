@@ -15,6 +15,8 @@ import tempfile
 import threading
 import time
 import unittest
+import secrets
+import socket
 import urllib.request
 from datetime import datetime, timezone
 
@@ -23,6 +25,7 @@ sys.path.insert(0, str(ROOT))
 (ROOT / "tmp").mkdir(exist_ok=True)
 
 from webapp import catalog, cli_runner, dashboard, models, server, store, workspace  # noqa: E402
+from launcher import launcher  # noqa: E402
 
 REFERENCE = 978307200.0
 UTC = timezone.utc
@@ -1091,6 +1094,101 @@ class TriageFixTests(unittest.TestCase):
                     s._parse_repository("owner/repo/extra")
             finally:
                 s.shutdown()
+
+
+class LauncherHelperTests(unittest.TestCase):
+    """The Windows desktop launcher's pure helpers, without opening a window."""
+
+    def test_device_defaults_keep_this_install_copy_and_token(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as home:
+            home = Path(home)
+            (home / "Auto-research-agent" / "Runtime").mkdir(parents=True)
+            defaults = launcher.device_defaults(home=home)
+            self.assertEqual(defaults["workspaceRoot"], str(home / "Auto-research-agent"))
+            self.assertEqual(defaults["token"], launcher.DEVICE_TOKEN)
+            self.assertEqual(defaults["port"], 8765)
+            self.assertEqual(defaults["access"], "lan")
+
+    def test_device_defaults_generate_a_token_on_a_fresh_machine(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as home:
+            first = launcher.device_defaults(home=Path(home))
+            second = launcher.device_defaults(home=Path(home))
+            self.assertNotEqual(first["token"], launcher.DEVICE_TOKEN)
+            self.assertRegex(first["token"], r"[A-Za-z0-9_-]{24}")
+            self.assertRegex(second["token"], r"[A-Za-z0-9_-]{24}")
+
+    def test_load_config_seeds_parses_and_repairs(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            path = Path(tmp) / "config.json"
+            defaults = {"workspaceRoot": "D:\\research", "port": 8765,
+                        "token": "device-token", "access": "lan"}
+            self.assertTrue(launcher.seed_config(path, defaults))
+            self.assertFalse(launcher.seed_config(path, defaults))
+            self.assertEqual(launcher.load_config(path, defaults)["token"], "device-token")
+            # Hand-edited values survive; unknown fields fall back per field.
+            path.write_text(json.dumps({"workspaceRoot": "E:\\work", "port": 8766,
+                                        "access": "local", "token": ""}),
+                            encoding="utf-8")
+            loaded = launcher.load_config(path, defaults)
+            self.assertEqual(loaded["workspaceRoot"], "E:\\work")
+            self.assertEqual(loaded["port"], 8766)
+            self.assertEqual(loaded["access"], "local")
+            self.assertEqual(loaded["token"], "device-token")
+            # A corrupt file is re-seeded instead of crashing startup.
+            path.write_text("not json", encoding="utf-8")
+            repaired = launcher.load_config(path, defaults)
+            self.assertEqual(repaired["port"], 8765)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), defaults)
+
+    def test_port_busy_matches_a_real_listener(self):
+        listener = socket.socket()
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        port = listener.getsockname()[1]
+        probe = socket.socket()
+        probe.bind(("127.0.0.1", 0))
+        free = probe.getsockname()[1]
+        probe.close()
+        try:
+            self.assertTrue(launcher.port_busy(port))
+            self.assertFalse(launcher.port_busy(free))
+        finally:
+            listener.close()
+
+    @unittest.skipUnless(os.name == "nt", "the single-instance mutex is Windows-only")
+    def test_instance_mutex_detects_an_existing_owner(self):
+        import uuid
+        name = "AutoResearch.test." + str(uuid.uuid4()).replace("-", "")
+        try:
+            handle, held = launcher.acquire_instance_lock(name)
+            self.assertFalse(held)
+            again, held_again = launcher.acquire_instance_lock(name)
+            self.assertTrue(held_again)
+            launcher.release_instance_lock(handle)
+            launcher.release_instance_lock(again)
+            after, held_after = launcher.acquire_instance_lock(name)
+            self.assertFalse(held_after)
+            launcher.release_instance_lock(after)
+        finally:
+            pass
+
+    def test_generate_token_matches_the_server_format(self):
+        token = launcher.generate_token()
+        self.assertEqual(len(token), len(secrets.token_urlsafe(18)))
+        self.assertNotEqual(token, launcher.generate_token())
+        self.assertRegex(token, r"[A-Za-z0-9_-]+")
+
+    def test_window_url_and_workspace_resolution(self):
+        config = {"port": 8765, "token": "lTvSAN8IVidADF2yrAXKPKK0"}
+        self.assertEqual(launcher.window_url(config),
+                         "http://127.0.0.1:8765/?token=lTvSAN8IVidADF2yrAXKPKK0")
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            root = Path(tmp) / "ws"
+            (root / "Runtime").mkdir(parents=True)
+            self.assertEqual(Path(launcher.resolve_workspace(str(root))).name, "Runtime")
+            plain = Path(tmp) / "plain"
+            plain.mkdir()
+            self.assertEqual(launcher.resolve_workspace(str(plain)), str(plain))
 
 
 if __name__ == "__main__":

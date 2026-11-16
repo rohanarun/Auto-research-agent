@@ -6,6 +6,9 @@ Runtime/
 evidence/
 Resources/Defaults.json
 Resources/catalog-source.html
+# Windows desktop exe build outputs (launcher/build.ps1)
+dist/
+AutoResearch.spec
 .env
 .env.*
 !.env.example
