@@ -77,6 +77,29 @@ function Wait-ForServer([int]$p) {
 
 Write-Output "== AutoResearch.exe smoke test =="
 
+# --- first-run shortcut choice: seed it, restore the user's config at the end -
+# The exe asks once (a MessageBox), then records shortcutChoiceMade and
+# desktopShortcut in %APPDATA%\AutoResearch\config.json. Seed "made, no
+# shortcut" so the smoke launches never prompt, and restore the user's config
+# in the finally block below. The seed is written with Python (JSON, UTF-8
+# without BOM): ConvertTo-Json 5.1 mangles strings and Out-File adds a BOM.
+$exeConfig = Join-Path $env:APPDATA "AutoResearch\config.json"
+$exeConfigBackup = "$exeConfig.smoke.bak"
+Copy-Item $exeConfig $exeConfigBackup -Force
+$seedPy = @'
+import json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["shortcutChoiceMade"] = True
+data["desktopShortcut"] = False
+path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+'@
+$seedFile = Join-Path ([System.IO.Path]::GetTempPath()) "autoresearch-smoke-seed.py"
+[IO.File]::WriteAllText($seedFile, $seedPy, [Text.UTF8Encoding]::new($false))
+try {
+    python -B $seedFile $exeConfig
+    if ($LASTEXITCODE -ne 0) { throw "Could not seed the shortcut choice in the smoke config." }
+
 # --- stop the manual python server so the exe can bind the port ---------------
 # 'webapp.server' matches the manual server's 'webapp\server.py' command line.
 $manual = Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='pythonw.exe'" |
@@ -190,6 +213,16 @@ while ((Get-Date) -lt $deadline -and -not $freed) {
     if (-not $freed) { Start-Sleep -Milliseconds 500 }
 }
 Assert "port $port freed after the window closed" $freed "server stopped cleanly"
+
+$after = Get-Content $exeConfig -Raw | ConvertFrom-Json
+Assert "shortcut choice survives the launches" ($after.shortcutChoiceMade -eq $true -and $after.desktopShortcut -eq $false) ("the launcher neither re-prompted nor rewrote the choice")
+}
+finally {
+    Copy-Item $exeConfigBackup $exeConfig -Force
+    Remove-Item $exeConfigBackup -Force -ErrorAction SilentlyContinue
+    Remove-Item $seedFile -Force -ErrorAction SilentlyContinue
+    Write-Output "user config restored from the smoke backup"
+}
 
 Write-Output ("== {0} passed, {1} failed ==" -f $script:passes, $script:failures)
 if ($script:failures -gt 0) { exit 1 }

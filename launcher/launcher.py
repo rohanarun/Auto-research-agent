@@ -30,6 +30,7 @@ import json
 import os
 import secrets
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -58,6 +59,12 @@ WINDOW_TITLE = "Auto Research"
 RUNNING_PROMPT = "Research is running \u2013 quit anyway?"
 ALREADY_RUNNING_MESSAGE = ("Auto Research is already running. "
                            "The dashboard opens in your browser.")
+SHORTCUT_NAME = "Auto Research.lnk"
+SHORTCUT_QUESTION = ("Do you want a desktop shortcut for Auto Research?\n\n"
+                     "Yes creates an icon on the desktop; No installs just "
+                     "the app.")
+IDYES = 6
+MB_YESNO_ICONINFO = 0x40 | 0x4  # MB_ICONINFORMATION | MB_YESNO
 
 
 # ---------- config ----------
@@ -268,6 +275,86 @@ def notify(message: str) -> None:
         log(message)
 
 
+# ---------- first-run desktop shortcut choice ----------
+
+def desktop_dir() -> Path:
+    """The real desktop, honoring Explorer's User Shell Folders redirect."""
+    if os.name == "nt":
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r"Software\Microsoft\Windows\CurrentVersion"
+                                r"\Explorer\User Shell Folders") as key:
+                value, _ = winreg.QueryValueEx(key, "Desktop")
+            return Path(os.path.expandvars(str(value)))
+        except OSError:
+            pass
+    return Path.home() / "Desktop"
+
+
+def choice_made(path: Path | None = None) -> tuple[bool, bool]:
+    """(shortcutChoiceMade, desktopShortcut) recorded in the config."""
+    path = path or config_path()
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError):
+        return False, False
+    if not isinstance(data, dict):
+        return False, False
+    return bool(data.get("shortcutChoiceMade")), bool(data.get("desktopShortcut"))
+
+
+def save_choice(desktop_shortcut: bool, path: Path | None = None) -> None:
+    """Record the first-run choice so the question is never asked twice."""
+    path = path or config_path()
+    data = {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            data = loaded
+    except (OSError, ValueError, UnicodeDecodeError):
+        data = {}
+    data["shortcutChoiceMade"] = True
+    data["desktopShortcut"] = bool(desktop_shortcut)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    except OSError:
+        log("Could not record the shortcut choice in the config.")
+
+
+def ask_desktop_shortcut() -> bool:
+    """The first-run question: a desktop shortcut, or just the app."""
+    try:
+        answer = ctypes.windll.user32.MessageBoxW(
+            None, SHORTCUT_QUESTION, WINDOW_TITLE, MB_YESNO_ICONINFO)
+    except Exception:  # pragma: no cover - a message box is best effort
+        log("The shortcut prompt is unavailable; defaulting to no shortcut.")
+        return False
+    return answer == IDYES
+
+
+def install_desktop_shortcut(exe_path: str) -> bool:
+    """Create the desktop shortcut via the WScript.Shell COM object."""
+    target = desktop_dir() / SHORTCUT_NAME
+    exe = str(Path(exe_path).resolve())
+    parent = str(Path(exe).parent)
+    script = ("$shell = New-Object -ComObject WScript.Shell;"
+              f"$shortcut = $shell.CreateShortcut('{target}');"
+              f"$shortcut.TargetPath = '{exe}';"
+              f"$shortcut.WorkingDirectory = '{parent}';"
+              f"$shortcut.IconLocation = '{exe},0';"
+              "$shortcut.Save()")
+    try:
+        completed = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+             "-Command", script], capture_output=True, timeout=30,
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        return completed.returncode == 0 and target.is_file()
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 # ---------- server assembly ----------
 
 def start_server(workspace: str, port: int, access: str, token: str,
@@ -413,6 +500,21 @@ def main() -> int:
     thread.start()
     log(f"Serving {config['access']} on port {config['port']}; "
         f"workspace {workspace}")
+
+    # First run: ask whether to install a desktop shortcut or just the app.
+    made, wanted = choice_made()
+    just_asked = False
+    if not made:
+        wanted = ask_desktop_shortcut()
+        save_choice(wanted)
+        just_asked = True
+        log(f"First-run shortcut choice recorded: {wanted}")
+    if wanted and getattr(sys, "frozen", False):
+        target = desktop_dir() / SHORTCUT_NAME
+        if just_asked or not target.is_file():
+            created = install_desktop_shortcut(sys.executable)
+            log("Desktop shortcut " + ("created" if created else "could not be created"))
+
     try:
         return run_window(config, server, store, thread)
     finally:

@@ -15,6 +15,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from . import spawn as spawn_module
+
 CURL = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "curl.exe"
 
 
@@ -55,7 +57,8 @@ def _fetch_via_curl(url: str, timeout: float = 20.0) -> bytes:
         [str(CURL), "-sS", "-L", "--max-time", str(int(timeout) + 5),
          "--fail-with-body", "-H", "Accept: application/json",
          "-A", "AutoResearchWeb/1.0", url],
-        capture_output=True, timeout=timeout + 10)
+        capture_output=True, timeout=timeout + 10,
+        creationflags=spawn_module.NO_WINDOW)
     if result.returncode != 0:
         detail = result.stderr.decode("utf-8", "replace").strip()
         raise TransportError(detail or f"curl exited {result.returncode}.")
@@ -108,7 +111,8 @@ def _request_via_curl(url: str, timeout: float, headers: dict, method: str,
     if body is not None:
         args += ["-d", body]
     args.append(url)
-    result = subprocess.run(args, capture_output=True, timeout=timeout + 10)
+    result = subprocess.run(args, capture_output=True, timeout=timeout + 10,
+                            creationflags=spawn_module.NO_WINDOW)
     payload = result.stdout
     if result.returncode != 0 and not payload:
         detail = result.stderr.decode("utf-8", "replace").strip()

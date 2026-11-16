@@ -11,6 +11,7 @@ import subprocess
 import threading
 import time
 
+from . import spawn as spawn_module
 from .models import ResearchError
 
 PROVIDER_TITLES = {"codex": "Codex", "claude": "Claude", "opencode": "OpenCode",
@@ -344,7 +345,8 @@ def platform_launch(command: Command, directory: str, environment: dict) -> subp
     if os.name == "nt":
         if executable.lower().endswith((".cmd", ".bat")):
             args = ["cmd", "/c"] + args
-        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+        creationflags = spawn_module.quiet_flags(
+            subprocess.CREATE_NEW_PROCESS_GROUP)
     return subprocess.Popen(
         args, cwd=directory, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, env=environment, creationflags=creationflags,
@@ -373,7 +375,8 @@ class ProcessRunner:
         try:
             if os.name == "nt":
                 subprocess.run(["taskkill", "/T", "/F", "/PID", str(process.pid)],
-                               capture_output=True, timeout=10)
+                               capture_output=True, timeout=10,
+                               creationflags=spawn_module.NO_WINDOW)
             else:
                 import signal
                 try:

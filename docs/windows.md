@@ -114,6 +114,24 @@ window shows the repo's icon and the dashboard the manual server serves.
 - Closing the window stops the server and frees the port; the process exits
   with code 0. If research is still running, the app asks before quitting,
   like the native app's quit prompt, and stops the runs after confirmation.
+- First run asks once — "Do you want a desktop shortcut for Auto Research?"
+  Yes creates an icon on your real desktop (it honors Explorer's User Shell
+  Folders redirect) pointing at the installed exe; No installs just the app.
+  The answer is recorded in the config (`shortcutChoiceMade`,
+  `desktopShortcut`) and the question is never asked again. If the shortcut
+  is later deleted, the next run recreates it only when the answer was Yes.
+- No terminal popups while the app works: the exe is a windowed process, and
+  every console child it spawns — `git.exe`, `curl.exe`, `taskkill.exe`,
+  `cmd.exe` wrappers, provider CLIs — allocates its own console window at
+  launch. On this machine each spawn flashed a Windows Terminal window
+  during the child's run (measured with a window-enumeration probe run from
+  a console-less parent: a plain piped child spawn opened +1 visible
+  console window; with `CREATE_NO_WINDOW` it opened +0 — the numbers are
+  machine-specific: Windows 11 hosts consoles in a Windows Terminal window,
+  class `CASCADIA_HOSTING_WINDOW_CLASS`, older hosts in
+  `ConsoleWindowClass`). Every piped spawn in the webapp now passes
+  `CREATE_NO_WINDOW` (`webapp/spawn.py`); the deliberate visible terminal
+  that runs provider sign-ins keeps its window.
 - If WebView2 cannot start, the tokenized dashboard URL opens in the default
   browser and the server keeps serving. The launcher logs to
   `%APPDATA%\AutoResearch\launcher.log`.
@@ -129,17 +147,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File launcher\test_app.ps1
 `build.ps1` uses the system Python 3, bundles `webapp/` and `Resources/` as
 data, collects the pywebview shell, and zips `dist\AutoResearch` to
 `dist\AutoResearch-windows-x64.zip`. `test_app.ps1` stops the manual server,
-launches the exe twice, and asserts the token guard, workspace parity with
-`Runtime/state.json`, the catalog status, a chart feed, the window title and
-the tailnet binding over HTTP, then a clean shutdown and a relaunch. The
-launcher's pure helpers (config seed, port check, mutex, token) are covered
-by the Python suite in `scripts/test_webapp.py`.
+seeds the recorded shortcut choice into the config (backs it up first and
+restores it at the end, so the smoke run never prompts and never touches
+your choice), launches the exe twice, and asserts the token guard, workspace
+parity with `Runtime/state.json`, the catalog status, a chart feed, the
+window title and the tailnet binding over HTTP, then a clean shutdown and a
+relaunch. The launcher's pure helpers (config seed, port check, mutex,
+token) are covered by the Python suite in `scripts/test_webapp.py`, and
+`scripts/test_desktop.py` covers the spawn flag and the shortcut-choice
+roundtrip offline (the spawned processes are fakes).
 
 Untested: a second, clean machine (first-run seeding there, WebView2 outside
 Windows 11), and reaching the dashboard from other tailnet devices — only
 this device's own tailnet address was verified. The exe is unsigned, so
 Windows SmartScreen may ask on first run. Autostart, a tray icon, auto-update
-and code signing are future work.
+and code signing are future work. The shortcut's creation through the
+WScript.Shell COM object is verified only by the smoke run on this machine,
+and the popup-probe numbers above are machine-specific — other consoles
+(hosted vs. legacy) may count differently.
 
 ## Built-in kernels and the setup form
 

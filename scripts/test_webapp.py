@@ -730,7 +730,7 @@ class TriageFixTests(unittest.TestCase):
             self._patch(transport, "CURL", fake)
             self._patch(transport, "curl_available", lambda: True)
 
-            def runner(command, capture_output, timeout):
+            def runner(command, capture_output, timeout, creationflags=0):
                 class Result:
                     returncode = 0
                     stdout = b"payload"

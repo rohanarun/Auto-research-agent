@@ -18,6 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
+from . import spawn as spawn_module
 from .models import ResearchError
 
 
@@ -42,7 +43,8 @@ def _write_json(path: Path, data: dict):
 
 
 def _default_runner(command: list, cwd: str, timeout: float = 120.0):
-    result = subprocess.run(command, cwd=cwd, capture_output=True, timeout=timeout)
+    result = subprocess.run(command, cwd=cwd, capture_output=True, timeout=timeout,
+                            creationflags=spawn_module.NO_WINDOW)
     return result.returncode, result.stdout.decode("utf-8", "replace"), \
         result.stderr.decode("utf-8", "replace")
 
@@ -50,7 +52,7 @@ def _default_runner(command: list, cwd: str, timeout: float = 120.0):
 def _default_popen(command: list, cwd: str):
     return subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, text=True, encoding="utf-8",
-                            errors="replace")
+                            errors="replace", creationflags=spawn_module.NO_WINDOW)
 
 
 def _default_health(url: str, token: str, timeout: float = 10.0) -> int:

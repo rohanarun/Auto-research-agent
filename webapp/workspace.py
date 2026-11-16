@@ -11,6 +11,7 @@ import pathlib
 import subprocess
 import urllib.parse
 
+from . import spawn as spawn_module
 from .models import ResearchError
 
 SYNCED_COMPONENTS = ("Documents", "Desktop", "Mobile Documents", "OneDrive",
@@ -119,7 +120,8 @@ def clone(command: list[str], parent: pathlib.Path, environment: dict,
     process = subprocess.Popen(command, cwd=str(parent), stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, text=True,
                                encoding="utf-8", errors="replace",
-                               env=environment)
+                               env=environment,
+                               creationflags=spawn_module.NO_WINDOW)
     out: list[str] = []
     try:
         for line in process.stdout or []:
@@ -136,7 +138,8 @@ def clone(command: list[str], parent: pathlib.Path, environment: dict,
 def tracked_files(directory_path: pathlib.Path, environment: dict) -> list[str]:
     try:
         result = subprocess.run(["git", "ls-files", "-z"], cwd=str(directory_path),
-                                capture_output=True, env=environment, timeout=60)
+                                capture_output=True, env=environment, timeout=60,
+                                creationflags=spawn_module.NO_WINDOW)
     except (OSError, subprocess.SubprocessError):
         return []
     if result.returncode != 0:

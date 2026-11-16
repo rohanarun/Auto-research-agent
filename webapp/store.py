@@ -20,6 +20,7 @@ from . import cloud as cloud_module
 from . import dashboard as dashboard_module
 from . import kernel as kernel_module
 from . import lean as lean_module
+from . import spawn as spawn_module
 from . import workspace as workspace_module
 from .models import (ChatMessage, ResearchError, ResearchProject,
                      ResearchSession, SavedState, Settings, dump_swift_json,
@@ -810,8 +811,12 @@ class Store:
         happens on the device that serves this dashboard."""
         try:
             if os.name == "nt":
+                # The transient cmd wrapper stays hidden; `start` still opens
+                # the script's own visible terminal window, which is the
+                # point here.
                 subprocess.Popen(["cmd", "/c", "start", "", str(script)],
-                                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                                 | spawn_module.NO_WINDOW)
                 return {"spawned": True, "script": str(script),
                         "note": ("A terminal window opened on the device that serves this "
                                  "dashboard. Complete the sign-in there, then refresh the "

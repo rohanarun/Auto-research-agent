@@ -17,6 +17,8 @@ import subprocess
 
 from .models import ResearchError
 
+from . import spawn as spawn_module
+
 ACCOUNT_PATTERN = re.compile(r"\A[a-zA-Z0-9][a-zA-Z0-9_-]*\Z")
 ANSI_PATTERN = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 SIGNED_IN_PATTERN = re.compile(r"(?im)^\s*signed in as\s+@?([a-zA-Z0-9][a-zA-Z0-9_-]*)\s*$")
@@ -165,7 +167,8 @@ def verify_account(workspace_root: str, environment: dict) -> str:
         args = ["cmd", "/c"] + args
     try:
         result = subprocess.run(args, cwd=workspace_root,
-                                capture_output=True, timeout=30, env=environment)
+                                capture_output=True, timeout=30, env=environment,
+                                creationflags=spawn_module.NO_WINDOW)
     except (OSError, subprocess.SubprocessError):
         raise ResearchError("OKC could not verify a signed-in account. Use Choose account, "
                             "complete login in the terminal, then refresh the account.") from None
