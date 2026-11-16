@@ -1,0 +1,6 @@
+# Only the launcher and packaging layer may depend on these; webapp/ itself
+# stays stdlib-only (repo rule). Versions floor what the Windows 11 device
+# under Python 3.13 uses today.
+pywebview>=5.4
+pyinstaller>=6.0
+pillow>=10.0
