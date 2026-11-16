@@ -85,6 +85,59 @@ Notes:
   repository list. The saved catalog and the built-in kernel projects remain
   available, and **Open research → refresh** retries later.
 
+## The Windows app (exe)
+
+The repo also packages the dashboard as a desktop app. `launcher\build.ps1`
+builds `dist\AutoResearch\AutoResearch.exe`, a native window around the same
+server. Double-click it — no terminal, no install steps, no admin rights. The
+window shows the repo's icon and the dashboard the manual server serves.
+
+- The exe serves the same workspace the manual server does, with zero
+  migration. First run writes `%APPDATA%\AutoResearch\config.json` with the
+  workspace root, port 8765, the device token and LAN access; edit that file
+  to move the workspace or change the port. A machine without an existing
+  install copy generates its own token in the format the server prints.
+- Tailnet links keep working: the server binds all interfaces (`--access
+  lan`) with the same token, so saved `http://<address>:8765/?token=…`
+  bookmarks are unchanged.
+- Provider CLIs are detected from PATH the same way as the manual server.
+  Nothing is bundled or reinstalled, and signing in still opens a terminal
+  window on the device that serves the dashboard.
+- The catalog fetch uses the same `curl.exe` fallback when Python's TLS
+  cannot build the certificate chain.
+- A second launch — or a launch while the manual server already owns the
+  port — does not start a second server. It notes "already running" and
+  opens the dashboard in the browser instead.
+- Closing the window stops the server and frees the port; the process exits
+  with code 0. If research is still running, the app asks before quitting,
+  like the native app's quit prompt, and stops the runs after confirmation.
+- If WebView2 cannot start, the tokenized dashboard URL opens in the default
+  browser and the server keeps serving. The launcher logs to
+  `%APPDATA%\AutoResearch\launcher.log`.
+
+Build and test on the machine that runs the app:
+
+```powershell
+pip install -r launcher\requirements-packaging.txt
+powershell -NoProfile -ExecutionPolicy Bypass -File launcher\build.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File launcher\test_app.ps1
+```
+
+`build.ps1` uses the system Python 3, bundles `webapp/` and `Resources/` as
+data, collects the pywebview shell, and zips `dist\AutoResearch` to
+`dist\AutoResearch-windows-x64.zip`. `test_app.ps1` stops the manual server,
+launches the exe twice, and asserts the token guard, workspace parity with
+`Runtime/state.json`, the catalog status, a chart feed, the window title and
+the tailnet binding over HTTP, then a clean shutdown and a relaunch. The
+launcher's pure helpers (config seed, port check, mutex, token) are covered
+by the Python suite in `scripts/test_webapp.py`.
+
+Untested: a second, clean machine (first-run seeding there, WebView2 outside
+Windows 11), and reaching the dashboard from other tailnet devices — only
+this device's own tailnet address was verified. The exe is unsigned, so
+Windows SmartScreen may ask on first run. Autostart, a tray icon, auto-update
+and code signing are future work.
+
 ## Built-in kernels and the setup form
 
 Built-in kernel projects (the MUSE challenges) use a setup form, mirroring

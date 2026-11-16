@@ -227,8 +227,12 @@ python -m webapp.server --access lan
 See [docs/windows.md](docs/windows.md) for the Windows install and the
 Tailscale dashboard guide, including the built-in kernel setup form, the
 policy/instruction/project editors, parallel agents with per-agent checkouts,
-and signing in from a remote device. Its Python test suite runs alongside the
-others:
+and signing in from a remote device. On Windows,
+`powershell -NoProfile -ExecutionPolicy Bypass -File launcher\build.ps1`
+packages the same dashboard as a double-click desktop app
+(`dist\AutoResearch\AutoResearch.exe`); see [the Windows app
+section](docs/windows.md#the-windows-app-exe). Its Python test suite runs
+alongside the others:
 
 ```
 python3 -B -m unittest discover -s scripts -p 'test_*.py'
