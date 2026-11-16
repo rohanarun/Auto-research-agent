@@ -2011,7 +2011,7 @@ function buildSettingsBody() {
 
   // Cloud — 1:1 with the native Cloud tab (ConnectionsView.swift).
   panes.push('<div data-pane="Cloud">' +
-    '<div class="field-row"><span class="field-label">Run research</span>' +
+    '<div class="field"><span class="field-label" style="font-size:11px;color:var(--muted)">Run research</span>' +
       '<div class="segmented run-picker" id="cloudRunPicker">' +
         '<button data-target="mac" aria-pressed="true">This device</button>' +
         '<button data-target="cloud" aria-pressed="false"><span id="cloudRunCloudLabel">Daytona sandboxes · Codex</span></button>' +
@@ -2386,6 +2386,7 @@ function renderLoginBlock() {
 // ===== Cloud pane (the native Cloud tab) ====================================
 
 var CLOUD_TITLES = { daytona: 'Daytona', agent37: 'Agent37' };
+var urlProviderLock = null;
 
 function cloudNoteText(provider) {
   if (provider === 'agent37') {
@@ -2443,7 +2444,10 @@ function renderCloudPane() {
 
 function loadCloudStatus() {
   apiGet('/api/cloud/status').then(function (res) {
-    if (res) store.cloud = Object.assign({}, store.cloud, res);
+    if (res) {
+      store.cloud = Object.assign({}, store.cloud, res);
+      if (urlProviderLock) store.cloud.provider = urlProviderLock;
+    }
     renderCloudPane();
   }).catch(function () { renderCloudPane(); });
 }
@@ -3017,6 +3021,17 @@ function boot() {
     try { window.history.replaceState(null, '', window.location.pathname); } catch (e) { /* ignore */ }
   } else {
     try { store.token = localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { store.token = ''; }
+  }
+  var sheet = params.get('sheet');
+  if (sheet === 'settings') {
+    var tab = params.get('tab');
+    if (tab && SETTINGS_TABS.indexOf(tab) !== -1) store.settingsTab = tab;
+    var cloudProvider = params.get('provider');
+    if (cloudProvider === 'daytona' || cloudProvider === 'agent37') {
+      store.cloud.provider = cloudProvider;
+      urlProviderLock = cloudProvider;
+    }
+    openSettingsSheet();
   }
   wireEvents();
   pollLoop();

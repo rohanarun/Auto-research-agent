@@ -1316,6 +1316,7 @@ a:hover { text-decoration: underline; }
 }
 .run-picker button.active { background: #dcdce1; }
 .run-picker button:disabled { color: var(--muted); cursor: not-allowed; }
+.sheet-settings .segmented.run-picker { width: 100%; margin-left: 0; }
 
 .login-actions { display: flex; gap: 8px; margin-top: 8px; }
 .mono-note { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
@@ -1363,6 +1364,11 @@ a:hover { text-decoration: underline; }
 .setup-guide .prompt-preview { max-height: 220px; }
 
 .sheet-instructions .sheet-body { max-height: 68vh; overflow-y: auto; }
+
+/* Reduced motion: skip the popover and sheet entrance animations. */
+@media (prefers-reduced-motion: reduce) {
+  .menu-pop, .sheet, .sheet-backdrop { animation: none; }
+}
 
 /* Small screens: keep the sidebar usable */
 
