@@ -102,7 +102,10 @@ window shows the repo's icon and the dashboard the manual server serves.
   bookmarks are unchanged.
 - Provider CLIs are detected from PATH the same way as the manual server.
   Nothing is bundled or reinstalled, and signing in still opens a terminal
-  window on the device that serves the dashboard.
+  window on the device that serves the dashboard. The exe reads the
+  workspace's own checkout's `Resources` when the workspace is a checkout —
+  the same generated `Defaults.json` with the detected CLI paths — so the
+  provider setup matches the manual server with no re-setup.
 - The catalog fetch uses the same `curl.exe` fallback when Python's TLS
   cannot build the certificate chain.
 - A second launch — or a launch while the manual server already owns the

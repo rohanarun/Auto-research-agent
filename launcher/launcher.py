@@ -209,7 +209,24 @@ def repository_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def resources_dir() -> Path:
+def resources_dir(workspace: str = "") -> Path:
+    """The Resources directory the server reads.
+
+    The workspace's own checkout ships first: that is where the manual
+    server reads its generated ``Defaults.json`` (the detected provider CLI
+    paths), so the exe reports the same provider setup with zero re-setup.
+    A workspace configured as a ``Runtime`` directory resolves to its
+    parent's ``Resources``. Without either, the bundled ``Resources`` are
+    used (``sys._MEIPASS`` in a frozen exe).
+    """
+    if workspace:
+        root = Path(workspace)
+        candidates = [root / "Resources"]
+        if root.name.lower() == "runtime":
+            candidates.append(root.parent / "Resources")
+        for candidate in candidates:
+            if candidate.is_dir():
+                return candidate
     return repository_root() / "Resources"
 
 
@@ -381,7 +398,7 @@ def main() -> int:
     workspace = resolve_workspace(str(config["workspaceRoot"]))
     try:
         server, store = start_server(workspace, config["port"], config["access"],
-                                     config["token"], resources_dir())
+                                     config["token"], resources_dir(workspace))
     except Exception as error:  # noqa: BLE001 - visible instead of silent
         log(f"Server startup failed: {error}")
         if stream:

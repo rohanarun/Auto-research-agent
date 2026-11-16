@@ -1178,6 +1178,27 @@ class LauncherHelperTests(unittest.TestCase):
         self.assertNotEqual(token, launcher.generate_token())
         self.assertRegex(token, r"[A-Za-z0-9_-]+")
 
+    def test_resources_dir_prefers_the_workspace_checkout(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            # A checkout root with its own Resources: used directly, like the
+            # manual server reading that checkout's generated Defaults.json.
+            checkout = Path(tmp) / "repo"
+            (checkout / "Resources").mkdir(parents=True)
+            self.assertEqual(launcher.resources_dir(str(checkout)),
+                             checkout / "Resources")
+            # A workspace configured as the Runtime directory resolves to
+            # the checkout's Resources.
+            runtime = checkout / "Runtime"
+            runtime.mkdir()
+            self.assertEqual(launcher.resources_dir(str(runtime)),
+                             checkout / "Resources")
+            # A plain workspace with no checkout nearby: the bundled
+            # Resources (repository_root()/Resources in unfrozen runs).
+            plain = Path(tmp) / "plain"
+            plain.mkdir()
+            self.assertEqual(launcher.resources_dir(str(plain)),
+                             launcher.repository_root() / "Resources")
+
     def test_window_url_and_workspace_resolution(self):
         config = {"port": 8765, "token": "lTvSAN8IVidADF2yrAXKPKK0"}
         self.assertEqual(launcher.window_url(config),
