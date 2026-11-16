@@ -4,34 +4,51 @@ The catalog site publishes two JSON feeds next to the catalog page:
 ``api/contributors`` (history groups per track) and ``api/research``
 (tracks with pull requests). The native app renders a compact chart from
 these feeds; the web edition renders the same data in the project view.
+
+Feeds are fetched through the shared transport (Windows schannel fallback)
+and saved as snapshots in the workspace cache, so the chart still renders
+from the last saved data when the backend is unreachable.
 """
 import json
-import urllib.request
+
+from . import transport
 
 
 class DashboardError(Exception):
     pass
 
 
-def _feed(url: str, timeout: float = 20.0):
+def _feed(url: str, timeout: float = 20.0, snapshot=None) -> dict:
     if not url.startswith("https://"):
         raise DashboardError("Use an HTTPS backend address.")
-    request = urllib.request.Request(url, headers={"Accept": "application/json"})
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            if response.status != 200:
-                raise DashboardError("The research backend is unavailable.")
-            return json.loads(response.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as error:
-        raise DashboardError(f"The research backend is unavailable: {error}")
+        raw = transport.fetch_bytes(url, timeout=timeout)
+    except transport.TransportError as error:
+        if snapshot is not None:
+            saved = transport.read_snapshot(snapshot)
+            if saved:
+                try:
+                    return json.loads(saved)
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    pass
+        raise DashboardError(f"The research backend is unavailable: {error}") from None
+    try:
+        payload = json.loads(raw.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        raise DashboardError(f"The research backend is unavailable: {error}") from None
+    if snapshot is not None:
+        transport.save_snapshot(snapshot, raw.decode("utf-8"))
+    return payload
 
 
-def fetch(catalog_url: str, timeout: float = 20.0) -> dict:
+def fetch(catalog_url: str, timeout: float = 20.0, cache_dir=None) -> dict:
     if not catalog_url.rstrip("/").startswith("https://"):
         raise DashboardError("Use an HTTPS backend address.")
     base = catalog_url.rstrip("/")
-    history = _feed(base + "/api/contributors", timeout)
-    research = _feed(base + "/api/research", timeout)
+    history = _feed(base + "/api/contributors", timeout,
+                    cache_dir / "contributors.json" if cache_dir else None)
+    research = _feed(base + "/api/research", timeout,
+                     cache_dir / "research.json" if cache_dir else None)
     return {"history": history, "research": research}
 
 

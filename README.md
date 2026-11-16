@@ -225,7 +225,10 @@ python -m webapp.server --access lan
 ```
 
 See [docs/windows.md](docs/windows.md) for the Windows install and the
-Tailscale dashboard guide. Its Python test suite runs alongside the others:
+Tailscale dashboard guide, including the built-in kernel setup form, the
+policy/instruction/project editors, parallel agents with per-agent checkouts,
+and signing in from a remote device. Its Python test suite runs alongside the
+others:
 
 ```
 python3 -B -m unittest discover -s scripts -p 'test_*.py'

@@ -154,9 +154,12 @@ class ResearchSession:
         self.state = "Ready"
         self.scripted: bool | None = None
         self.closed_at: float | None = None
+        # Parallel-group membership, matching the native SharedAgent keys so
+        # chats interchange between editions.
+        self.shared_agent: dict | None = None
 
     def to_json(self):
-        return {
+        data = {
             "id": self.id,
             "projectID": self.project_id,
             "title": self.title,
@@ -169,6 +172,9 @@ class ResearchSession:
             "scripted": self.scripted,
             "closedAt": encode_date(self.closed_at) if self.closed_at is not None else None,
         }
+        if self.shared_agent is not None:
+            data["sharedAgent"] = self.shared_agent
+        return data
 
     @classmethod
     def from_json(cls, data):
@@ -181,6 +187,7 @@ class ResearchSession:
         session.state = data.get("state", "Ready")
         session.scripted = data.get("scripted")
         session.closed_at = decode_date(data.get("closedAt")) if data.get("closedAt") is not None else None
+        session.shared_agent = data.get("sharedAgent")
         return session
 
 

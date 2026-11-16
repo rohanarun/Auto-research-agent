@@ -1249,6 +1249,121 @@ a:hover { text-decoration: underline; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.error { background: var(--red); }
 
+/* ===== Settings tabs, setup form, instructions ============================= */
+
+.seg-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: #f0f0f3;
+  border-radius: 9px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.seg-tabs button {
+  flex: 1;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.seg-tabs button.active { background: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); }
+.seg-tabs button[aria-pressed="true"] { background: #ffffff; }
+
+.sheet-settings .sheet-body { max-height: 64vh; overflow: hidden; padding: 18px 22px; }
+.sheet-settings [data-pane] { display: flex; flex-direction: column; gap: 12px; max-height: 58vh; overflow-y: auto; padding-right: 6px; }
+.pane-scroll { display: flex; flex-direction: column; gap: 14px; }
+.pane-heading { font-size: 15px; font-weight: 600; margin: 4px 0 0; }
+
+.mono-editor {
+  width: 100%;
+  font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+  background: #fbfbfd;
+}
+
+.mcp-list { display: flex; flex-direction: column; gap: 4px; }
+.mcp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+.mcp-row:hover { background: #f5f4f3; }
+.mcp-row input { width: 15px; height: 15px; }
+
+.run-picker { display: flex; gap: 0; }
+.run-picker button {
+  border: 0;
+  padding: 7px 16px;
+  font: inherit;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.run-picker button.active { background: #dcdce1; }
+.run-picker button:disabled { color: var(--muted); cursor: not-allowed; }
+
+.login-actions { display: flex; gap: 8px; margin-top: 8px; }
+.mono-note { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
+
+/* Built-in setup page */
+
+.setup-form { display: flex; flex-direction: column; gap: 14px; max-width: 720px; }
+.setup-lede {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  margin: 0;
+}
+.setup-lede-icon { color: var(--muted); margin-top: 2px; }
+.setup-account { display: flex; flex-direction: column; gap: 8px; }
+.account-actions { display: flex; gap: 8px; }
+.account-status { font-size: 12px; color: var(--muted); min-height: 16px; }
+.account-status.mismatch { color: var(--red); }
+.setup-form textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+}
+.setup-preview { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.setup-preview summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.prompt-preview {
+  font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 10px 0 2px;
+}
+.setup-warning { color: var(--red); font-size: 12px; margin: 8px 0 0; }
+.setup-actions { display: flex; gap: 10px; align-items: center; }
+.setup-guide { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.setup-guide summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.setup-guide .prompt-preview { max-height: 220px; }
+
+.sheet-instructions .sheet-body { max-height: 68vh; overflow-y: auto; }
+
 /* Small screens: keep the sidebar usable */
 
 @media (max-width: 720px) {

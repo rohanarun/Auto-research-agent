@@ -197,8 +197,10 @@ var store = {
   dashboard: {}, // projectID -> {data, error, loading, fetchedAt}
   expandedMessages: {}, // messageID -> true (tool / instructions disclosures)
   settingsDraft: null,
+  settingsTab: 'Connections',
   loginProvider: null,
   loginOutput: '',
+  loginSpawn: null,
   health: null
 };
 
@@ -769,7 +771,8 @@ function renderHeader() {
   var share = project ? shareFor(project.id) : null;
 
   var sig = mode + '|' + (project ? project.id + '|' + projectName(project) + '|' + (project.category || '') : '') +
-    '|' + (session ? session.id + '|' + session.title + '|' + session.provider + '|' + session.state : '') +
+    '|' + (session ? session.id + '|' + session.title + '|' + session.provider + '|' + session.state +
+           '|' + (session.sharedAgent ? (session.sharedAgent.sharesContext === false ? 'ind' : 'shared') : '') : '') +
     '|' + prov + '|' + (isAuthConnected(prov) ? 'g' : 'o') + '|' + currentProvider() +
     '|' + (session && sessionBusy(session) ? 'r' : '') + '|' + (projectRunning(store.selectedProjectID) ? 'R' : '') +
     '|' + (share ? JSON.stringify(share) : '') + '|' + (project && project.builtinID ? 'builtin' : '');
@@ -778,7 +781,9 @@ function renderHeader() {
 
   var name = session ? esc(session.title) : project ? esc(projectName(project)) : 'Your research workspace';
   var sub = session
-    ? 'Single agent · ' + esc(PROVIDER_TITLES[session.provider] || '')
+    ? (session.sharedAgent
+       ? 'Parallel agents · ' + (session.sharedAgent.sharesContext === false ? 'independent' : 'shared chat')
+       : 'Single agent · ' + esc(PROVIDER_TITLES[session.provider] || ''))
     : project ? esc(project.category || '') : '';
   var provTitle = PROVIDER_TITLES[prov] || prov;
   var dotClass = isAuthConnected(prov) ? 'green' : 'orange';
@@ -874,6 +879,10 @@ function openEllipsisMenu(anchor) {
         render();
       }, { active: !session && store.detailsOpen });
       menuItem(menu, 'Start research', function () { playProject(project); });
+      menuItem(menu, 'Edit instructions', function () { openInstructionsSheet(project.id); });
+      if (!project.builtinID) {
+        menuItem(menu, 'Edit project details', function () { openProjectEditSheet(project.id); });
+      }
       var open = openSessionsOf(project.id);
       if (open.length) menuItem(menu, 'Open latest chat', function () { selectSession(open[0].id); });
       var url = projectURL(project);
@@ -882,6 +891,10 @@ function openEllipsisMenu(anchor) {
         menuItem(menu, project.builtinID ? 'View challenge' : 'View repository', function () {
           window.open(url, '_blank', 'noopener');
         }, { icon: 'extlink' });
+      }
+      if (!project.builtinID) {
+        menuSeparator(menu);
+        menuItem(menu, 'Remove project', function () { openRemoveProjectSheet(project.id); });
       }
       menuSeparator(menu);
     }
@@ -931,6 +944,7 @@ var transcriptSig = '';
 var composerSig = '';
 var welcomeSig = '';
 var followSig = '';
+var setupSig = '';
 var composerText = '';
 var lastMessageCount = {};
 var messageTexts = {};
@@ -944,7 +958,7 @@ function renderMain() {
   if (body.__mode !== mode) {
     body.__mode = mode;
     body.setAttribute('data-mode', mode);
-    transcriptSig = composerSig = welcomeSig = followSig = '';
+    transcriptSig = composerSig = welcomeSig = followSig = setupSig = '';
     if (mode === 'dashboard') {
       body.innerHTML = '<div class="dash-wrap" id="dashWrap"></div>';
     } else if (mode === 'chat') {
@@ -967,7 +981,8 @@ function renderMain() {
     renderWelcome();
     renderComposer('welcome');
   } else if (mode === 'dashboard') {
-    renderDashboard();
+    if (project && project.builtinID) renderSetup();
+    else renderDashboard();
   } else {
     renderTranscript();
     renderFollowRow();
@@ -1289,12 +1304,252 @@ function sendComposer() {
   if (session) {
     composerText = '';
     syncComposer();
-    apiPost('/api/chats/send', { sessionID: session.id, text: text }).catch(apiFail);
+    apiPost('/api/chats/send', { sessionID: session.id, text: text,
+                                 keepResearching: !!store.keepResearching[session.id] }).catch(apiFail);
   } else if (project) {
     composerText = '';
     syncComposer();
-    playProject(project, text); // play accepts a prompt — the first message starts the run
+    // mirrors the native send(): with no open chat the request starts a new
+    // chat titled with the request itself
+    apiPost('/api/chats/send', { sessionID: '', projectID: project.id, text: text })
+      .then(function (res) {
+        if (res && res.sessionID) {
+          store.pendingSelectSessionID = res.sessionID;
+          store.detailsOpen = false;
+        }
+      }).catch(apiFail);
   }
+}
+
+// ===== Built-in setup page ==================================================
+
+var setupCache = {};
+
+function setupEntry(projectID) {
+  var e = setupCache[projectID];
+  if (!e) {
+    e = { loading: false, loaded: false, data: null, error: null, saving: false };
+    setupCache[projectID] = e;
+  }
+  return e;
+}
+
+function loadSetup(projectID, force) {
+  var entry = setupEntry(projectID);
+  if (entry.loading) return;
+  if (!force && entry.loaded) return;
+  entry.loading = true;
+  apiGet('/api/setup?projectID=' + encodeURIComponent(projectID)).then(function (res) {
+    entry.loading = false;
+    entry.loaded = true;
+    entry.data = res || {};
+    entry.error = null;
+    renderSetup();
+  }).catch(function (err) {
+    entry.loading = false;
+    entry.loaded = true;
+    entry.error = (err && err.message) || 'The setup form is unavailable.';
+    renderSetup();
+  });
+}
+
+function setupDraftLocal(projectID) {
+  var entry = setupEntry(projectID);
+  if (!entry.data) return null;
+  if (!entry.data.draft) entry.data.draft = {};
+  return entry.data.draft;
+}
+
+function renderSetup() {
+  var wrap = $('#dashWrap');
+  var project = selectedProject();
+  if (!wrap || !project) return;
+  var entry = setupEntry(project.id);
+  loadSetup(project.id);
+
+  var sig = project.id + '|' + projectName(project) + '|' + (project.summary || '') +
+    '|' + (entry.loading ? 'L' : '') + '|' + (entry.error || '') +
+    '|' + (entry.data ? JSON.stringify(entry.data.draft || {}).length : '');
+  if (sig === setupSig) return;
+  setupSig = sig;
+
+  var parts = ['<div class="dash-inner">'];
+  parts.push(
+    '<div class="dash-head">' +
+      '<div class="dash-title-block"><h2 class="dash-title">' + esc(projectName(project)) + '</h2>' +
+        (project.summary ? '<p class="dash-summary">' + esc(project.summary) + '</p>' : '') + '</div>' +
+      '<div class="dash-head-actions">' +
+        (project.website ? '<a class="h-icon-btn" href="' + attr(project.website) + '" target="_blank" rel="noreferrer" aria-label="Open the challenge page" title="Open the challenge page">' + icon('extlink', 15) + '</a>' : '') +
+        '<button class="h-icon-btn" id="setupGuideBtn" aria-label="Edit the workspace guide" title="Edit the workspace guide">' + icon('edit', 15) + '</button>' +
+      '</div>' +
+    '</div>');
+
+  if (entry.error) {
+    parts.push('<div class="dash-empty"><div class="d-title">' + esc(entry.error) + '</div>' +
+      '<button class="sheet-primary" id="setupRetry">Retry</button></div>');
+  } else if (entry.data) {
+    parts.push(setupFormHTML(project, entry));
+  } else {
+    parts.push('<div class="dash-empty"><div class="spinner"></div><div class="d-detail">Loading setup…</div></div>');
+  }
+  parts.push('</div>');
+  wrap.innerHTML = parts.join('');
+  wireSetup(project, entry);
+}
+
+function setupFormHTML(project, entry) {
+  var draft = entry.data.draft || {};
+  var prompts = entry.data.suggestedPrompts || [];
+  var scored = !!draft.allowScoredSubmissions;
+  var preview = entry.data.prompt ? '<pre class="prompt-preview">' + esc(entry.data.prompt) + '</pre>'
+    : (entry.data.promptError ? '<p class="setup-warning">' + esc(entry.data.promptError) + '</p>' : '');
+  var picker = prompts.map(function (p, i) {
+    return '<option value="' + i + '"' + (p === draft.researchPrompt ? ' selected' : '') + '>' +
+      esc(p.length > 90 ? p.slice(0, 90) + '…' : p) + '</option>';
+  }).join('');
+  return '<div class="setup-form">' +
+    '<p class="setup-lede"><span class="setup-lede-icon">' + icon('laptop', 15) + '</span>' +
+      'No GPU rental required. Your local agent edits the public starter code. Open Kernel Challenge runs checks and scores on its GPUs using your account’s quota. A verified leaderboard improvement is the goal; results are not guaranteed.</p>' +
+    '<p class="setup-lede">Start with your own OKC account and accept the rules in the terminal. The agent never enters credentials.</p>' +
+    '<div class="setup-account">' +
+      '<div class="field"><label for="setupAccount">Your GitHub/OKC username</label>' +
+        '<input id="setupAccount" data-setup="expectedAccount" placeholder="The username the run verifies" autocomplete="off"></div>' +
+      '<div class="account-actions">' +
+        '<button class="sheet-secondary" id="setupVerify">Refresh account</button>' +
+        '<button class="sheet-secondary" id="setupChoose">Choose account</button>' +
+      '</div>' +
+      '<div class="account-status" id="setupAccountStatus"></div>' +
+    '</div>' +
+    '<div class="field"><label for="setupSource">Kernel source (optional)</label>' +
+      '<input id="setupSource" data-setup="sourcePath" placeholder="Leave blank to start from the public starter"></div>' +
+    '<div class="field-row">' +
+      '<div class="field"><label for="setupChecks">Official checks per day</label>' +
+        '<input id="setupChecks" data-setup="checkBudget" inputmode="numeric" placeholder="0 means local analysis only"></div>' +
+      '<div class="field narrow">' +
+        '<label><input type="checkbox" data-setup="useSuperExperiments"' + (draft.useSuperExperiments !== false ? ' checked' : '') + '>' +
+          '<span>Use Super Experiments pre-flight runs</span></label>' +
+      '</div>' +
+    '</div>' +
+    '<div class="field"><label><input type="checkbox" data-setup="allowScoredSubmissions"' + (scored ? ' checked' : '') + '>' +
+      '<span>Allow scored submissions</span></label></div>' +
+    (scored ?
+      '<div class="field-row">' +
+        '<div class="field"><label for="setupScore">Scored submissions</label>' +
+          '<input id="setupScore" data-setup="scoreBudget" inputmode="numeric" placeholder="Positive whole number"></div>' +
+        '<div class="field"><label for="setupCriterion">When a scored submission is allowed</label>' +
+          '<input id="setupCriterion" data-setup="scoreCriterion" placeholder="Your first-baseline or improvement criterion"></div>' +
+      '</div>' : '') +
+    '<div class="field"><label for="setupPrompt">Research prompt</label>' +
+      (picker ? '<select id="setupPromptPicker" class="metric-select" aria-label="Suggested prompts"><option value="-1">Suggested prompts</option>' + picker + '</select>' : '') +
+      '<textarea id="setupPrompt" data-setup="researchPrompt" rows="4" placeholder="What the run should do"></textarea></div>' +
+    '<details class="setup-preview"' + (entry.data.prompt ? '' : ' open') + '>' +
+      '<summary>Review request</summary>' + preview + '</details>' +
+    '<div class="setup-actions">' +
+      '<button class="sheet-secondary" id="setupSave">Save setup</button>' +
+      '<button class="sheet-secondary" id="setupUseChat" title="Copy the reviewed request to the composer">Use in chat</button>' +
+      '<button class="sheet-primary" id="setupPlay">' + icon('play', 11) + '<span>Start research</span></button>' +
+    '</div>' +
+    (entry.data.guidePath ?
+      '<details class="setup-guide"><summary>Installation and login instructions</summary>' +
+      '<pre class="prompt-preview">' + esc(entry.data.loginInstructions || '') + '</pre></details>' : '') +
+  '</div>';
+}
+
+function wireSetup(project, entry) {
+  var wrap = $('#dashWrap');
+  if (!wrap) return;
+  var retry = $('#setupRetry', wrap);
+  if (retry) retry.addEventListener('click', function () { setupCache[project.id].loaded = false; loadSetup(project.id, true); });
+  var guide = $('#setupGuideBtn', wrap);
+  if (guide) guide.addEventListener('click', function () { openInstructionsSheet(project.id); });
+  $all('[data-setup]', wrap).forEach(function (input) {
+    var key = input.getAttribute('data-setup');
+    var draft = setupDraftLocal(project.id);
+    if (draft && draft[key] != null) {
+      if (input.type === 'checkbox') input.checked = !!draft[key];
+      else input.value = draft[key];
+    }
+    var evt = input.type === 'checkbox' ? 'change' : 'input';
+    input.addEventListener(evt, function () {
+      var d = setupDraftLocal(project.id) || {};
+      d[key] = input.type === 'checkbox' ? input.checked : input.value;
+      if (key === 'allowScoredSubmissions') { setupSig = ''; renderSetup(); }
+    });
+  });
+  var picker = $('#setupPromptPicker', wrap);
+  if (picker) picker.addEventListener('change', function () {
+    if (picker.value === '-1') return;
+    var prompt = (entry.data.suggestedPrompts || [])[parseInt(picker.value, 10)] || '';
+    var field = $('#setupPrompt', wrap);
+    if (field) { field.value = prompt; var d = setupDraftLocal(project.id); if (d) d.researchPrompt = prompt; }
+  });
+  var verify = $('#setupVerify', wrap);
+  if (verify) verify.addEventListener('click', function () {
+    verify.textContent = 'Checking…';
+    apiPost('/api/setup/verify-account', {}).then(function (res) {
+      var status = $('#setupAccountStatus', wrap);
+      var draft = setupDraftLocal(project.id) || {};
+      var account = (res && res.account) || '';
+      var expected = (draft.expectedAccount || '').replace(/^@/, '').toLowerCase();
+      if (status) {
+        status.textContent = 'Signed in as ' + account;
+        status.classList.toggle('mismatch', expected && account !== expected);
+        if (expected && account !== expected) {
+          status.textContent = 'The signed-in account (' + account +
+            ') differs from your expected username. Choose your account, then refresh.';
+        }
+      }
+      verify.textContent = 'Refresh account';
+      toast('OKC account verified');
+    }).catch(function (err) {
+      verify.textContent = 'Refresh account';
+      var status = $('#setupAccountStatus', wrap);
+      if (status) status.textContent = (err && err.message) || 'Not verified';
+      apiFail(err);
+    });
+  });
+  var choose = $('#setupChoose', wrap);
+  if (choose) choose.addEventListener('click', function () {
+    apiPost('/api/setup/login-script', { projectID: project.id, chooseAccount: true }).then(function (res) {
+      toast(res && res.spawned ? 'A terminal window opened on the host device' : 'Open the script path shown below');
+      openLoginNote(res);
+    }).catch(apiFail);
+  });
+  var save = $('#setupSave', wrap);
+  if (save) save.addEventListener('click', function () { saveSetupDraft(project.id, entry); });
+  var useChat = $('#setupUseChat', wrap);
+  if (useChat) useChat.addEventListener('click', function () {
+    saveSetupDraft(project.id, entry, true).then(function () {
+      composerText = entry.data.prompt || '';
+      store.selectedSessionID = null;
+      store.detailsOpen = false;
+      render();
+    }).catch(function (err) { apiFail(err); });
+  });
+  var play = $('#setupPlay', wrap);
+  if (play) play.addEventListener('click', function () {
+    saveSetupDraft(project.id, entry, true).then(function () {
+      playProject(project);
+    }).catch(function (err) { apiFail(err); });
+  });
+}
+
+function saveSetupDraft(projectID, entry, quiet) {
+  var draft = setupDraftLocal(projectID) || {};
+  entry.saving = true;
+  return apiPost('/api/setup', { projectID: projectID, draft: draft }).then(function (res) {
+    entry.saving = false;
+    if (res && res.draft) entry.data.draft = res.draft;
+    setupSig = '';
+    if (!quiet) toast('Setup saved');
+    renderSetup();
+    return res;
+  }).catch(function (err) {
+    entry.saving = false;
+    setupSig = '';
+    renderSetup();
+    throw err;
+  });
 }
 
 // ===== Dashboard ============================================================
@@ -1671,6 +1926,7 @@ function closeSheet() {
   if (sheetEl) { sheetEl.remove(); sheetEl = null; }
   store.loginProvider = null;
   store.loginOutput = '';
+  store.loginSpawn = null;
 }
 
 function sheetFrame(label, bodyId, footId) {
@@ -1693,34 +1949,122 @@ function sheetFrame(label, bodyId, footId) {
   return backdrop;
 }
 
+var SETTINGS_TABS = ['Connections', 'Cloud', 'Lean server', 'MCP tools', 'Research policy', 'Workspace'];
+
 function openSettingsSheet() {
   if (sheetEl) return;
   closeMenu();
   sheetEl = sheetFrame('Your research workspace', 'settingsBody', 'settingsFoot');
-  $('#settingsDone', sheetEl).addEventListener('click', function () { saveSettings(); closeSheet(); });
+  $('#settingsDone', sheetEl).addEventListener('click', function () {
+    saveSettings().then(function () { closeSheet(); }).catch(function () { /* keep open */ });
+  });
   $('#settingsSave', sheetEl).addEventListener('click', function () { saveSettings(); });
   buildSettingsBody();
   loadSettingsDraft();
+  loadPolicyDraft();
+  loadMcpServers();
   apiGet('/healthz').then(function (res) {
     store.health = res;
     renderServerBox();
   }).catch(function () { /* health is optional */ });
 }
 
-function loadSettingsDraft() {
-  apiGet('/api/settings').then(function (res) {
-    if (!res || typeof res !== 'object') return;
-    var draft = {
-      settings: Object.assign({}, store.settings, res.settings || res),
-      detectedPaths: res.detectedPaths || {},
-      auth: res.auth || store.auth
-    };
-    store.settingsDraft = draft;
-    if (sheetEl) fillSettingsValues(draft);
-  }).catch(function (err) {
-    if (err && err.status === 401) { promptToken(); return; }
-    /* fall back to the state copy; the fields still show */
+function showSettingsTab(name) {
+  if (!sheetEl) return;
+  store.settingsTab = name;
+  $all('.seg-tabs button', sheetEl).forEach(function (b) {
+    var active = b.getAttribute('data-tab') === name;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
+  $all('[data-pane]', sheetEl).forEach(function (pane) {
+    pane.hidden = pane.getAttribute('data-pane') !== name;
+  });
+}
+
+function buildSettingsBody() {
+  var body = $('#settingsBody', sheetEl);
+  if (!body) return;
+  var tabs = '<div class="seg-tabs" role="tablist" aria-label="Settings">' +
+    SETTINGS_TABS.map(function (t) {
+      return '<button role="tab" data-tab="' + t + '">' + esc(t) + '</button>';
+    }).join('') + '</div>';
+  var panes = [];
+
+  // Connections — the provider cards scroll, like the native sheet.
+  var cards = PROVIDERS.map(function (p) { return providerCardHTML(p); }).join('');
+  panes.push('<div data-pane="Connections">' +
+    '<div class="pane-scroll">' + cards + '</div>' +
+    '<p class="section-note">Sign-in uses the official CLI and your browser. Credentials stay with each CLI; the server does not copy or store them. Permission errors remain visible in chat.</p>' +
+    '<button class="sheet-secondary" id="refreshAllAuth">Refresh connection status</button>' +
+    '<div id="loginBlock"></div>' +
+  '</div>');
+
+  // Cloud — native-only; the web edition states its scope honestly.
+  panes.push('<div data-pane="Cloud">' +
+    '<div class="field-row"><span class="field-label">Run research</span>' +
+      '<div class="segmented run-picker"><button class="active" aria-pressed="true">This device</button>' +
+      '<button disabled title="Cloud sandboxes run in the native app">Daytona sandboxes · Codex</button></div></div>' +
+    '<h3 class="pane-heading">Private parallel sandboxes</h3>' +
+    '<p class="section-note">Each agent has its own checkout on this device. Share context uses live-written checkpoint files, combines them directly, then supplies the bundle to fresh sessions.</p>' +
+    '<p class="section-note"><b>Native-app only:</b> cloud sandboxes (Daytona and Agent37) run research on rented Linux boxes from the macOS app. The web edition always runs research on the device that serves this dashboard, with each parallel agent in its own checkout.</p>' +
+  '</div>');
+
+  panes.push('<div data-pane="Lean server">' +
+    '<h3 class="pane-heading">Lean server</h3>' +
+    '<p class="section-note"><b>Native-app only:</b> the Lean server connects to a Lean theorem-proving backend configured in the macOS app. The web edition runs without it; repositories that need Lean keep their own tools.</p>' +
+  '</div>');
+
+  panes.push('<div data-pane="MCP tools">' +
+    '<p class="section-note">Choose which direct Codex MCP connections this app may start. None are enabled by default. CLI plugins are not loaded in research runs. Your global configuration is preserved.</p>' +
+    '<div id="mcpList" class="mcp-list"><div class="d-detail">Loading…</div></div>' +
+    '<button class="sheet-secondary" id="refreshMcp">Refresh available servers</button>' +
+  '</div>');
+
+  panes.push('<div data-pane="Research policy">' +
+    '<p class="section-note">These instructions guide both models. Record failures and expected behavior here to improve future runs.</p>' +
+    '<textarea id="policyEditor" class="mono-editor" rows="14" spellcheck="false" aria-label="Research policy"></textarea>' +
+  '</div>');
+
+  panes.push('<div data-pane="Workspace">' +
+    '<div class="field"><label for="setWorkspaceRoot">Workspace root</label>' +
+      '<input id="setWorkspaceRoot" data-key="workspaceRoot" placeholder="Projects, chats, logs and caches"></div>' +
+    '<div class="field"><label for="setCatalogURL">Live research catalog URL</label>' +
+      '<input id="setCatalogURL" data-key="catalogURL" placeholder="https://…/auto-research"></div>' +
+    '<p class="section-note">The catalog is refreshed on launch and when you press Refresh in the sidebar. Your existing chats are preserved.</p>' +
+    '<div class="section-title">Dashboard server</div><div id="serverBox"></div>' +
+  '</div>');
+
+  body.innerHTML = tabs + panes.join('');
+  $all('.seg-tabs button', sheetEl).forEach(function (b) {
+    b.addEventListener('click', function () { showSettingsTab(b.getAttribute('data-tab')); });
+  });
+  var refreshAuthBtn = $('#refreshAllAuth', sheetEl);
+  if (refreshAuthBtn) refreshAuthBtn.addEventListener('click', function () {
+    apiGet('/api/auth/status').then(function (res) {
+      store.auth = Object.assign({}, store.auth, (res && res.auth) || {});
+      if (store.settingsDraft) store.settingsDraft.auth = Object.assign({}, store.settingsDraft.auth, store.auth);
+      updateSettingsSheetAuth();
+      toast('Connection status refreshed');
+    }).catch(apiFail);
+  });
+  var refreshMcp = $('#refreshMcp', sheetEl);
+  if (refreshMcp) refreshMcp.addEventListener('click', function () {
+    refreshMcp.textContent = 'Refreshing…';
+    apiPost('/api/mcp/refresh', {}).then(function (res) {
+      renderMcpList(res);
+      refreshMcp.textContent = 'Refresh available servers';
+    }).catch(function (err) {
+      refreshMcp.textContent = 'Refresh available servers';
+      apiFail(err);
+    });
+  });
+  wireProviderCards();
+  fillSettingsValues(store.settingsDraft);
+  renderServerBox();
+  var policyEditor = $('#policyEditor', sheetEl);
+  if (policyEditor) policyEditor.addEventListener('input', function () { policyEditor.dirty = true; });
+  showSettingsTab(store.settingsTab || 'Connections');
 }
 
 function draftSettings() {
@@ -1748,6 +2092,66 @@ function buildSettingsBody() {
   wireProviderCards();
   fillSettingsValues(store.settingsDraft);
   renderServerBox();
+}
+
+function loadSettingsDraft() {
+  apiGet('/api/settings').then(function (res) {
+    if (!res || typeof res !== 'object') return;
+    var draft = {
+      settings: Object.assign({}, store.settings, res.settings || res),
+      detectedPaths: res.detectedPaths || {},
+      auth: res.auth || store.auth
+    };
+    store.settingsDraft = draft;
+    if (sheetEl) fillSettingsValues(draft);
+  }).catch(function (err) {
+    if (err && err.status === 401) { promptToken(); return; }
+    /* fall back to the state copy; the fields still show */
+  });
+}
+
+var policyDraft = '';
+
+function loadPolicyDraft() {
+  apiGet('/api/policy').then(function (res) {
+    policyDraft = (res && res.text) || '';
+    var editor = sheetEl && $('#policyEditor', sheetEl);
+    if (editor && !editor.dirty) editor.value = policyDraft;
+  }).catch(function (err) {
+    if (err && err.status === 401) { promptToken(); return; }
+  });
+}
+
+var mcpDraft = { available: [], enabled: [] };
+
+function loadMcpServers() {
+  apiGet('/api/mcp').then(function (res) { renderMcpList(res); }).catch(function () { /* optional */ });
+}
+
+function renderMcpList(res) {
+  mcpDraft = { available: (res && res.available) || [], enabled: (res && res.enabled) || [] };
+  if (!sheetEl) return;
+  var list = $('#mcpList', sheetEl);
+  if (!list) return;
+  if (!mcpDraft.available.length) {
+    list.innerHTML = '<div class="d-detail">No direct Codex MCP connections were found. Install and configure servers in the Codex CLI, then refresh.</div>';
+    return;
+  }
+  list.innerHTML = mcpDraft.available.map(function (name) {
+    var on = mcpDraft.enabled.indexOf(name) !== -1;
+    return '<label class="mcp-row"><input type="checkbox" data-mcp="' + attr(name) + '"' +
+      (on ? ' checked' : '') + '><span>' + esc(name) + '</span></label>';
+  }).join('');
+  $all('[data-mcp]', list).forEach(function (box) {
+    box.addEventListener('change', function () {
+      var name = box.getAttribute('data-mcp');
+      if (box.checked) {
+        if (mcpDraft.enabled.indexOf(name) === -1) mcpDraft.enabled.push(name);
+      } else {
+        mcpDraft.enabled = mcpDraft.enabled.filter(function (n) { return n !== name; });
+      }
+    });
+  });
 }
 
 var PERMS = {
@@ -1853,13 +2257,40 @@ function refreshAccount(provider) {
 
 function signIn(provider) {
   apiPost('/api/auth/login', { provider: provider }).then(function (res) {
+    store.loginProvider = provider;
+    if (res && res.spawned) {
+      store.loginOutput = null;
+      store.loginSpawn = res;
+      renderLoginBlock();
+      return;
+    }
     var text = typeof res === 'string' ? res :
       (res && (res.output || res.instructions || res.text || res.message)) ? String(res.output || res.instructions || res.text || res.message)
       : JSON.stringify(res, null, 2);
-    store.loginProvider = provider;
+    store.loginSpawn = null;
     store.loginOutput = text;
     renderLoginBlock();
   }).catch(function (err) { apiFail(err); });
+}
+
+function signInInServer(provider) {
+  apiPost('/api/auth/login', { provider: provider, spawn: false }).then(function (res) {
+    var text = typeof res === 'string' ? res :
+      (res && (res.output || res.instructions || res.text || res.message || res.instructions)) ?
+      String(res.output || res.instructions || res.text || res.message) : JSON.stringify(res, null, 2);
+    store.loginProvider = provider;
+    store.loginSpawn = null;
+    store.loginOutput = text;
+    renderLoginBlock();
+  }).catch(function (err) { apiFail(err); });
+}
+
+function openLoginNote(res) {
+  store.loginProvider = 'okc';
+  store.loginSpawn = res || {};
+  store.loginOutput = null;
+  renderLoginBlock();
+  if (sheetEl) showSettingsTab('Connections');
 }
 
 function renderLoginBlock() {
@@ -1867,14 +2298,36 @@ function renderLoginBlock() {
   var block = $('#loginBlock', sheetEl);
   if (!block) return;
   if (!store.loginProvider) { block.innerHTML = ''; return; }
-  block.innerHTML =
-    '<div class="login-head"><span>' + esc(PROVIDER_TITLES[store.loginProvider]) + ' login</span><span class="spacer"></span>' +
-      '<button class="sheet-secondary" id="closeLogin">Close login</button></div>' +
-    '<div class="login-output">' + esc(store.loginOutput) + '</div>';
+  var head = '<div class="login-head"><span>' + esc(PROVIDER_TITLES[store.loginProvider] || 'OKC') + ' sign-in</span><span class="spacer"></span>' +
+    '<button class="sheet-secondary" id="closeLogin">Close</button></div>';
+  var spawn = store.loginSpawn;
+  if (spawn && store.loginOutput == null) {
+    block.innerHTML = head +
+      '<div class="login-output">' +
+        '<p>' + esc(spawn.note || 'A terminal window opened on the device that serves this dashboard.') + '</p>' +
+        (spawn.spawned ? '<p class="section-note">Complete the sign-in there, then press Refresh account. The window never shares credentials with the server.</p>' : '') +
+        '<p class="mono-note">' + esc(spawn.script || '') + '</p>' +
+      '</div>' +
+      '<div class="login-actions"><button class="sheet-secondary" id="loginInServer">Run in the server session instead</button></div>';
+  } else {
+    block.innerHTML = head +
+      '<div class="login-output">' + esc(store.loginOutput || '') + '</div>' +
+      '<div class="login-actions"><button class="sheet-secondary" id="loginSpawnHost">Open a terminal on the host device</button></div>';
+  }
   $('#closeLogin', block).addEventListener('click', function () {
     store.loginProvider = null;
     store.loginOutput = '';
+    store.loginSpawn = null;
     renderLoginBlock();
+  });
+  var inServer = $('#loginInServer', block);
+  if (inServer) inServer.addEventListener('click', function () {
+    signInInServer(store.loginProvider === 'okc' ? 'opencode' : store.loginProvider);
+  });
+  var spawnHost = $('#loginSpawnHost', block);
+  if (spawnHost) spawnHost.addEventListener('click', function () {
+    var provider = store.loginProvider === 'okc' ? 'opencode' : store.loginProvider;
+    signIn(provider);
   });
 }
 
@@ -1889,12 +2342,25 @@ function saveSettings() {
       settings[key] = value;
     }
   });
-  if (Object.keys(body).length === 0) { toast('Settings saved'); return; }
-  apiPost('/api/settings', body).then(function () {
-    store.settings = Object.assign({}, store.settings, body);
+  var requests = [];
+  if (Object.keys(body).length > 0) {
+    requests.push(apiPost('/api/settings', body).then(function () {
+      store.settings = Object.assign({}, store.settings, body);
+    }));
+  }
+  var editor = sheetEl && $('#policyEditor', sheetEl);
+  if (editor && editor.value !== policyDraft) {
+    requests.push(apiPost('/api/policy', { text: editor.value }).then(function () {
+      policyDraft = editor.value;
+    }));
+  }
+  requests.push(apiPost('/api/mcp', { enabled: mcpDraft.enabled }));
+  if (!requests.length) { toast('Settings saved'); return Promise.resolve(); }
+  return Promise.all(requests).then(function () {
     toast('Settings saved');
     renderHeader();
-  }).catch(function (err) { apiFail(err); });
+    return null;
+  }).catch(function (err) { apiFail(err); throw err; });
 }
 
 function renderServerBox() {
@@ -1962,6 +2428,171 @@ function openAddSheet() {
       apiFail(err);
     });
   }
+}
+
+// ===== Instructions & project editing ======================================
+
+function openInstructionsSheet(projectID) {
+  if (sheetEl) return;
+  closeMenu();
+  var project = store.projects.find(function (x) { return x.id === (projectID || store.selectedProjectID); });
+  if (!project) { toast('Select a project first', true); return; }
+  var backdrop = document.createElement('div');
+  backdrop.className = 'sheet-backdrop';
+  backdrop.innerHTML =
+    '<div class="sheet sheet-instructions" role="dialog" aria-label="Edit instructions">' +
+      '<div class="sheet-head"><span class="sheet-title">Edit research instructions</span><span class="spacer"></span>' +
+        '<button class="sheet-done" id="instrDone">Done</button></div>' +
+      '<div class="sheet-body">' +
+        '<p class="section-note" id="instrPath">Loading…</p>' +
+        '<textarea id="instrEditor" class="mono-editor" rows="16" spellcheck="false" aria-label="auto-research.md"></textarea>' +
+        '<p class="section-note">The starter guide is seeded once and never overwritten, so your edits survive every run and every new chat.</p>' +
+      '</div>' +
+      '<div class="sheet-foot"><span class="sheet-note" id="instrNote"></span><span class="spacer"></span>' +
+        '<button class="sheet-secondary" id="instrCancel">Cancel</button>' +
+        '<button class="sheet-primary" id="instrSave">Save</button>' +
+      '</div>' +
+    '</div>';
+  $('#sheetHost').appendChild(backdrop);
+  sheetEl = backdrop;
+  backdrop.addEventListener('mousedown', function (e) {
+    if (e.target === backdrop) closeSheet();
+  });
+  $('#instrDone', backdrop).addEventListener('click', function () {
+    saveInstructions(project.id).then(function () { closeSheet(); }).catch(function () { /* keep open */ });
+  });
+  $('#instrCancel', backdrop).addEventListener('click', closeSheet);
+  $('#instrSave', backdrop).addEventListener('click', function () {
+    saveInstructions(project.id);
+  });
+  apiGet('/api/instructions?projectID=' + encodeURIComponent(project.id)).then(function (res) {
+    $('#instrPath', backdrop).textContent = res.path || '';
+    $('#instrEditor', backdrop).value = res.text || '';
+  }).catch(function (err) {
+    closeSheet();
+    apiFail(err);
+  });
+}
+
+function saveInstructions(projectID) {
+  var editor = sheetEl && $('#instrEditor', sheetEl);
+  if (!editor) return Promise.resolve();
+  $('#instrNote', sheetEl).textContent = 'Saving…';
+  return apiPost('/api/instructions', { projectID: projectID, text: editor.value }).then(function () {
+    $('#instrNote', sheetEl).textContent = '';
+    toast('Instructions saved');
+    setupSig = '';
+    render();
+    return null;
+  }).catch(function (err) {
+    var note = $('#instrNote', sheetEl);
+    if (note) note.textContent = (err && err.message) || 'Save failed';
+    throw err;
+  });
+}
+
+function openProjectEditSheet(projectID) {
+  if (sheetEl) return;
+  closeMenu();
+  var project = store.projects.find(function (x) { return x.id === projectID; });
+  if (!project) return;
+  var backdrop = document.createElement('div');
+  backdrop.className = 'sheet-backdrop';
+  backdrop.innerHTML =
+    '<div class="sheet sheet-add" role="dialog" aria-label="Edit project details">' +
+      '<div class="sheet-head"><span class="sheet-title" style="font-size:24px">Edit project details</span></div>' +
+      '<div class="sheet-body" style="padding-top:12px">' +
+        '<div class="field"><label for="editName">Name</label>' +
+          '<input id="editName" value="' + attr(projectName(project)) + '"></div>' +
+        '<div class="field"><label for="editSummary">Summary</label>' +
+          '<textarea id="editSummary" rows="3">' + esc(project.summary || '') + '</textarea></div>' +
+        '<div class="field"><label for="editCategory">Category</label>' +
+          '<input id="editCategory" value="' + attr(project.category || 'Research') + '"></div>' +
+        (project.builtinID ? '' :
+          '<div class="field"><label for="editRepo">Repository (owner/name)</label>' +
+            '<input id="editRepo" value="' + attr(project.repository || '') + '"' +
+            (project.localPath ? ' disabled title="This project uses a local folder"' : '') + '></div>' +
+          (project.localPath ?
+            '<div class="field"><label for="editLocal">Local folder</label>' +
+              '<input id="editLocal" value="' + attr(project.localPath || '') + '"></div>' : '')) +
+      '</div>' +
+      '<div class="sheet-foot"><span class="sheet-note">Chats keep their history.</span><span class="spacer"></span>' +
+        '<button class="sheet-secondary" id="editCancel">Cancel</button>' +
+        '<button class="sheet-primary" id="editSave">Save</button>' +
+      '</div>' +
+    '</div>';
+  $('#sheetHost').appendChild(backdrop);
+  sheetEl = backdrop;
+  backdrop.addEventListener('mousedown', function (e) {
+    if (e.target === backdrop) closeSheet();
+  });
+  $('#editCancel', backdrop).addEventListener('click', closeSheet);
+  $('#editSave', backdrop).addEventListener('click', function () {
+    var body = { projectID: project.id,
+                 name: $('#editName', backdrop).value.trim(),
+                 summary: $('#editSummary', backdrop).value.trim(),
+                 category: $('#editCategory', backdrop).value.trim() };
+    var repoField = $('#editRepo', backdrop);
+    var localField = $('#editLocal', backdrop);
+    if (repoField && !repoField.disabled && repoField.value.trim()) body.repository = repoField.value.trim();
+    if (localField && localField.value.trim()) body.localPath = localField.value.trim();
+    $('#editSave', backdrop).disabled = true;
+    apiPost('/api/projects/edit', body).then(function (res) {
+      closeSheet();
+      toast('Project updated');
+      if (res && res.project) {
+        var found = store.projects.find(function (x) { return x.id === body.projectID; });
+        if (found) Object.assign(found, res.project);
+        render();
+      } else {
+        refreshCatalog();
+      }
+    }).catch(function (err) {
+      $('#editSave', backdrop).disabled = false;
+      apiFail(err);
+    });
+  });
+}
+
+function openRemoveProjectSheet(projectID) {
+  if (sheetEl) return;
+  closeMenu();
+  var project = store.projects.find(function (x) { return x.id === projectID; });
+  if (!project) return;
+  var backdrop = document.createElement('div');
+  backdrop.className = 'sheet-backdrop';
+  backdrop.innerHTML =
+    '<div class="sheet sheet-add" role="dialog" aria-label="Remove project">' +
+      '<div class="sheet-head"><span class="sheet-title" style="font-size:24px">Remove ' + esc(projectName(project)) + '?</span></div>' +
+      '<div class="sheet-body" style="padding-top:12px">' +
+        '<p class="section-note" style="margin-top:0">The saved project entry is removed from this workspace. Files on disk and your CLI data are not touched. Close this project’s chats first; their history is preserved.</p>' +
+      '</div>' +
+      '<div class="sheet-foot"><span class="spacer"></span>' +
+        '<button class="sheet-secondary" id="rmCancel">Cancel</button>' +
+        '<button class="sheet-primary" id="rmConfirm">Remove project</button>' +
+      '</div>' +
+    '</div>';
+  $('#sheetHost').appendChild(backdrop);
+  sheetEl = backdrop;
+  backdrop.addEventListener('mousedown', function (e) {
+    if (e.target === backdrop) closeSheet();
+  });
+  $('#rmCancel', backdrop).addEventListener('click', closeSheet);
+  $('#rmConfirm', backdrop).addEventListener('click', function () {
+    apiPost('/api/projects/remove', { projectID: project.id }).then(function () {
+      closeSheet();
+      toast('Project removed');
+      if (store.selectedProjectID === project.id) {
+        store.selectedProjectID = null;
+        store.selectedSessionID = null;
+      }
+      store.projects = store.projects.filter(function (x) { return x.id !== project.id; });
+      render();
+    }).catch(function (err) {
+      closeSheet();
+      apiFail(err);
+    });
+  });
 }
 
 // ===== Events & boot ========================================================

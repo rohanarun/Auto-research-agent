@@ -79,12 +79,87 @@ Notes:
   require a mounted external SSD.
 - If the dashboard shows "Offline · saved catalog" while your browser can
   open the catalog website, your machine's Python TLS stack could not build
-  the certificate chain. The saved catalog and the built-in kernel projects
-  remain available, and **Open research → refresh** retries later.
+  the certificate chain. The server then retries with the Windows system
+  `curl.exe`, which uses schannel, and keeps the fetched page as a snapshot in
+  `Runtime/cache/catalog.html`; the next offline attempt still shows the full
+  repository list. The saved catalog and the built-in kernel projects remain
+  available, and **Open research → refresh** retries later.
+
+## Built-in kernels and the setup form
+
+Built-in kernel projects (the MUSE challenges) use a setup form, mirroring
+the native project page:
+
+- **Your GitHub/OKC username** — verified with `okc whoami` before any run
+  starts. **Refresh account** re-checks; **Choose account** opens a terminal
+  window on the device that serves the dashboard and runs `okc login --force`
+  there, exactly like the native app's Terminal launcher.
+- **Kernel source** (optional), **official checks per day**, **Super
+  Experiments pre-flight** on/off, optional **scored submissions** with their
+  own budget and criterion, and the **research prompt** with the starter's
+  suggested prompts.
+- **Review request** shows the exact request the run will receive, with the
+  user-supplied inputs rendered as JSON, and **Use in chat** copies it to the
+  composer. **Start research** saves the setup, verifies the account, and
+  starts one visible chat.
+
+The setup drafts are saved in `Runtime/kernel-setups.json`, in the same shape
+the native app writes, so drafts interchange between editions.
+
+## Editing everything by hand
+
+- **Edit instructions** (project "⋯" menu, or the guide button on a built-in
+  project page) opens the checkout's `auto-research.md`. The starter guide is
+  seeded once and never overwritten, so edits survive every run.
+- **Research policy** lives in the settings sheet's own tab and is saved to
+  `Runtime/research-policy.md`; both editions read it before every run.
+- **Edit project details** and **Remove project** (catalog and local
+  projects) rename, re-describe, re-target or remove the saved entry; chat
+  history is preserved.
+- **MCP tools** in the settings sheet lists the direct Codex MCP connections
+  the CLI exposes; the selection is saved to `Runtime/mcp-selection.json` and
+  passed to research runs the same way the native app passes it.
+
+## Parallel agents
+
+**Share context** on a project page starts several agents at once:
+
+- Every agent gets **its own copy of the checkout** under
+  `Runtime/parallel-agents/<group>/agent-N` (or `Runtime/shared-context/…`
+  when sharing), so runs never write to the same files.
+- Independent agents share nothing. With **Share context** enabled, each
+  agent is asked to maintain `RESEARCH_HANDOFF.md` and checkpoints in its
+  checkout; when all agents finish, their transcripts, notes and checkpoints
+  are captured to `Runtime/shared-context/<group>/round-N/` and published as
+  a `shared-context.md` bundle, mirroring the native format.
+- The web edition runs **one round per Start research**. The native app also
+  continues rounds on its own schedule; the web edition says so in each
+  agent's status message.
+
+## Signing in from a remote device
+
+Interactive sign-in needs prompts and a browser, which a remote dashboard
+cannot answer. The web edition therefore signs in **on the device that serves
+the dashboard**:
+
+1. Press **Sign in** on a provider card (or **Choose account** on a built-in
+   project). The server writes a small launcher into `Runtime/terminal/` and
+   opens it in a visible terminal window **on the host device**.
+2. Complete the sign-in there — the official CLI stays in charge and
+   credentials never touch the server.
+3. Press **Refresh account** in the dashboard; the status turns green.
+
+Pre-auth alternatives: sign in on the host device beforehand (the CLIs keep
+their own account state, which the server reuses), or provide API keys in the
+server's environment (for example `ANTHROPIC_API_KEY` for Claude Code).
+**Run in the server session instead** keeps the old behavior for local use.
 
 ## What the native macOS app still does
 
 The native app remains the macOS interface: same workspace files, same chat
 history (`Runtime/state.json`), same provider sessions. A chat started on
 Windows opens in the macOS app and vice versa, because both editions write
-the same state format with the same provider session IDs.
+the same state format with the same provider session IDs. Cloud sandboxes
+(Daytona and Agent37), the Lean server, shared-context **rounds** and CPU
+search subtasks stay native-app features; the web edition's settings sheet
+carries their tabs with notes where they are unavailable.

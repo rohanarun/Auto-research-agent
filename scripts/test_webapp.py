@@ -528,5 +528,473 @@ class ServerApiTests(unittest.TestCase):
                 s.shutdown()
 
 
+class TriageFixTests(unittest.TestCase):
+    """The web edition's setup drafts, editing endpoints, snapshot fallback
+    and parallel agents, mirroring the native app's flows."""
+
+    # ---------- fixtures ----------
+
+    def _resources(self, tmp: Path) -> Path:
+        resources = tmp / "Resources"
+        prompts = resources / "StarterPrompts"
+        prompts.mkdir(parents=True, exist_ok=True)
+        (resources / "BuiltinProjects.json").write_text(json.dumps([
+            {"id": "test_kernel", "name": "Test kernel", "summary": "Test.",
+             "category": "Kernel challenges", "website": "https://example.com/kernel",
+             "leaderboard": "https://example.com/kernel",
+             "promptFile": "StarterPrompts/test_kernel.md",
+             "suggestedPrompts": ["Explain the starter.", "Second suggestion."]}]), encoding="utf-8")
+        (prompts / "test_kernel.md").write_text("Improve the kernel starter.", encoding="utf-8")
+        (prompts / "OfficialJudge.md").write_text("The official judge evaluates remotely.", encoding="utf-8")
+        (prompts / "OKCLogin.md").write_text("Sign in with your own account.", encoding="utf-8")
+        (prompts / "SetupTemplate.md").write_text(
+            "# OKC kernel research request\n\n{{PROJECT_INPUTS_JSON}}\n\n## Account setup\n",
+            encoding="utf-8")
+        (resources / "Defaults.example.json").write_text(json.dumps({
+            "workspaceRoot": "", "catalogURL": "https://example.com/auto-research",
+            "codexPath": "", "claudePath": "", "codexModel": "", "claudeModel": "",
+            "codexSandbox": "workspace-write", "claudePermissionMode": "auto",
+            "opencodePath": "", "opencodeModel": "", "opencodePermission": "reject",
+            "antigravityPath": "", "antigravityModel": "", "antigravityMode": "accept-edits",
+            "antigravityPermission": "review"}), encoding="utf-8")
+        (resources / "ResearchPolicy.md").write_text("Provide evidence accurately.", encoding="utf-8")
+        (resources / "ContinuePolicy.md").write_text("Consider continuing.", encoding="utf-8")
+        (resources / "SharedAgentPolicy.md").write_text("Shared agents keep handoffs current.", encoding="utf-8")
+        (resources / "IndependentAgentPolicy.md").write_text("Independent agents share nothing.", encoding="utf-8")
+        (resources / "CatalogPolicy.json").write_text(json.dumps({"excludedOwners": []}), encoding="utf-8")
+        return resources
+
+    def _fake_cli(self, tmp: Path, mcp_json: str = "[]") -> Path:
+        """A fake codex CLI with configurable MCP listing."""
+        directory = tmp / "fake-cli"
+        (directory / "bin").mkdir(parents=True, exist_ok=True)
+        script = directory / "fake_codex.py"
+        script.write_text(
+            "import json,sys,time\n"
+            "args=sys.argv[1:]\n"
+            "if 'mcp' in args:\n"
+            "    print(" + json.dumps(mcp_json) + ");sys.exit(0)\n"
+            "if 'login' in args:\n"
+            "    print('logged in');sys.exit(0)\n"
+            "if 'status' in args:\n"
+            "    print('ok');sys.exit(0)\n"
+            "time.sleep(float(__import__('os').environ.get('FAKE_CODEX_DELAY','0')))\n"
+            "sys.stdin.read()\n"
+            "for line in [\"{'type':'thread.started','thread_id':'TEST-THREAD'}\",\n"
+            "             \"{'type':'item','item':{'id':'i1','type':'agent_message','text':'Finding.\\\\nRESEARCH_STATUS: finished'}}\",\n"
+            "             \"{'type':'turn.completed'}\"]:\n"
+            "    print(line.replace(\"'\",'\\\"'))\n"
+            "sys.stdout.flush()\n", encoding="utf-8")
+        if os.name == "nt":
+            wrapper = directory / "bin" / "codex.cmd"
+            wrapper.write_text(f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n', encoding="utf-8")
+        else:
+            wrapper = directory / "bin" / "codex"
+            wrapper.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding="utf-8")
+            wrapper.chmod(0o755)
+        return directory
+
+    def _fake_okc(self, tmp: Path, account: str = "tester") -> Path:
+        """A fake okc CLI whose whoami prints the signed-in identity line."""
+        directory = tmp / "fake-okc"
+        (directory / "bin").mkdir(parents=True, exist_ok=True)
+        script = directory / "fake_okc.py"
+        script.write_text(
+            "import sys,time\n"
+            "args=sys.argv[1:]\n"
+            "if 'whoami' in args:\n"
+            "    print('signed in as @" + account + "');sys.exit(0)\n"
+            "if 'login' in args:\n"
+            "    print('login flow');sys.exit(0)\n"
+            "time.sleep(0)\n", encoding="utf-8")
+        if os.name == "nt":
+            wrapper = directory / "bin" / "okc.cmd"
+            wrapper.write_text(f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n', encoding="utf-8")
+        else:
+            wrapper = directory / "bin" / "okc"
+            wrapper.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding="utf-8")
+            wrapper.chmod(0o755)
+        return directory / "bin" / ("okc.cmd" if os.name == "nt" else "okc")
+
+    def _store(self, tmp: Path, cli: Path, okc: Path | None = None) -> "tuple[store.Store, Path]":
+        from webapp import kernel as kernel_module
+        root = tmp / "workspace"
+        s = store.Store(self._resources(tmp))
+        s.load_workspace(str(root))
+        s.settings.codexPath = str(cli / "bin" / ("codex.cmd" if os.name == "nt" else "codex"))
+        s.settings.workspaceRoot = str(root)
+        checkout = root / "projects" / "octocat" / "research-demo"
+        (checkout / ".git").mkdir(parents=True, exist_ok=True)
+        s.refresh_catalog(fetched=[models.ResearchProject("octocat/research-demo")])
+        if okc is not None:
+            self._patch(kernel_module, "okc_executable", lambda: okc)
+        s.bump()
+        return s, root
+
+    def _patch(self, module, name, replacement):
+        original = getattr(module, name)
+        setattr(module, name, replacement)
+        self.addCleanup(setattr, module, name, original)
+
+    # ---------- kernel drafts ----------
+
+    def test_draft_validation_mirrors_native_rules(self):
+        from webapp import kernel
+        with self.assertRaises(kernel.ResearchError):
+            kernel.validate_draft({"expectedAccount": "bad name", "researchPrompt": "p",
+                                   "checkBudget": "0"})
+        with self.assertRaises(kernel.ResearchError):
+            kernel.validate_draft({"expectedAccount": "tester", "researchPrompt": "",
+                                   "checkBudget": "0"})
+        with self.assertRaises(kernel.ResearchError):
+            kernel.validate_draft({"expectedAccount": "tester", "researchPrompt": "p",
+                                   "checkBudget": "-1"})
+        with self.assertRaises(kernel.ResearchError):
+            kernel.validate_draft({"expectedAccount": "tester", "researchPrompt": "p",
+                                   "checkBudget": "0", "allowScoredSubmissions": True,
+                                   "scoreBudget": "2", "scoreCriterion": ""})
+        with self.assertRaises(kernel.ResearchError):
+            kernel.validate_draft({"expectedAccount": "tester", "researchPrompt": "p",
+                                   "checkBudget": "0", "allowScoredSubmissions": True,
+                                   "scoreBudget": "0"})
+        draft = kernel.validate_draft({"expectedAccount": "@Tester ", "researchPrompt": " p ",
+                                       "checkBudget": "12", "allowScoredSubmissions": True,
+                                       "scoreBudget": "3", "scoreCriterion": "after merged PR"})
+        self.assertEqual(draft["expectedAccount"], "tester")
+        self.assertEqual(draft["checkBudget"], "12")
+        self.assertEqual(draft["scoreBudget"], "3")
+
+    def test_render_prompt_inserts_sorted_json_once(self):
+        from webapp import kernel
+        template = "# OKC kernel research request\n\n{{PROJECT_INPUTS_JSON}}\n\n## Account setup\n"
+        draft = kernel.validate_draft({"expectedAccount": "tester", "researchPrompt": "Explain",
+                                       "checkBudget": "0", "sourcePath": ""})
+        prompt = kernel.render_prompt(template, draft, "test_kernel", "Test kernel")
+        self.assertEqual(prompt.count("{{PROJECT_INPUTS_JSON}}"), 0)
+        self.assertIn('"projectID": "test_kernel"', prompt)
+        self.assertIn('"authorizeScoredSubmissions": false', prompt)
+        self.assertIn('"superExperimentsURL": "https://app.getsupers.com/experiments"', prompt)
+        self.assertNotIn('"sourcePath"', prompt)
+        self.assertNotIn('"scoreCriterion"', prompt)
+
+    def test_account_output_is_parsed_not_displayed(self):
+        from webapp import kernel
+        self.assertEqual(kernel.account_from_output("signed in as @OctCat\n"), "octcat")
+        self.assertEqual(kernel.account_from_output("\x1b[31mtester\x1b[0m"), "tester")
+        self.assertIsNone(kernel.account_from_output("unexpected banner\nnot an identity"))
+
+    # ---------- catalog snapshot fallback ----------
+
+    def test_catalog_fetch_uses_snapshot_when_offline(self):
+        from webapp import transport
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            snapshot = Path(tmp) / "catalog.html"
+            snapshot.write_text(
+                '<a href="https://github.com/octo/snapshot-repo">x</a>', encoding="utf-8")
+
+            def failing(address, timeout=20.0, accept="application/json"):
+                raise transport.TransportError("certificate has expired")
+
+            self._patch(transport, "fetch_text", failing)
+            fetched, offline, note = catalog.fetch("https://example.com/auto-research",
+                                                   snapshot=snapshot)
+            self.assertTrue(offline)
+            self.assertEqual([p.id for p in fetched], ["octo/snapshot-repo"])
+            self.assertIn("snapshot", note.lower())
+
+    def test_catalog_fetch_saves_snapshot_on_success(self):
+        from webapp import transport
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            snapshot = Path(tmp) / "catalog.html"
+            html = '<a href="https://github.com/octo/live-repo">x</a>'
+
+            def passing(address, timeout=20.0, accept="application/json"):
+                return html
+
+            self._patch(transport, "fetch_text", passing)
+            fetched, offline, note = catalog.fetch("https://example.com/auto-research",
+                                                   snapshot=snapshot)
+            self.assertFalse(offline)
+            self.assertEqual([p.id for p in fetched], ["octo/live-repo"])
+            self.assertEqual(snapshot.read_text(encoding="utf-8"), html)
+
+    def test_transport_uses_curl_fallback_when_urllib_fails(self):
+        from webapp import transport
+        import subprocess as subprocess_module
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            fake = Path(tmp) / "curl.exe"
+            fake.write_text("", encoding="utf-8")
+            self._patch(transport, "CURL", fake)
+            self._patch(transport, "curl_available", lambda: True)
+
+            def runner(command, capture_output, timeout):
+                class Result:
+                    returncode = 0
+                    stdout = b"payload"
+                    stderr = b""
+                return Result()
+
+            self._patch(subprocess_module, "run", runner)
+            self.assertEqual(transport._fetch_via_curl("https://example.com/x"), b"payload")
+
+    # ---------- store endpoints over HTTP ----------
+
+    def _server(self, tmp: Path, cli: Path, okc: Path | None = None):
+        from webapp import kernel as kernel_module
+        resources = self._resources(tmp)
+        root = tmp / "workspace"
+        s = store.Store(resources)
+        s.load_workspace(str(root))
+        s.settings.codexPath = str(cli / "bin" / ("codex.cmd" if os.name == "nt" else "codex"))
+        s.settings.workspaceRoot = str(root)
+        checkout = root / "projects" / "octocat" / "research-demo"
+        (checkout / ".git").mkdir(parents=True, exist_ok=True)
+        s.refresh_catalog(fetched=[models.ResearchProject("octocat/research-demo")])
+        if okc is not None:
+            self._patch(kernel_module, "okc_executable", lambda: okc)
+        s._port = 0
+        s._access = "local"
+        bound = server.Server(s, None, "local", "127.0.0.1", 0)
+        s._port = bound.httpd.server_address[1]
+        return s, bound
+
+    def _request(self, port: int, path: str, method: str = "GET", body=None):
+        url = f"http://127.0.0.1:{port}{path}"
+        data = json.dumps(body).encode() if body is not None else None
+        request = urllib.request.Request(url, data=data, method=method,
+                                         headers={"X-Auth-Token": ""})
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return response.status, json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            payload = error.read().decode("utf-8")
+            try:
+                return error.code, json.loads(payload)
+            except json.JSONDecodeError:
+                return error.code, {}
+
+    def test_policy_instructions_setup_and_projects_over_http(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            okc = self._fake_okc(tmp)
+            s, bound = self._server(tmp, cli, okc=okc)
+            threading.Thread(target=bound.serve_forever, daemon=True).start()
+            try:
+                port = bound.httpd.server_address[1]
+                # Policy editor round-trip.
+                status, policy = self._request(port, "/api/policy")
+                self.assertEqual((status, policy["text"]), (200, "Provide evidence accurately."))
+                status, _ = self._request(port, "/api/policy", "POST", {"text": "Be honest.\n"})
+                self.assertEqual(status, 200)
+                self.assertEqual(s.policy_text(), "Be honest.\n")
+                self.assertEqual((Path(s.workspace_root) / "research-policy.md")
+                                 .read_text(encoding="utf-8"), "Be honest.\n")
+
+                # Built-in setup: overview, save, validation, account verify.
+                status, overview = self._request(port, "/api/setup?projectID=builtin:test_kernel")
+                self.assertEqual(status, 200)
+                self.assertEqual(overview["draft"]["researchPrompt"], "Explain the starter.")
+                self.assertIn("promptError", overview)  # defaults have no account yet
+                self.assertIn("Sign in with your own account.", overview["loginInstructions"])
+                draft = dict(overview["draft"])
+                draft.update({"expectedAccount": "tester", "checkBudget": "12",
+                              "researchPrompt": "Explain the starter."})
+                status, saved = self._request(port, "/api/setup", "POST",
+                                              {"projectID": "builtin:test_kernel", "draft": draft})
+                self.assertEqual(status, 200)
+                self.assertEqual(saved["draft"]["expectedAccount"], "tester")
+                status, again = self._request(port, "/api/setup?projectID=builtin:test_kernel")
+                self.assertEqual(status, 200)
+                self.assertIn('"projectID": "test_kernel"', again["prompt"])
+                self.assertNotIn("promptError", again)
+                status, account = self._request(port, "/api/setup/verify-account", "POST", {})
+                self.assertEqual((status, account["account"]), (200, "tester"))
+
+                # Built-in instructions exist after prepare and accept edits.
+                status, guide = self._request(port, "/api/instructions?projectID=builtin:test_kernel")
+                self.assertEqual(status, 200)
+                self.assertIn("official judge evaluates remotely", guide["text"])
+                status, _ = self._request(port, "/api/instructions", "POST",
+                                          {"projectID": "builtin:test_kernel", "text": "MY EDITS"})
+                self.assertEqual(status, 200)
+                reloaded = (Path(s.workspace_root) / "projects" / "builtins" / "test_kernel"
+                            / "auto-research.md").read_text(encoding="utf-8")
+                self.assertEqual(reloaded, "MY EDITS\n")
+
+                # Project edit + remove.
+                status, edited = self._request(port, "/api/projects/edit", "POST",
+                                               {"projectID": "octocat/research-demo",
+                                                "name": "Renamed", "summary": "Mine."})
+                self.assertEqual((status, edited["project"]["name"]), (200, "Renamed"))
+                status, removed = self._request(port, "/api/projects/remove", "POST",
+                                                {"projectID": "octocat/research-demo"})
+                self.assertEqual(status, 200)
+                self.assertFalse(any(p.id == "octocat/research-demo"
+                                     for p in s.state.projects))
+
+                # MCP selection persists.
+                status, _ = self._request(port, "/api/mcp", "POST", {"enabled": ["beta"]})
+                self.assertEqual(status, 200)
+                status, mcp = self._request(port, "/api/mcp")
+                self.assertEqual((status, mcp["enabled"]), (200, ["beta"]))
+                saved_file = Path(s.workspace_root) / "mcp-selection.json"
+                self.assertEqual(json.loads(saved_file.read_text(encoding="utf-8")), ["beta"])
+
+                # Send with no open chat starts a titled chat.
+                s.state.selected_project_id = "builtin:test_kernel"
+                s.persist()
+                status, sent = self._request(port, "/api/chats/send", "POST",
+                                             {"sessionID": "", "text": "Explain the starter"})
+                self.assertEqual(status, 200)
+                title = s._session(sent["sessionID"]).title
+                self.assertEqual(title, "Explain the starter")
+            finally:
+                bound.stop()
+                s.shutdown()
+
+    def test_mcp_refresh_lists_configured_servers(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp, mcp_json='[{"name": "beta"}, {"name": "alpha"}]')
+            s, bound = self._server(tmp, cli)
+            threading.Thread(target=bound.serve_forever, daemon=True).start()
+            try:
+                port = bound.httpd.server_address[1]
+                status, mcp = self._request(port, "/api/mcp/refresh", "POST", {})
+                self.assertEqual(status, 200)
+                self.assertEqual(mcp["available"], ["alpha", "beta"])
+            finally:
+                bound.stop()
+                s.shutdown()
+
+    def test_builtin_play_requires_verified_account_match(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            okc = self._fake_okc(tmp, account="octocat")
+            s, root = self._store(tmp, cli, okc=okc)
+            try:
+                s.save_setup_draft("builtin:test_kernel",
+                                   {"expectedAccount": "tester", "checkBudget": "0",
+                                    "researchPrompt": "Explain the starter."})
+                with self.assertRaisesRegex(store.ResearchError, "does not match"):
+                    s.play("builtin:test_kernel")
+            finally:
+                s.shutdown()
+
+    def test_builtin_play_runs_with_verified_account(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            okc = self._fake_okc(tmp, account="tester")
+            s, root = self._store(tmp, cli, okc=okc)
+            try:
+                s.save_setup_draft("builtin:test_kernel",
+                                   {"expectedAccount": "tester", "checkBudget": "0",
+                                    "researchPrompt": "Explain the starter."})
+                session_id = s.play("builtin:test_kernel")
+                session = None
+                for _ in range(100):
+                    session = s._session(session_id)
+                    if session and session.state in ("Completed", "Needs attention"):
+                        break
+                    time.sleep(0.1)
+                self.assertEqual(session.state, "Completed", session.messages)
+                first_user = next(m for m in session.messages if m.role == "user")
+                self.assertIn('"projectID": "test_kernel"', first_user.text)
+                self.assertIn("Improve the kernel starter.", first_user.text)
+            finally:
+                s.shutdown()
+
+    def test_parallel_agents_get_own_checkouts_and_capture(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                first = s.play("octocat/research-demo", parallel=True, agent_count=2,
+                               share_context=False)
+                sessions = [x for x in s.state.sessions
+                            if x.shared_agent and x.shared_agent["sharesContext"] is False]
+                self.assertEqual(len(sessions), 2)
+                titles = sorted(x.title for x in sessions)
+                self.assertEqual(titles, ["Agent 1 · independent", "Agent 2 · independent"])
+                for session in sessions:
+                    directory = Path(session.working_directory)
+                    self.assertTrue((directory / ".git").exists(), directory)
+                for _ in range(150):
+                    if all(x.state in ("Completed", "Needs attention") for x in sessions):
+                        break
+                    time.sleep(0.1)
+                self.assertTrue(all(x.state == "Completed" for x in sessions),
+                                [x.state for x in sessions])
+                self.assertEqual(first, sessions[0].id)
+                texts = [m.text for x in sessions for m in x.messages if m.role == "user"]
+                self.assertTrue(any("Independent parallel agent 1 of 2" in t for t in texts),
+                                texts)
+
+                # Shared context: one round per Play; the bundle is captured.
+                s2 = s
+                s2.state.selected_project_id = "octocat/research-demo"
+                s2.play("octocat/research-demo", parallel=True, agent_count=2,
+                        share_context=True)
+                shared = [x for x in s2.state.sessions if x.shared_agent
+                          and x.shared_agent["sharesContext"] is True]
+                self.assertEqual(len(shared), 2)
+                for _ in range(150):
+                    if all(x.state in ("Completed", "Needs attention") for x in shared):
+                        break
+                    time.sleep(0.1)
+                group = shared[0].shared_agent["groupID"]
+                bundle = Path(s2.workspace_root) / "shared-context" / group.lower() / "round-1"
+                self.assertTrue((bundle / "manifest.json").is_file(), bundle)
+                self.assertTrue((bundle / "shared-context.md").is_file(), bundle)
+                manifest = json.loads((bundle / "manifest.json").read_text(encoding="utf-8"))
+                self.assertEqual([a["number"] for a in manifest["agents"]], [1, 2])
+            finally:
+                s.shutdown()
+
+    def test_keep_researching_is_tracked_for_play_and_send(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                session_id = s.play("octocat/research-demo", keep_researching=True)
+                self.assertIn(session_id, s._keep_researching)
+                for _ in range(100):
+                    session = s._session(session_id)
+                    if session and session.state == "Completed":
+                        break
+                    time.sleep(0.1)
+                self.assertEqual(session.state, "Completed")
+                s._keep_researching.clear()
+                s.state.selected_project_id = "octocat/research-demo"
+                resumed = s.send("", "Follow up", keep_researching=True)
+                self.assertIn(resumed, s._keep_researching)
+                s.stop(resumed)
+            finally:
+                s.shutdown()
+
+    def test_drafts_and_selection_survive_reload(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                s.save_setup_draft("builtin:test_kernel",
+                                   {"expectedAccount": "tester", "checkBudget": "40",
+                                    "researchPrompt": "Explain", "allowScoredSubmissions": True,
+                                    "scoreBudget": "2", "scoreCriterion": "after merged PR"})
+                s.set_mcp_selection(["beta"])
+                s2 = store.Store(s.resources_dir)
+                s2.load_workspace(str(root))
+                self.assertEqual(s2.setup_draft("builtin:test_kernel")["checkBudget"], "40")
+                self.assertEqual(s2.mcp_servers()["enabled"], ["beta"])
+            finally:
+                s.shutdown()
+
+
 if __name__ == "__main__":
     unittest.main()

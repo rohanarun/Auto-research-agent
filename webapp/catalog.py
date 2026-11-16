@@ -1,8 +1,14 @@
-"""Catalog fetch, parse and merge, mirroring ResearchCore's Catalog.swift."""
+"""Catalog fetch, parse and merge, mirroring ResearchCore's Catalog.swift.
+
+Fetching uses the shared transport, which falls back to the Windows system
+curl when Python's TLS stack cannot build the certificate chain. The fetched
+page is saved as a snapshot in the workspace cache; when the site is not
+reachable the snapshot still serves the full list.
+"""
 import json
 import re
-import urllib.request
 
+from . import transport
 from .models import ResearchError, ResearchProject
 
 
@@ -91,15 +97,33 @@ def parse(html: str) -> list[ResearchProject]:
     return projects
 
 
-def fetch(address: str, timeout: float = 20.0) -> list[ResearchProject]:
+def fetch(address: str, timeout: float = 20.0,
+          snapshot: "object | None" = None) -> tuple[list[ResearchProject], bool, str]:
+    """Fetch and parse the catalog page.
+
+    Returns ``(projects, offline, note)``: ``offline`` is True when the saved
+    snapshot was used, and ``note`` explains why. Raises when there is no
+    snapshot either. ``snapshot`` is a cache path for the page HTML.
+    """
     address = address.strip()
     if not address.startswith("https://"):
         raise ResearchError("Use an HTTPS catalog URL.")
-    request = urllib.request.Request(address, headers={"Accept": "text/html,application/xhtml+xml"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        if response.status != 200:
-            raise ResearchError("The catalog server could not be reached. Showing saved projects.")
-        return parse(response.read().decode("utf-8"))
+    try:
+        html = transport.fetch_text(address, timeout=timeout,
+                                    accept="text/html,application/xhtml+xml")
+    except transport.TransportError as error:
+        if snapshot is not None:
+            saved = transport.read_snapshot(snapshot)
+            if saved:
+                try:
+                    return parse(saved), True, "Offline · saved catalog snapshot"
+                except ResearchError:
+                    pass
+        raise ResearchError("The catalog server could not be reached. Showing saved projects: "
+                            + str(error)) from None
+    if snapshot is not None:
+        transport.save_snapshot(snapshot, html)
+    return parse(html), False, ""
 
 
 def merge(fetched: list[ResearchProject], existing: list[ResearchProject],

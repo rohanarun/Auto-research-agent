@@ -126,6 +126,15 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/auth/status":
                 store.refresh_auth()
                 return self._json(200, {"auth": dict(store.auth)})
+            if path == "/api/policy":
+                return self._json(200, {"text": store.policy_text()})
+            if path == "/api/instructions":
+                file_path, text = store.instructions(params.get("projectID") or "")
+                return self._json(200, {"path": str(file_path), "text": text})
+            if path == "/api/setup":
+                return self._json(200, store.setup_overview(params.get("projectID") or ""))
+            if path == "/api/mcp":
+                return self._json(200, store.mcp_servers())
             return self._error(404, "No such endpoint: " + path)
         except ResearchError as error:
             return self._error(400, str(error))
@@ -151,15 +160,27 @@ class Handler(BaseHTTPRequestHandler):
                 project = store.add_project(repository=body.get("repository") or "",
                                             local_path=body.get("localPath") or "")
                 return self._json(200, {"ok": True, "project": project.to_json()})
+            if path == "/api/projects/edit":
+                project = store.edit_project(body.get("projectID") or "", body)
+                return self._json(200, {"ok": True, "project": project.to_json()})
+            if path == "/api/projects/remove":
+                store.remove_project(body.get("projectID") or "")
+                return self._json(200, {"ok": True})
             if path == "/api/chats/create":
                 session = store.create_chat(body.get("projectID") or "", body.get("provider"))
                 return self._json(200, {"sessionID": session.id})
             if path == "/api/play":
                 session_id = store.play(body.get("projectID") or "", body.get("prompt"),
-                                        body.get("provider"))
+                                        body.get("provider"),
+                                        keep_researching=bool(body.get("keepResearching")),
+                                        parallel=bool(body.get("parallel")),
+                                        agent_count=body.get("agentCount"),
+                                        share_context=(None if body.get("shareContext") is None
+                                                       else bool(body.get("shareContext"))))
                 return self._json(200, {"sessionID": session_id})
             if path == "/api/chats/send":
-                session_id = store.send(body.get("sessionID") or "", body.get("text") or "")
+                session_id = store.send(body.get("sessionID") or "", body.get("text") or "",
+                                        keep_researching=bool(body.get("keepResearching")))
                 return self._json(200, {"sessionID": session_id})
             if path == "/api/chats/stop":
                 store.stop(body.get("sessionID") or "")
@@ -173,7 +194,33 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/settings":
                 store.save_settings(body)
                 return self._json(200, {"ok": True})
+            if path == "/api/policy":
+                store.save_policy(body.get("text") or "")
+                return self._json(200, {"ok": True})
+            if path == "/api/instructions":
+                store.save_instructions(body.get("projectID") or "", body.get("text") or "")
+                return self._json(200, {"ok": True})
+            if path == "/api/setup":
+                draft = store.save_setup_draft(body.get("projectID") or "", body.get("draft") or {})
+                return self._json(200, {"ok": True, "draft": draft})
+            if path == "/api/setup/verify-account":
+                return self._json(200, {"account": store.verify_okc_account()})
+            if path == "/api/setup/login-script":
+                script = store.login_script_file(body.get("projectID") or "",
+                                                 choose_account=bool(body.get("chooseAccount")))
+                return self._json(200, store.spawn_terminal(script))
+            if path == "/api/mcp":
+                store.set_mcp_selection(body.get("enabled") or [])
+                return self._json(200, {"ok": True})
+            if path == "/api/mcp/refresh":
+                return self._json(200, store.refresh_mcp_servers())
             if path == "/api/auth/login":
+                if body.get("spawn", True):
+                    try:
+                        script = store.provider_login_script(body.get("provider") or "")
+                        return self._json(200, store.spawn_terminal(script))
+                    except ResearchError:
+                        raise
                 return self._json(200, {"instructions": store.login(body.get("provider") or "")})
             return self._error(404, "No such endpoint: " + path)
         except ResearchError as error:
