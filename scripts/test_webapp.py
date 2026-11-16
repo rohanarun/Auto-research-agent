@@ -871,6 +871,37 @@ class TriageFixTests(unittest.TestCase):
                 bound.stop()
                 s.shutdown()
 
+    def test_project_folder_and_terminal_routes_over_http(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, bound = self._server(tmp, cli)
+            threading.Thread(target=bound.serve_forever, daemon=True).start()
+            try:
+                port = bound.httpd.server_address[1]
+                project, _ = s.add_project("octocat/research-demo")
+                session = self._selected_session(s, project.id)
+                opened = self._capture_folder_open()
+                status, res = self._request(port, "/api/project/folder", "POST", {})
+                self.assertEqual((status, res["ok"]), (200, True))
+                self.assertEqual(opened, [session.working_directory])
+                # The terminal route opens the launcher on the host; fake the spawn.
+                spawned = []
+                class FakePopen:
+                    def __init__(self, args, **kwargs):
+                        spawned.append(args)
+                self._patch(store.subprocess, "Popen", FakePopen)
+                status, res = self._request(port, "/api/session/terminal", "POST",
+                                            {"sessionID": session.id})
+                self.assertEqual((status, res["spawned"]), (200, True))
+                self.assertEqual(len(spawned), 1)
+                text = Path(res["script"]).read_text(encoding="utf-8")
+                self.assertIn(session.working_directory, text)
+                self.assertIn("THREAD", text)
+            finally:
+                bound.stop()
+                s.shutdown()
+
     def test_builtin_play_requires_verified_account_match(self):
         with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
             tmp = Path(tmp)
@@ -1071,6 +1102,141 @@ class TriageFixTests(unittest.TestCase):
             finally:
                 s.shutdown()
 
+    def _capture_folder_open(self):
+        """Patch the host folder opener; returns the list of opened paths."""
+        from webapp import store as store_module
+        opened = []
+        if os.name == "nt":
+            self._patch(os, "startfile", lambda path: opened.append(str(path)))
+        else:
+            class FakePopen:
+                def __init__(self, args, **kwargs):
+                    opened.append(str(args[1]))
+            self._patch(store_module.subprocess, "Popen", FakePopen)
+        return opened
+
+    def _selected_session(self, s, project_id, provider="codex"):
+        session = models.ResearchSession(project_id, "Research · Demo", provider)
+        session.working_directory = str(Path(s.workspace_root) / "projects"
+                                        / "octocat" / "research-demo")
+        session.provider_session_id = "THREAD"
+        s.state.sessions.append(session)
+        s.state.selected_project_id = project_id
+        s.state.selected_session_id = session.id
+        return session
+
+    def test_open_project_folder_opens_the_selected_checkout(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                project, _ = s.add_project("octocat/research-demo")
+                session = self._selected_session(s, project.id)
+                opened = self._capture_folder_open()
+                result = s.open_project_folder(session.id)
+                self.assertEqual(result["ok"], True)
+                self.assertEqual(opened, [session.working_directory])
+                # Without a chat, a project's own local checkout is used.
+                folder = tmp / "local-proj"
+                folder.mkdir()
+                local_project, _ = s.add_project(local_path=str(folder))
+                s.state.selected_project_id = local_project.id
+                s.state.selected_session_id = None
+                result = s.open_project_folder()
+                self.assertEqual(result["ok"], True)
+                self.assertEqual(opened, [session.working_directory, str(folder)])
+            finally:
+                s.shutdown()
+
+    def test_open_project_folder_reports_missing_checkouts(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                project, _ = s.add_project("octocat/research-demo")
+                session = self._selected_session(s, project.id)
+                self._capture_folder_open()
+                session.working_directory = None
+                s.state.selected_session_id = None
+                # A repository project without a checkout has no folder yet.
+                with self.assertRaises(models.ResearchError):
+                    s.open_project_folder()
+                # Unknown ids say so instead of opening the workspace.
+                session.working_directory = str(root / "projects" / "octocat" / "research-demo")
+                s.state.selected_session_id = session.id
+                session.working_directory = None
+                with self.assertRaises(models.ResearchError):
+                    s.open_project_folder("missing-session")
+            finally:
+                s.shutdown()
+
+    def test_continue_in_terminal_writes_the_resume_script(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                project, _ = s.add_project("octocat/research-demo")
+                session = self._selected_session(s, project.id)
+                script = s.continue_in_terminal(session.id)
+                text = script.read_text(encoding="utf-8")
+                self.assertTrue(script.name.endswith(".cmd" if os.name == "nt" else ".command"))
+                self.assertIn(session.working_directory, text)
+                self.assertIn("THREAD", text)
+                self.assertIn("resume", text)
+                # The launcher never embeds the policy or a research prompt.
+                self.assertNotIn("Harness instructions", text)
+            finally:
+                s.shutdown()
+
+    def test_continue_in_terminal_guards_mirror_native(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            tmp = Path(tmp)
+            cli = self._fake_cli(tmp)
+            s, root = self._store(tmp, cli)
+            try:
+                project, _ = s.add_project("octocat/research-demo")
+                session = self._selected_session(s, project.id)
+                # No provider conversation yet.
+                session.provider_session_id = None
+                with self.assertRaises(models.ResearchError) as ctx:
+                    s.continue_in_terminal(session.id)
+                self.assertIn("Start a chat first", str(ctx.exception))
+                session.provider_session_id = "THREAD"
+                # The selected chat running.
+                s._runners[session.id] = object()
+                with self.assertRaises(models.ResearchError) as ctx:
+                    s.continue_in_terminal(session.id)
+                self.assertIn("Stop the running research", str(ctx.exception))
+                del s._runners[session.id]
+                # A shared-context group with a running agent.
+                other = models.ResearchSession(project.id, "Research · Agent 2", "codex")
+                other.shared_agent = {"groupID": "G", "index": 2}
+                s.state.sessions.append(other)
+                s._shared_groups["G"] = {"projectID": project.id, "sessionIDs": [other.id],
+                                         "sharesContext": True, "generation": 1,
+                                         "agentCount": 2, "directoryName": "demo",
+                                         "keepResearching": False}
+                s._runners[other.id] = object()
+                with self.assertRaises(models.ResearchError) as ctx:
+                    s.continue_in_terminal(session.id)
+                self.assertIn("Stop the shared-context group", str(ctx.exception))
+                del s._runners[other.id]
+                # Unknown sessions say the same thing the native app does.
+                with self.assertRaises(models.ResearchError) as ctx:
+                    s.continue_in_terminal("missing-session")
+                self.assertIn("Start a chat first", str(ctx.exception))
+            finally:
+                s.shutdown()
+
+    def test_resume_arguments_mirror_native_cli(self):
+        self.assertEqual(cli_runner.resume_arguments("codex", "T"), ["resume", "T"])
+        self.assertEqual(cli_runner.resume_arguments("claude", "T"), ["--resume", "T"])
+        self.assertEqual(cli_runner.resume_arguments("opencode", "T"), ["--session", "T"])
+        self.assertEqual(cli_runner.resume_arguments("antigravity", "T"),
+                         ["--conversation", "T"])
 
     def test_git_command_keeps_the_repository_slash(self):
         from webapp import workspace

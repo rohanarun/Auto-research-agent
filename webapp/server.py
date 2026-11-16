@@ -262,6 +262,13 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/workspace/open":
                 store.open_workspace_folder()
                 return self._json(200, {"ok": True})
+            if path == "/api/project/folder":
+                store.open_project_folder(body.get("sessionID") or None,
+                                          body.get("projectID") or None)
+                return self._json(200, {"ok": True})
+            if path == "/api/session/terminal":
+                script = store.continue_in_terminal(str(body.get("sessionID") or ""))
+                return self._json(200, store.spawn_terminal(script))
             return self._error(404, "No such endpoint: " + path)
         except ResearchError as error:
             return self._error(400, str(error))

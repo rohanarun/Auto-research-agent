@@ -871,6 +871,68 @@ class Store:
                 pass
         return file
 
+    def continue_in_terminal(self, session_id: str) -> Path:
+        """A terminal launcher that reopens the chat's provider conversation
+        interactively on the host, mirroring the native openTerminal."""
+        with self._lock:
+            session = self._session(session_id)
+            if session is None:
+                raise ResearchError("Start a chat first to open its CLI session in Terminal.")
+            provider = session.provider
+            provider_session = session.provider_session_id
+            directory = session.working_directory
+            settings = copy.copy(self.settings)
+            busy = session_id in self._runners
+            shared_running = any(sid in self._runners
+                                 for group in self._shared_groups.values()
+                                 if group.get("projectID") == session.project_id
+                                 for sid in group.get("sessionIDs", []))
+        if not provider_session or not directory:
+            raise ResearchError("Start a chat first to open its CLI session in Terminal.")
+        if busy:
+            raise ResearchError("Stop the running research before continuing it in Terminal.")
+        if shared_running:
+            raise ResearchError("Stop the shared-context group before continuing one of "
+                                "its sessions in Terminal.")
+        executable = {"codex": settings.codexPath, "claude": settings.claudePath,
+                      "opencode": settings.opencodePath,
+                      "antigravity": settings.antigravityPath}[provider]
+        if not workspace_module.executable_check(executable):
+            raise ResearchError(
+                cli_runner.PROVIDER_TITLES[provider]
+                + " CLI is not installed at the configured path. Open Connections to locate it "
+                  "or view installation instructions.")
+        folder = workspace_module.directory(self.workspace_root, "terminal")
+        import uuid as uuid_module
+        name = "continue-" + provider + "-" + str(uuid_module.uuid4()).upper()
+        arguments = cli_runner.resume_arguments(provider, provider_session)
+        if os.name == "nt":
+            file = folder / (name + ".cmd")
+            args = " ".join('"' + a + '"' for a in arguments)
+            file.write_text("@echo off\r\n"
+                            "echo Continuing this chat in "
+                            + cli_runner.PROVIDER_TITLES[provider] + " with the official CLI.\r\n"
+                            "echo The conversation stays with the CLI; this window does not copy"
+                            " or store it.\r\n"
+                            f'cd /d "{directory}"\r\n'
+                            f'"{executable}" {args}\r\n', encoding="utf-8")
+        else:
+            file = folder / (name + ".command")
+            args = " ".join("'" + a.replace("'", "'\\''") + "'" for a in arguments)
+            file.write_text("#!/bin/zsh\n"
+                            "echo 'Continuing this chat in "
+                            + cli_runner.PROVIDER_TITLES[provider] + " with the official CLI.'\n"
+                            "echo 'The conversation stays with the CLI; this window does not copy"
+                            " or store it.'\n"
+                            f"cd -- '{directory.replace(chr(39), chr(39)+chr(92)+chr(39)+chr(39))}'"
+                            " || exit 1\n"
+                            f"'{executable}' {args}\n", encoding="utf-8")
+            try:
+                file.chmod(0o700)
+            except OSError:
+                pass
+        return file
+
     # ---------- chats ----------
 
     def select(self, project_id: str | None = None, session_id: str | None = None):
@@ -1506,6 +1568,32 @@ class Store:
             subprocess.Popen(["open", str(root)])
         else:
             subprocess.Popen(["xdg-open", str(root)])
+
+    def open_project_folder(self, session_id: str | None = None,
+                            project_id: str | None = None) -> dict:
+        """Mirror AppStore.revealProject: open the selected chat's checkout,
+        else the project's local checkout, in the host's folder view."""
+        with self._lock:
+            session = self._session(session_id or self.state.selected_session_id or "")
+            project = self._project(session.project_id if session is not None
+                                    else project_id or self.state.selected_project_id or "")
+            if project is None:
+                raise ResearchError("Select a project first.")
+            target = ((session.working_directory if session is not None else None)
+                      or project.local_path)
+        if not target:
+            raise ResearchError("Start a chat or add a local checkout first; "
+                                "there is no project folder to show yet.")
+        folder = Path(target)
+        if not folder.is_dir():
+            raise ResearchError("The checkout folder " + target + " does not exist.")
+        if os.name == "nt":
+            os.startfile(str(folder))  # noqa: S606 — opens Explorer on the host
+        elif os.uname().sysname == "Darwin":
+            subprocess.Popen(["open", str(folder)])
+        else:
+            subprocess.Popen(["xdg-open", str(folder)])
+        return {"ok": True, "path": str(folder)}
 
     def lean_view(self) -> dict:
         return self._lean().view()

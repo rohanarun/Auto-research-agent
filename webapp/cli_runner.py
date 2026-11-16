@@ -79,6 +79,18 @@ def chat_command(provider: str, settings, session_id: str | None, prompt: str,
     return Command(settings.claudePath, args, input=prompt)
 
 
+def resume_arguments(provider: str, session_id: str) -> list[str]:
+    """CLI.resumeArguments: the arguments that reopen a provider conversation
+    interactively in a terminal."""
+    if provider == "codex":
+        return ["resume", session_id]
+    if provider == "antigravity":
+        return ["--conversation", session_id]
+    if provider == "opencode":
+        return ["--session", session_id]
+    return ["--resume", session_id]
+
+
 def mcp_discovery(executable: str) -> Command:
     return Command(executable, ["--disable", "plugins", "mcp", "list", "--json"])
 

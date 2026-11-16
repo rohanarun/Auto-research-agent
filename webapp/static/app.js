@@ -888,35 +888,52 @@ function openEllipsisMenu(anchor) {
         render();
       }, { active: !session && store.detailsOpen });
       menuItem(menu, 'Start research', function () { playProject(project); });
-      menuItem(menu, 'Edit instructions', function () { openInstructionsSheet(project.id); });
-      if (!project.builtinID) {
-        menuItem(menu, 'Edit project details', function () { openProjectEditSheet(project.id); });
-      }
       var open = openSessionsOf(project.id);
       if (open.length) menuItem(menu, 'Open latest chat', function () { selectSession(open[0].id); });
+      menuSeparator(menu);
       var url = projectURL(project);
       if (url) {
-        menuSeparator(menu);
         menuItem(menu, project.builtinID ? 'View challenge' : 'View repository', function () {
           window.open(url, '_blank', 'noopener');
         }, { icon: 'extlink' });
       }
-      if (!project.builtinID) {
-        menuSeparator(menu);
-        menuItem(menu, 'Remove project', function () { openRemoveProjectSheet(project.id); });
-      }
-      menuSeparator(menu);
     }
+    menuItem(menu, 'Show project in folder', function () {
+      apiPost('/api/project/folder', { projectID: project ? project.id : null,
+                                       sessionID: session ? session.id : null })
+        .then(function () { toast('The folder opens on the device that serves this dashboard'); })
+        .catch(apiFail);
+    }, { disabled: !((session && session.workingDirectory) || (project && project.localPath)) });
     menuItem(menu, 'Show run logs', function () {
       if (!session) return;
       var tokenParam = store.token ? '?token=' + encodeURIComponent(store.token) : '';
       window.open('/api/logs/' + encodeURIComponent(session.id) + tokenParam, '_blank');
     }, { disabled: !session, icon: 'terminal' });
+    menuItem(menu, 'Continue in terminal', function () {
+      apiPost('/api/session/terminal', { sessionID: session.id }).then(function (res) {
+        toast(res && res.spawned ? 'A terminal window opened on the host device'
+                                 : 'Could not open a terminal window');
+      }).catch(apiFail);
+    }, { disabled: !session || !session.providerSessionID || sessionBusy(session) });
     if (session) {
       menuItem(menu, 'Close chat', function () { closeSession(session.id); }, { disabled: sessionBusy(session) });
     }
-    menuSeparator(menu);
     menuItem(menu, 'Connections & settings', function () { openSettingsSheet(); });
+  });
+}
+
+function openProjectManageMenu(anchor) {
+  // Editing and removing live in the project dashboard (native keeps its
+  // edit buttons inside the project view), out of the global menu.
+  toggleMenu(anchor, true, function (menu) {
+    var project = selectedProject();
+    if (!project) return;
+    menuItem(menu, 'Edit instructions', function () { openInstructionsSheet(project.id); });
+    if (!project.builtinID) {
+      menuItem(menu, 'Edit project details', function () { openProjectEditSheet(project.id); });
+      menuSeparator(menu);
+      menuItem(menu, 'Remove project', function () { openRemoveProjectSheet(project.id); });
+    }
   });
 }
 
@@ -1632,6 +1649,7 @@ function renderDashboard() {
         (project.summary ? '<p class="dash-summary">' + esc(project.summary) + '</p>' : '') + '</div>' +
       '<div class="dash-head-actions">' +
         (url ? '<a class="h-icon-btn" href="' + attr(url) + '" target="_blank" rel="noreferrer" aria-label="Open repository" title="Open repository">' + icon('extlink', 15) + '</a>' : '') +
+        '<button class="h-icon-btn" id="dashManage" aria-haspopup="menu" aria-expanded="false" aria-label="Edit project" title="Edit instructions, details, or remove">' + icon('ellipsis', 15) + '</button>' +
         '<button class="h-icon-btn" id="dashRefresh" aria-label="Refresh chart data" title="Refresh chart data"' + (entry.loading ? ' disabled' : '') + '>' + icon('refresh', 15) + '</button>' +
       '</div>' +
     '</div>'
@@ -1656,6 +1674,8 @@ function renderDashboard() {
 
   var refresh = $('#dashRefresh', wrap);
   if (refresh) refresh.addEventListener('click', function () { loadDashboard(project.id, true); });
+  var manage = $('#dashManage', wrap);
+  if (manage) manage.addEventListener('click', function () { openProjectManageMenu(manage); });
   var retry = $('#dashRetry', wrap);
   if (retry) retry.addEventListener('click', function () { loadDashboard(project.id, true); });
 
