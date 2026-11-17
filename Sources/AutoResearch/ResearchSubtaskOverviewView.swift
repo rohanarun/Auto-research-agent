@@ -33,7 +33,7 @@ struct ResearchSubtaskOverviewView: View {
             }
         }
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(red: 0.30, green: 0.34, blue: 0.78).opacity(0.045), in: RoundedRectangle(cornerRadius: 10))
+        .background(Theme.accent.opacity(0.045), in: RoundedRectangle(cornerRadius: 10))
         .padding(.horizontal, 26).padding(.top, 12).padding(.bottom, 4)
         .task(id: session.state + (session.workingDirectory ?? "")) {
             repeat {
