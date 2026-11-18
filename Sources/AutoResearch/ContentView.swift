@@ -2,10 +2,11 @@ import SwiftUI
 import AppKit
 import ResearchCore
 
-private let ink = Color(red: 0.13, green: 0.14, blue: 0.15)
-private let muted = Color(red: 0.46, green: 0.47, blue: 0.48)
-private let sidebarColor = Color(red: 0.955, green: 0.954, blue: 0.946)
-private let accent = Color(red: 0.30, green: 0.34, blue: 0.78)
+private let ink = Theme.ink
+private let muted = Theme.muted
+private let sidebarColor = Theme.sidebar
+private let accent = Theme.accent
+private let surface = Theme.surface
 
 struct ContentView: View {
     @ObservedObject var store: AppStore
@@ -14,7 +15,7 @@ struct ContentView: View {
     var body: some View {
         HStack(spacing: 0) {
             sidebar.frame(width: 282)
-            Rectangle().fill(Color.black.opacity(0.075)).frame(width: 1)
+            Rectangle().fill(Color.primary.opacity(0.075)).frame(width: 1)
             VStack(spacing: 0) {
                 header
                 Divider().opacity(0.4)
@@ -32,7 +33,7 @@ struct ContentView: View {
                     if project.builtinID != nil { BuiltinProjectView(store: store, project: project) }
                     else { ProjectDashboardView(project: project, catalogURL: store.settings.catalogURL) }
                 } else { welcome; composer }
-            }.frame(maxWidth: .infinity, maxHeight: .infinity).background(.white)
+            }.frame(maxWidth: .infinity, maxHeight: .infinity).background(surface)
         }
         .foregroundStyle(ink)
         .sheet(isPresented: $store.showSettings) { ConnectionsView(store: store) }
@@ -54,7 +55,7 @@ struct ContentView: View {
                 Image(systemName: "magnifyingglass").foregroundStyle(muted)
                 TextField("Find a project", text: $store.search).textFieldStyle(.plain)
                 if !store.search.isEmpty { Button { store.search = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain).foregroundStyle(muted) }
-            }.padding(9).background(.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 9)).padding(.horizontal, 14).padding(.bottom, 20)
+            }.padding(9).background(surface.opacity(0.75), in: RoundedRectangle(cornerRadius: 9)).padding(.horizontal, 14).padding(.bottom, 20)
             HStack {
                 Text("Open research").font(.system(size: 12, weight: .semibold)).foregroundStyle(muted)
                 Spacer()
@@ -120,7 +121,7 @@ struct ContentView: View {
                 Image(systemName: store.running(project) ? "waveform" : "play.fill").font(.system(size: 10, weight: .semibold)).foregroundStyle(store.running(project) ? accent : ink).frame(width: 25, height: 28).contentShape(Rectangle())
             }.buttonStyle(.plain).help("Start research with \(store.provider.title)").accessibilityLabel("Start research for \(project.name)")
         }.padding(.vertical, 8).padding(.leading, 9).padding(.trailing, 3)
-            .background(store.selectedProjectID == project.id ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 8))
+            .background(store.selectedProjectID == project.id ? Color.primary.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 8))
             .contextMenu {
                 Button("Start research") { store.play(project) }
                 if let url = project.githubURL { Link("View on GitHub", destination: url) }
@@ -184,7 +185,7 @@ struct ContentView: View {
                 .buttonStyle(.plain).foregroundStyle(muted).disabled(!store.canClose(session))
                 .help(store.canClose(session) ? "Close chat; keep history" : "Stop research before closing this chat")
                 .accessibilityLabel("Close chat: \(session.title)")
-        }.background(store.selectedSessionID == session.id ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
+        }.background(store.selectedSessionID == session.id ? Color.primary.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
     }
     func sharedGroupRow(_ session: ResearchSession) -> some View {
         let group = session.sharedAgent!.groupID
@@ -196,7 +197,7 @@ struct ContentView: View {
             Button { store.closeSharedGroup(group) } label: { Image(systemName: "xmark").font(.system(size: 10)).frame(width: 26, height: 28) }
                 .buttonStyle(.plain).foregroundStyle(muted).disabled(!store.canCloseGroup(group))
                 .help("Close this group's chats; keep history").accessibilityLabel("Close parallel chats")
-        }.background(store.selectedSharedGroupID == group ? Color.black.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
+        }.background(store.selectedSharedGroupID == group ? Color.primary.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 7))
     }
     var header: some View {
         HStack(spacing: 12) {
@@ -261,7 +262,7 @@ struct ContentView: View {
             Text(store.project?.summary.isEmpty == false ? store.project!.summary : "Give an idea room to grow. Your agent can explore the code, run experiments, and keep the evidence together.")
                 .font(.system(size: 15)).foregroundStyle(muted).lineSpacing(5).frame(maxWidth: 540, alignment: .leading)
             HStack(spacing: 12) {
-                Button { if let project = store.project { store.play(project) } } label: { Label("Start research", systemImage: "play.fill").font(.system(size: 13, weight: .medium)).padding(.horizontal, 18).padding(.vertical, 12).background(ink, in: Capsule()).foregroundStyle(.white) }.buttonStyle(.plain).disabled(store.project == nil)
+                Button { if let project = store.project { store.play(project) } } label: { Label("Start research", systemImage: "play.fill").font(.system(size: 13, weight: .medium)).padding(.horizontal, 18).padding(.vertical, 12).background(ink, in: Capsule()).foregroundStyle(surface) }.buttonStyle(.plain).disabled(store.project == nil)
                 if let project = store.project, let url = store.projectURL(project) { Link(destination: url) { Label(project.builtinID == nil ? "Explore repository" : "Explore challenge", systemImage: "arrow.up.right").font(.system(size: 13, weight: .medium)).padding(.horizontal, 16).padding(.vertical, 12).background(sidebarColor, in: Capsule()).foregroundStyle(ink) } }
             }.padding(.top, 28)
             HStack(alignment: .top, spacing: 22) {
@@ -355,12 +356,12 @@ struct ContentView: View {
                         Button("Stop agents") { store.stopSharedResearch(project.id) }.buttonStyle(.bordered).help("Stop the group before sending your draft")
                     } else if let running = store.sessions.first(where: { $0.projectID == store.selectedProjectID && store.runners[$0.id] != nil }) {
                         let id = running.id
-                        Button { store.stop(id) } label: { Image(systemName: "stop.fill").font(.system(size: 11)).frame(width: 31, height: 31).background(ink, in: Circle()).foregroundStyle(.white) }.buttonStyle(.plain).help("Stop this run").accessibilityLabel("Stop research")
+                        Button { store.stop(id) } label: { Image(systemName: "stop.fill").font(.system(size: 11)).frame(width: 31, height: 31).background(ink, in: Circle()).foregroundStyle(surface) }.buttonStyle(.plain).help("Stop this run").accessibilityLabel("Stop research")
                     } else {
-                        Button(action: sendComposer) { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : .white) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(!canSendComposer).help("Enter to send · Shift+Enter for a new line").accessibilityLabel("Send message")
+                        Button(action: sendComposer) { Image(systemName: "arrow.up").font(.system(size: 14, weight: .semibold)).frame(width: 31, height: 31).background(store.composer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray.opacity(0.2) : ink, in: Circle()).foregroundStyle(store.composer.isEmpty ? muted : surface) }.buttonStyle(.plain).keyboardShortcut(.return, modifiers: .command).disabled(!canSendComposer).help("Enter to send · Shift+Enter for a new line").accessibilityLabel("Send message")
                     }
                 }
-            }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.black.opacity(0.13), lineWidth: 1)).shadow(color: .black.opacity(0.035), radius: 10, y: 3)
+            }.padding(14).background(surface, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.primary.opacity(0.13), lineWidth: 1)).shadow(color: .black.opacity(0.035), radius: 10, y: 3)
             if composerBusy { Text("Stop research to send your draft.").font(.system(size: 11)).foregroundStyle(muted) }
             Text("\((composerRecipient?.provider ?? store.session?.provider ?? store.provider).title) · \(store.auth[composerRecipient?.provider ?? store.session?.provider ?? store.provider] ?? "Checking connection") · Uses your CLI’s configured model")
                 .font(.system(size: 10)).foregroundStyle(muted)

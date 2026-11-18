@@ -35,7 +35,7 @@ struct ProjectDashboardView: View {
     @State private var observed = false
     @State private var selectedDate: Date?
     @State private var showSourceStatus = false
-    private let tint = Color(red: 0.30, green: 0.34, blue: 0.78)
+    private let tint = Theme.accent
     private var groups: [DashboardGroup] { loader.data?.groups(for: project.repository) ?? [] }
     private var group: DashboardGroup? { groups.first { $0.id == groupID } ?? groups.first }
     private var history: DashboardHistory? { observed ? group?.observed : group?.reconstructed }
@@ -67,7 +67,7 @@ struct ProjectDashboardView: View {
                         Image(systemName: "chart.xyaxis.line").font(.system(size: 28)).foregroundStyle(.secondary)
                         Text(loader.error == nil ? "No chart published yet" : "Chart data is unavailable").font(.system(size: 17, weight: .medium))
                         Text(loader.error == nil ? "You can explore the repository before starting." : "Refresh to try again.").font(.system(size: 13)).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity, minHeight: 250).background(Color.black.opacity(0.025), in: RoundedRectangle(cornerRadius: 16))
+                    }.frame(maxWidth: .infinity, minHeight: 250).background(Color.primary.opacity(0.025), in: RoundedRectangle(cornerRadius: 16))
                 }
                 HStack(spacing: 8) {
                     Circle().fill(sourceError == nil ? Color.green : .orange).frame(width: 5, height: 5)
@@ -140,7 +140,7 @@ struct ProjectDashboardView: View {
                 .chartXSelection(value: $selectedDate)
                 .chartYScale(domain: .automatic(includesZero: false))
                 .chartYAxis { AxisMarks(position: .leading) { value in
-                    AxisGridLine().foregroundStyle(Color.black.opacity(0.06))
+                    AxisGridLine().foregroundStyle(Color.primary.opacity(0.06))
                     AxisValueLabel { if let value = value.as(Double.self) { Text(number(value)).font(.system(size: 10)).monospacedDigit() } }
                 } }
                 .chartXAxis { AxisMarks(values: .automatic(desiredCount: 4)) }
@@ -152,7 +152,7 @@ struct ProjectDashboardView: View {
                 if let selectedDate { Text(selectedDate, format: .dateTime.month(.abbreviated).day().hour().minute()) }
                 else { Text(observed ? "Observed claims" : "Claims · estimated timing") }
             }.font(.system(size: 10)).foregroundStyle(.secondary)
-        }.padding(22).background(Color.black.opacity(0.025), in: RoundedRectangle(cornerRadius: 16))
+        }.padding(22).background(Color.primary.opacity(0.025), in: RoundedRectangle(cornerRadius: 16))
         .onChange(of: observed) { _, _ in selectedDate = nil }
     }
     @ViewBuilder private var recentActivity: some View {

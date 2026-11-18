@@ -30,7 +30,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         WindowGroup("Auto Research", id: "main") {
             ContentView(store: store)
                 .frame(minWidth: 980, minHeight: 680)
-                .preferredColorScheme(.light)
                 .onAppear { delegate.store = store; NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true) }
                 .task { await store.start() }
         }

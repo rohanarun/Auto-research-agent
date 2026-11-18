@@ -19,7 +19,7 @@ struct BuiltinProjectView: View {
                         Text("Start with your own OKC account and accept the rules in Terminal. The agent checks current limits before experiments. Confirm your account, choose your budgets, then press Play to see the agent work in chat. Public scored submissions stay off unless you enable them.")
                     }.font(.system(size: 13)).lineSpacing(4)
                         .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.black.opacity(0.025), in: RoundedRectangle(cornerRadius: 14))
+                        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 14))
                     KernelSetupView(store: store, project: project, definition: definition).id(project.id)
                     HStack(spacing: 16) {
                         Link("Challenge & leaderboard", destination: definition.website)
@@ -39,7 +39,7 @@ struct BuiltinProjectView: View {
                                     Image(systemName: "arrow.up.right")
                                 }.font(.system(size: 13)).padding(14).contentShape(Rectangle())
                             }.buttonStyle(.plain)
-                                .background(Color.black.opacity(0.025), in: RoundedRectangle(cornerRadius: 10))
+                                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10))
                         }
                     }
                     DisclosureGroup("Bundled research guide", isExpanded: $showingGuide) {
@@ -168,7 +168,7 @@ private struct KernelSetupView: View {
         }
         .textFieldStyle(.roundedBorder)
         .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.black.opacity(0.025), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 14))
         .sheet(isPresented: $showingPreview) {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Review your kernel request").font(.title2.bold())
