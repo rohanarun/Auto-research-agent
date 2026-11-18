@@ -1,0 +1,44 @@
+name: GA script
+
+on:
+  push:
+    paths:
+      - "benchmarks/ga/**"
+      - "benchmarks/tests/test_ga_*.py"
+      - "benchmarks/tools/run_ga.py"
+      - ".github/workflows/ga-script.yml"
+  pull_request:
+    paths:
+      - "benchmarks/ga/**"
+      - "benchmarks/tests/test_ga_*.py"
+      - "benchmarks/tools/run_ga.py"
+      - ".github/workflows/ga-script.yml"
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run GA unit tests
+        run: python -m unittest discover -s benchmarks/tests -p "test_ga_*.py" -v
+      - name: Run synthetic CPU demo
+        run: >-
+          python benchmarks/tools/run_ga.py demo
+          --fresh
+          --state "${{ runner.temp }}/ga/state.json"
+          --cells 2
+          --generations 2
+          --per-round 10
+          --race-rounds 2
+          --mutation-blocks 10
+          --confirm-blocks 20
+          --quiet

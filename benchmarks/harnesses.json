@@ -16,5 +16,11 @@
     "context": "Full prior action/observation transcript",
     "execution": "Linux namespace broker (uid 65534; private mount/net/pid/ipc/uts namespaces; workspace-only writes; no network)",
     "initial_comparison": false
+  },
+  "ga-racing-v1": {
+    "inference": "No model calls; deterministic per-cell racing GA with fresh-input confirmation",
+    "context": "Per-cell gene registry and JSON state; no conversation transcript",
+    "execution": "Adapter-supplied paired timings; bundled synthetic demo is CPU-only and produces no performance claim",
+    "initial_comparison": false
   }
 }

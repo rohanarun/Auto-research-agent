@@ -32,6 +32,24 @@ The published comparison includes **GPT-6.1 Sol, GPT-6 Astra, GPT-5.6 Sol**, **G
 
 [Full results and charts](benchmarks/RESULTS.md) · [Run your own model or harness](benchmarks/README.md#setup) · [Protocol and limitations](benchmarks/PROTOCOL.md) · [Source data](benchmarks/data/results.json)
 
+## Portable genetic optimizer
+
+The benchmark folder includes a script-first port of our per-cell racing GA.
+It makes no model calls and needs no Mac app, account, API key or GPU for its
+local tests. The engine is standard-library Python; a target adapter supplies
+the real cells, genes and paired timings.
+
+```sh
+python3 benchmarks/tools/run_ga.py demo --fresh
+python3 -m unittest discover -s benchmarks/tests -p 'test_ga_*.py' -v
+```
+
+The bundled demo uses synthetic timings and is not a performance claim. No
+agent traces, transcripts or benchmark data are included; adapters and cells
+are supplied by the person running it. See
+[benchmarks/ga/README.md](benchmarks/ga/README.md) for the adapter protocol,
+command adapter, state recovery and the exact confirmation gates.
+
 ## Built-in MUSE kernel projects
 
 The source build includes all five [MUSE kernel challenges](https://openkernelchallenge.dev/) alongside the GitHub catalog. They remain available when the catalog is offline:

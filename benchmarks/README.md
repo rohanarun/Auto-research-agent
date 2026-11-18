@@ -40,6 +40,36 @@ Use `codex-cli-notebook-broker-v1` for the last-eight-actions plus contestant no
 
 For integer admission, run `python3.12 tools/replay_reference.py` once in the curator workspace, then `python3.12 tools/adjudicate_integer.py`. The specialized admission route checks exact equivalence to the independently replayed reference; genuinely different constructions need their own full independent replay. Quasi-RH certificates can be checked with `python3.12 tools/adjudicate_quasi.py`.
 
+## Genetic kernel optimizer (optional, no model calls)
+
+The repository also includes a portable port of the Open Kernel Challenge
+per-cell racing GA. It is a deterministic search loop, not a model harness: no
+inference account, API key or GPU is needed to run its local tests and synthetic
+demo. The engine is standard-library Python and works on macOS, Linux and
+Windows; a target adapter supplies the actual cells, genes and paired timings.
+
+```sh
+python3 benchmarks/tools/run_ga.py demo --fresh
+python3 -m unittest discover -s benchmarks/tests -p 'test_ga_*.py' -v
+```
+
+The demo's timings are synthetic and are not performance results. No agent
+traces, transcripts or benchmark data are included; adapters and cells come from
+a public baseline or a new target chosen by the person running it. To optimize a
+real kernel, implement the adapter protocol or use the JSON command adapter.
+
+```sh
+python3 benchmarks/tools/run_ga.py run --config ga.json --state tmp/ga/state.json
+```
+
+The state file records the generation, per-cell champion, blacklist and
+pending gene; `--restarts N` blacklists a sticky gene and resumes in a fresh
+process. See [ga/README.md](ga/README.md) for the protocol, mutation gates and
+state schema. The harness identifier is `ga-racing-v1` in
+[harnesses.json](harnesses.json). A local confirmed improvement still requires
+the independent held-out evaluation and source audit above before it is a
+submission or a performance claim.
+
 ## H200 runs
 
 Set your own `DAYTONA_API_KEY` securely on the trusted host. Never put it in a prompt, actor environment, Git file or kernel bundle. The provider adapter allocates one fresh private H200 only when a GPU job is ready, blocks all egress, exports the result, and deletes the lease when the queue empties. Deletion is checked. A five-minute idle stop and deletion-on-stop are additional fallbacks. Availability, compilation and provisioning failures are infrastructure failures.
