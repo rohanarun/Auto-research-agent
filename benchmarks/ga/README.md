@@ -403,7 +403,10 @@ python3 -m benchmarks.ga recover --state tmp/ga/state.json
 
 ## Tests
 
-The GA tests are CPU-only and do not require the app, a model or a GPU:
+The core tests require no app, model or GPU.  The Torch adapter tests run when
+PyTorch and a CUDA/MPS device are available and skip otherwise.  The Daytona
+tests use a fake lease and job runner, never read `DAYTONA_API_KEY` and never
+contact the provider:
 
 ```sh
 python3 -m unittest discover -s benchmarks/tests -p 'test_ga_*.py' -v
