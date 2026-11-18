@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Auto Research</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='5' fill='%234d57c7'/%3E%3Ccircle cx='12' cy='4.5' r='2.4' fill='%234d57c7'/%3E%3Ccircle cx='12' cy='19.5' r='2.4' fill='%234d57c7'/%3E%3Ccircle cx='4.2' cy='12' r='2.4' fill='%234d57c7'/%3E%3Ccircle cx='19.8' cy='12' r='2.4' fill='%234d57c7'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar" aria-label="Projects sidebar">
+    <div class="side-top">
+      <div class="brand">
+        <span class="brand-logo" aria-hidden="true"><span data-icon="logo" data-size="23"></span></span>
+        <span class="brand-title">Auto Research</span>
+        <button class="icon-btn" id="sideNewChat" aria-label="New chat" data-help="New chat (⌘N)"><span data-icon="edit" data-size="15"></span></button>
+      </div>
+      <div class="search">
+        <span class="search-glass" aria-hidden="true"><span data-icon="search" data-size="13"></span></span>
+        <input id="searchInput" type="text" placeholder="Find a project" aria-label="Find a project" autocomplete="off" spellcheck="false">
+        <button class="search-clear" id="searchClear" aria-label="Clear search" hidden><span data-icon="xcirclefill" data-size="14"></span></button>
+      </div>
+      <div class="side-heading">
+        <span class="side-heading-label">Open research</span>
+        <span class="side-heading-actions">
+          <button class="icon-btn" id="refreshBtn" aria-label="Refresh live catalog" data-help="Refresh live catalog"><span data-icon="refresh" data-size="14"></span></button>
+          <button class="icon-btn" id="addBtn" aria-label="Add a project" data-help="Add a project"><span data-icon="plus" data-size="15"></span></button>
+        </span>
+      </div>
+    </div>
+    <div class="side-list" id="sideList"><!-- rendered --></div>
+    <div class="side-footer">
+      <div class="catalog-status" id="catalogStatus"></div>
+      <button class="footer-row" id="settingsBtn" aria-label="Connections &amp; settings">
+        <span data-icon="sliders" data-size="15"></span>
+        <span class="footer-row-label">Connections &amp; settings</span>
+        <span class="spacer"></span>
+        <span class="dot dot-6" id="footerDot"></span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="hairline" aria-hidden="true"></div>
+
+  <div class="main-col">
+    <header class="header" id="header"><!-- rendered --></header>
+    <div class="main-body" id="mainBody"><!-- rendered --></div>
+  </div>
+
+</div>
+
+<div id="sheetHost"></div>
+<div id="menuHost"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

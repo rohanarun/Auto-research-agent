@@ -256,6 +256,33 @@ prevent causal speedup claims.
 ![Fast sharing versus independent agents](docs/benchmarks/2026-10-15/timing-comparison.png)
 ![Daytona versus historical Mac controls](docs/benchmarks/2026-10-15/daytona-versus-historical-mac.png)
 
+## Windows, Linux and the live dashboard
+
+The native app is macOS only. The repository also ships a **cross-platform
+web edition** that runs the same harness — same provider CLI invocations,
+same `Runtime/` workspace layout, interchangeable chats — and serves its
+dashboard UI in the browser, reachable from other devices on your network
+(including a Tailscale tailnet):
+
+```
+python scripts/setup_webapp.py
+python -m webapp.server --access lan
+```
+
+See [docs/windows.md](docs/windows.md) for the Windows install and the
+Tailscale dashboard guide, including the built-in kernel setup form, the
+policy/instruction/project editors, parallel agents with per-agent checkouts,
+and signing in from a remote device. On Windows,
+`powershell -NoProfile -ExecutionPolicy Bypass -File launcher\build.ps1`
+packages the same dashboard as a double-click desktop app
+(`dist\AutoResearch\AutoResearch.exe`); see [the Windows app
+section](docs/windows.md#the-windows-app-exe). Its Python test suite runs
+alongside the others:
+
+```
+python3 -B -m unittest discover -s scripts -p 'test_*.py'
+```
+
 ## Build from source
 
 Requirements: macOS 14 or newer, Xcode with its Swift toolchain, Python 3, Git, and, for local execution, at least one installed CLI: [Codex](https://developers.openai.com/codex/cli), [Claude Code](https://code.claude.com/docs/en/overview), [OpenCode](https://opencode.ai/docs) or [Antigravity](https://antigravity.google/docs/cli/reference) (`agy`). The current workflow requires a mounted, writable external volume outside iCloud-synced folders. The first build fetches the public catalog over HTTPS.
