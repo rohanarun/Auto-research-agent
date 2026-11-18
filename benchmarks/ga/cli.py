@@ -3,6 +3,7 @@
 Examples::
 
     python3 -m benchmarks.ga demo
+    python3 -m benchmarks.ga gpu-demo --device auto
     python3 -m benchmarks.ga run --config ga.json --state tmp/ga/state.json
     python3 -m benchmarks.ga run --adapter my_adapter:make_adapter --state tmp/ga/state.json
     python3 -m benchmarks.ga status --state tmp/ga/state.json
@@ -191,6 +192,85 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_gpu_demo(args: argparse.Namespace) -> int:
+    from .torch_gpu import TorchGPUAdapter
+
+    state_path = Path(args.state).expanduser() if args.state else Path.cwd() / "tmp" / "ga-gpu" / "state.json"
+    if args.fresh:
+        for suffix in ("", ".tmp"):
+            try:
+                Path(str(state_path) + suffix).unlink()
+            except FileNotFoundError:
+                pass
+    try:
+        adapter = TorchGPUAdapter(
+            device=args.device,
+            dtype=args.dtype,
+            cells=args.cells,
+            seed=args.seed,
+            replays=args.replays,
+            warmup=args.warmup,
+            flush_mb=args.flush_mb,
+        )
+    except RuntimeError as exc:
+        print("error: %s" % exc, file=sys.stderr)
+        return 2
+    info = adapter.info()
+    if info["is_gpu"]:
+        print(
+            "Real GPU timing on %s (%s, %s); these are measured torch calls, not synthetic costs."
+            % (info["device_name"], info["device"], info["dtype"]),
+            flush=True,
+        )
+    else:
+        print(
+            "CPU fallback on %s (%s); this is real timing but it is not GPU execution."
+            % (info["device_name"], info["dtype"]),
+            flush=True,
+        )
+    print("Torch %s; replays %d per block; state %s" % (info["torch"], info["replays"], state_path), flush=True)
+    state = GAState.load(state_path)
+    started = time.monotonic()
+
+    def log(message: str) -> None:
+        if not args.quiet:
+            print("[ga %6.1fs] %s" % (time.monotonic() - started, message), flush=True)
+
+    engine = GeneticOptimizer(
+        adapter,
+        state,
+        seed=args.seed,
+        baseline_name="t10",
+        per_round=args.per_round,
+        race_rounds=args.race_rounds,
+        mutation_blocks=args.mutation_blocks,
+        mutation_attempts=args.mutation_attempts,
+        confirm_blocks=args.confirm_blocks,
+        det_only=args.det_only,
+        rerace=args.rerace,
+        seconds=None if args.seconds <= 0 else args.seconds,
+        sleep_when_idle=0.0,
+        log=log,
+    )
+    try:
+        engine.run(generations=args.generations)
+    finally:
+        adapter.close()
+    summary = _summary(state, len(engine.cells))
+    summary["adapter"] = info
+    _write_json(state_path.parent / "summary.json", summary)
+    if args.json:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+    else:
+        _print_summary(summary)
+    print(
+        "Local GPU demo complete. This is a microbenchmark of torch calls on this machine, "
+        "not the official H200 judge or a leaderboard result.",
+        flush=True,
+    )
+    return 0
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     if bool(args.config) == bool(args.adapter):
         print("error: pass exactly one of --config or --adapter", file=sys.stderr)
@@ -307,6 +387,32 @@ def build_parser() -> argparse.ArgumentParser:
     demo.add_argument("--quiet", action="store_true")
     demo.add_argument("--json", action="store_true")
     demo.set_defaults(func=_cmd_demo)
+
+    gpu = subparsers.add_parser(
+        "gpu-demo",
+        help="run real paired timings on a local CUDA or Apple MPS device",
+    )
+    gpu.add_argument("--state", default=None, help="state path (default: ./tmp/ga-gpu/state.json)")
+    gpu.add_argument("--fresh", action="store_true", help="delete an existing GPU demo state first")
+    gpu.add_argument("--device", choices=("auto", "cuda", "mps", "cpu"), default="auto")
+    gpu.add_argument("--dtype", choices=("auto", "float16", "bfloat16", "float32"), default="auto")
+    gpu.add_argument("--cells", type=int, default=3)
+    gpu.add_argument("--generations", type=int, default=2)
+    gpu.add_argument("--seconds", type=float, default=120.0, help="wall-clock budget (0 means no budget)")
+    gpu.add_argument("--seed", type=int, default=7)
+    gpu.add_argument("--replays", type=int, default=50, help="kernel calls inside each timed block")
+    gpu.add_argument("--warmup", type=int, default=5)
+    gpu.add_argument("--flush-mb", type=int, default=32, help="cache-flush buffer size in MiB")
+    gpu.add_argument("--per-round", type=int, default=8)
+    gpu.add_argument("--race-rounds", type=int, default=4)
+    gpu.add_argument("--mutation-attempts", type=int, default=3)
+    gpu.add_argument("--mutation-blocks", type=int, default=8)
+    gpu.add_argument("--confirm-blocks", type=int, default=12)
+    gpu.add_argument("--det-only", action="store_true")
+    gpu.add_argument("--rerace", action="store_true")
+    gpu.add_argument("--quiet", action="store_true")
+    gpu.add_argument("--json", action="store_true")
+    gpu.set_defaults(func=_cmd_gpu_demo)
 
     run = subparsers.add_parser("run", help="run against a target adapter")
     run.add_argument("--config", help="JSON config for the command adapter")

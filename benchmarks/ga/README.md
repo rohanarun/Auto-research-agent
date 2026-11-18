@@ -16,6 +16,14 @@ traces, transcripts, benchmark results, model weights or private datasets.
 Adapters and cells are supplied by the person running it, from a public baseline
 or from a new target they choose.
 
+![Kernel boards from the target kernel workflow, showing one board per kernel and a control-file gain chart](../../docs/images/ga-kernel-boards.jpeg)
+
+The screenshot above is the production **Kernel boards** view the port is based
+on: one board per kernel, each board racing candidate files against a shared
+control file on a single GPU box, with the bottom chart tracking confirmed
+control-file gains over time.  It is illustrative of the workflow, not output
+from this portable engine; the local demo's timings are synthetic.
+
 ## Quick start (macOS, Linux or Windows)
 
 Python 3.9 or newer is enough for the demo:
@@ -162,6 +170,151 @@ For an in-process CUDA graph adapter, import Torch inside the adapter and keep
 the graph handles there.  For a stateless remote evaluator, the JSON command
 adapter below is usually simpler.
 
+## Bundled GPU adapters
+
+The engine itself stays dependency-free.  Two optional adapters run real
+measurements: `torch_gpu.py` on a local CUDA or Apple MPS device, and
+`daytona.py` through the repository's existing H200 harness.
+
+### Local CUDA / Apple MPS demo
+
+`torch_gpu.py` imports PyTorch only when the adapter is constructed.  It runs
+real paired timings, checks the candidate output against the baseline, flushes
+caches outside the timed region, and randomises which implementation is timed
+first.  The default target includes batched GEMMs whose baseline is a Python
+loop of `torch.mm` calls; `torch.bmm` and `torch.matmul` are real candidate
+implementations, not simulated costs.
+
+```sh
+# Install a CUDA or Apple MPS build of PyTorch first.
+python3 benchmarks/tools/run_ga.py gpu-demo \
+  --fresh --device auto --cells 3 --generations 2 \
+  --replays 50 --warmup 5 --flush-mb 32
+```
+
+Useful options:
+
+| Option | Meaning |
+|---|---|
+| `--device auto|cuda|mps|cpu` | `auto` requires a GPU; `cpu` is an explicit, labelled fallback |
+| `--dtype auto|float16|bfloat16|float32` | `auto` picks a dtype supported by the device |
+| `--replays N` | Kernel calls inside each timed block |
+| `--warmup N` | Warmup calls before timing |
+| `--flush-mb N` | Cache-flush buffer in MiB, zeroed outside the timed region |
+| `--per-round`, `--race-rounds`, `--mutation-blocks`, `--confirm-blocks` | GA measurement budget |
+
+The run writes `tmp/ga-gpu/state.json` and `tmp/ga-gpu/summary.json`.  It prints
+the measured device, dtype and gain.  This is a real microbenchmark of local
+PyTorch calls, **not** the official H200 judge and not a leaderboard result.
+
+### Daytona H200 adapter
+
+`daytona.py` maps the public benchmark cases in
+`benchmarks/gpu/specs/<problem>.json` to GA cells and maps candidate source
+files to genes.  The first candidate is the initial gene; each later candidate
+is a mutant.  One measured gene/case pair is one job on the existing harness:
+
+* `benchmarks/gpu/dispatcher.py` creates or attaches to a lease;
+* `benchmarks/gpu/session.py` uploads one candidate and the public judge files;
+* `benchmarks/gpu/judge.py` checks correctness and produces paired CUDA-graph
+  timings against the official `baseline.py` from the same job.
+
+The candidate must be a UTF-8 Python file that defines `kernel_fn`.  A
+20-line adapter file is enough:
+
+```python
+from benchmarks.ga.daytona import DaytonaAdapter
+
+
+def make_adapter():
+    return DaytonaAdapter(
+        problem="muse_bf16_proj",
+        candidates=["./candidate_a.py", "./candidate_b.py"],
+        cases=[0, 1],
+        rounds=4,
+        seconds=900,
+    )
+```
+
+```sh
+DAYTONA_API_KEY=... python3 benchmarks/tools/run_ga.py run \
+  --adapter ./my_daytona_adapter.py:make_adapter \
+  --state tmp/ga-daytona/state.json \
+  --per-round 4 --mutation-blocks 4 --confirm-blocks 6
+```
+
+The same adapter can be configured without a Python factory.  Candidate paths
+are separated by the platform path separator (`:` on macOS/Linux, `;` on
+Windows):
+
+```sh
+export GA_DAYTONA_CANDIDATES="./candidate_a.py:./candidate_b.py"
+export GA_DAYTONA_CASES="0,1"
+export GA_DAYTONA_ROUNDS=4
+python3 benchmarks/tools/run_ga.py run \
+  --adapter benchmarks.ga.daytona:make_adapter_from_env \
+  --state tmp/ga-daytona/state.json
+```
+
+#### Reuse an existing box or an existing snapshot
+
+The normal lease builds the pinned SGLang H200 image.  Some images have more
+than 69 layers and cannot be snapshotted, so the adapter also accepts an
+existing sandbox or a GPU snapshot:
+
+```python
+# Restart an existing box, then stop it when the run ends.
+DaytonaAdapter(..., sandbox_id="<sandbox-id>")
+
+# Create from a snapshot UUID (or exact name), then delete it when the run ends.
+DaytonaAdapter(..., snapshot="<snapshot-uuid>")
+
+# Keep a reused box running after the run (the default is to stop it).
+DaytonaAdapter(..., sandbox_id="<sandbox-id>", close_action="leave")
+```
+
+Environment equivalents are `GA_DAYTONA_SANDBOX_ID` and
+`GA_DAYTONA_SNAPSHOT` (mutually exclusive).  `GA_DAYTONA_CLOSE_ACTION` accepts
+`delete`, `stop` or `leave`; the default is `delete` for a snapshot box and
+`stop` for an attached box.  `GA_DAYTONA_EXPECTED_GPU` overrides the GPU type
+check (for example `H200` or `RTX-4090`); otherwise the snapshot or sandbox
+metadata is used.
+
+The lease starts a stopped box, verifies `nvidia-smi`, checks that the GPU
+matches the expected type, and records whether networking is blocked.  It
+refuses a box with networking enabled unless `require_network_block=False` (or
+`GA_DAYTONA_ALLOW_NETWORK=1`) is set explicitly.  A snapshot is activated first
+if it is inactive.  Snapshot creation deliberately sends **no** explicit
+CPU/GPU/memory/disk resources, because Daytona rejects resources on a
+snapshot-backed sandbox.
+
+The bundled `session.run_job` requires root (`uid 0`) because it creates a
+dedicated unprivileged contestant UID and chowns the job directory.  The lease
+probes this and fails early with a clear message instead of discovering it
+mid-run.  The official `muse_bf16_proj` baseline also imports SGLang, so the
+chosen image or snapshot must contain the matching SGLang build and PyTorch
+stack; a stock PyTorch snapshot is suitable for a transport smoke test, not for
+an official benchmark claim.
+
+#### Cost, isolation and credentials
+
+* Start with one case and one or two candidates.  Each gene/case pair is a
+  separate GPU job; `rounds` multiplies the work inside that job.
+* The lease owns the box: `close()` deletes a snapshot-created box or stops an
+  attached box even when a job raises.  `close_action="leave"` is the explicit
+  opt-out.
+* Keep `--seconds` bounded and run one box at a time.  A stopped box can be
+  restarted for a later run.
+* The sandbox has networking blocked and the candidate runs as an unprivileged
+  UID with the repository's offline and Landlock guards.
+* `DAYTONA_API_KEY` must be in the environment of the GA process only.  Never
+  put it in an adapter file, a JSON config, a command line, a candidate file, a
+  bundle or a committed result directory.  The adapter reads no credential;
+  `benchmarks/gpu/daytona_control.py` reads the key only when making a request.
+* The state and result directories may contain candidate sources and timing
+  observations.  Keep them private unless you have deliberately reviewed what
+  you are publishing.
+
 ## Command adapter (no Python adapter needed)
 
 `benchmarks/ga/command.py` runs a user-supplied executable for each operation.
@@ -250,7 +403,10 @@ python3 -m benchmarks.ga recover --state tmp/ga/state.json
 
 ## Tests
 
-The GA tests are CPU-only and do not require the app, a model or a GPU:
+The core tests require no app, model or GPU.  The Torch adapter tests run when
+PyTorch and a CUDA/MPS device are available and skip otherwise.  The Daytona
+tests use a fake lease and job runner, never read `DAYTONA_API_KEY` and never
+contact the provider:
 
 ```sh
 python3 -m unittest discover -s benchmarks/tests -p 'test_ga_*.py' -v

@@ -62,6 +62,43 @@ real kernel, implement the adapter protocol or use the JSON command adapter.
 python3 benchmarks/tools/run_ga.py run --config ga.json --state tmp/ga/state.json
 ```
 
+For real local measurements, install PyTorch and run the bundled CUDA/Apple MPS
+adapter:
+
+```sh
+python3 benchmarks/tools/run_ga.py gpu-demo \
+  --fresh --device auto --cells 3 --generations 2 \
+  --replays 50 --warmup 5 --flush-mb 32
+```
+
+It times actual `torch.mm`/`torch.bmm` calls, checks candidate correctness and
+flushes caches outside the timed region. `--device cpu` is an explicit,
+labelled fallback. The result is a local microbenchmark, not the official H200
+judge.
+
+The optional Daytona adapter submits real candidate files to the existing
+private H200 harness. It maps public benchmark cases to cells and candidate
+files to genes, and uses the judge's same-job baseline series for the paired
+confirmation:
+
+```sh
+export GA_DAYTONA_CANDIDATES="./candidate_a.py:./candidate_b.py"
+export GA_DAYTONA_CASES="0,1"
+DAYTONA_API_KEY=... python3 benchmarks/tools/run_ga.py run \
+  --adapter benchmarks.ga.daytona:make_adapter_from_env \
+  --state tmp/ga-daytona/state.json
+```
+
+To avoid rebuilding an image that cannot be snapshotted, set
+`GA_DAYTONA_SANDBOX_ID` to restart an existing box (it is stopped on close), or
+`GA_DAYTONA_SNAPSHOT` to create from a snapshot UUID/name (it is deleted on
+close). `GA_DAYTONA_CLOSE_ACTION=leave` keeps a reused box running. The bundled
+`run_job` requires root in the box and a network-blocked sandbox; the official
+`muse_bf16_proj` baseline requires the matching SGLang build. Never put the API
+key in a file, candidate, adapter, command line or bundle. See
+[ga/README.md](ga/README.md) for the full adapter contract, cost limits and
+credential rules.
+
 The state file records the generation, per-cell champion, blacklist and
 pending gene; `--restarts N` blacklists a sticky gene and resumes in a fresh
 process. See [ga/README.md](ga/README.md) for the protocol, mutation gates and
