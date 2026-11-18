@@ -44,11 +44,38 @@ python3 benchmarks/tools/run_ga.py demo --fresh
 python3 -m unittest discover -s benchmarks/tests -p 'test_ga_*.py' -v
 ```
 
-The bundled demo uses synthetic timings and is not a performance claim. No
-agent traces, transcripts or benchmark data are included; adapters and cells
-are supplied by the person running it. See
-[benchmarks/ga/README.md](benchmarks/ga/README.md) for the adapter protocol,
-command adapter, state recovery and the exact confirmation gates.
+![Kernel boards from the target kernel workflow, showing one board per kernel and a control-file gain chart](docs/images/ga-kernel-boards.jpeg)
+
+The screenshot shows the production **Kernel boards** workflow the port is
+based on: one board per kernel racing candidate files against a shared control
+file on a GPU box. It is illustrative, not output from this portable engine.
+
+The bundled demo uses synthetic timings and is not a performance claim. For
+real local measurements, install PyTorch and run the CUDA/Apple MPS adapter:
+
+```sh
+python3 benchmarks/tools/run_ga.py gpu-demo \
+  --fresh --device auto --cells 3 --generations 2
+```
+
+The optional Daytona adapter uses the repository's existing H200 harness to
+evaluate real candidate files. It can restart an existing sandbox or create one
+from a GPU snapshot, which avoids rebuilding images that cannot be snapshotted:
+
+```sh
+export GA_DAYTONA_CANDIDATES="./candidate_a.py:./candidate_b.py"
+export GA_DAYTONA_CASES="0,1"
+DAYTONA_API_KEY=... python3 benchmarks/tools/run_ga.py run \
+  --adapter benchmarks.ga.daytona:make_adapter_from_env \
+  --state tmp/ga-daytona/state.json
+```
+
+No agent traces, transcripts or benchmark data are included; adapters and cells
+are supplied by the person running it. Never put the API key in a file, adapter,
+candidate or command line. See
+[benchmarks/ga/README.md](benchmarks/ga/README.md) for the full adapter
+protocol, snapshot/sandbox reuse, cost limits, credential rules, command
+adapter, state recovery and the exact confirmation gates.
 
 ## Built-in MUSE kernel projects
 
