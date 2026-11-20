@@ -22,15 +22,15 @@ Requires macOS 14 or newer. The app and disk image are Developer ID signed and A
 
 The [benchmark suite](benchmarks/README.md) rewinds open research projects to pinned earlier snapshots and measures whether an offline agent recovers our next improvement within 30 minutes. It includes integer multiplication, all five MUSE kernels, and four additional mathematical tasks, with setup, an isolated command harness, model/API adapters, sealed submissions, scores and reproducible chart code.
 
-The published comparison includes **GPT-6.1 Sol, GPT-6 Astra, GPT-5.6 Sol**, **Gemini 3.8 Flash (OpenCode)**, and **Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5** (Claude CLI on a Linux broker, a separate harness version). Kernel progress means a correct, source-compliant measured speedup **strictly greater than 1.01× over baseline**. The charts show published speedups, timing uncertainty, and research time to the exact evaluated source. These are single-trial observations under the local H200 protocol, not official leaderboard scores or an established model ranking. See the full results for cohort differences, conditional mathematical claims, and pending reviews.
+GPT-6.2 Astra and GPT-6.2 Sol reached all five mathematical targets under the frozen tasks’ stated assumptions. The math chart compares their times with GPT-6.1 Sol, GPT-6 Astra, and GPT-5.6 Sol. Van der Waerden and Sidorenko cells also show the coefficient or residual constant each model submitted.
 
-![Research progress by task and model, including Gemini 3.8 Flash through OpenCode and the Claude 5.5 models, with measured speedups and research times](benchmarks/charts/recovery-matrix.png)
+![Five-model math comparison across integer multiplication, Quasi-RH, unit distance, Van der Waerden, and Sidorenko](benchmarks/charts/math-five-models.png)
 
-![Kernel speedups versus baseline for all published models, with timing uncertainty and the 1.01x cutoff](benchmarks/charts/kernel-performance.png)
+The full comparison also includes Gemini 3.8 Flash (OpenCode) and Claude Opus 5.5, Sonnet 5.5, and Haiku 5.5 (Claude CLI on a Linux broker). A kernel passes when a correct, source-compliant submission measures strictly above 1.01× baseline speed on the local H200 judge. Both 6.2 models submitted all five kernels on CPU. Their H200 speedups remain unmeasured. The comparison shows individual trials across different harnesses.
 
-![Integer multiplication time to an admitted conditional finite witness for all published models](benchmarks/charts/integer-recovery.png)
+![Math outcomes and MUSE kernel speedups for nine models, with unmeasured H200 results marked explicitly](benchmarks/charts/astra62-comparison.png)
 
-[Full results and charts](benchmarks/RESULTS.md) · [Run your own model or harness](benchmarks/README.md#setup) · [Protocol and limitations](benchmarks/PROTOCOL.md) · [Source data](benchmarks/data/results.json)
+[Full results and charts](benchmarks/RESULTS.md) · [Run your own model or harness](benchmarks/README.md#setup) · [Protocol and limitations](benchmarks/PROTOCOL.md) · [Historical cohort data](benchmarks/data/results.json)
 
 ## Portable genetic optimizer
 
